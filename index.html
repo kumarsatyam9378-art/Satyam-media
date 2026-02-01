@@ -48,7 +48,7 @@
         .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="bg-neutral-950 text-white">
+<body class="bg-neutral-950 text-white selection:bg-purple-500/30 selection:text-white">
 
     <!-- Lightweight Noise Overlay -->
     <div class="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
@@ -56,13 +56,17 @@
     </div>
 
     <!-- Navigation (Mobile First) -->
-    <nav id="navbar" class="fixed w-full z-40 transition-all duration-300 bg-black/90 backdrop-blur-md border-b border-white/5 py-4 top-0">
+    <nav id="navbar" class="fixed w-full z-40 transition-all duration-300 bg-transparent py-8 top-0">
         <div class="container mx-auto px-6 flex justify-between items-center">
-            <div class="text-lg font-serif font-bold tracking-widest text-white" onclick="window.scrollTo(0, 0)">
+            <div class="text-lg font-serif font-bold tracking-widest text-white cursor-pointer" onclick="window.scrollTo(0, 0)">
                 MIDNIGHT.
             </div>
-            <!-- Simple Mobile Menu Icon (Visual Only) -->
-            <button class="text-white/80"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white transition-colors">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                </button>
+                <button class="text-white/80"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            </div>
         </div>
     </nav>
 
@@ -77,9 +81,12 @@
             <p class="text-sm md:text-base text-gray-400 font-light tracking-wide max-w-sm mx-auto leading-relaxed">
                 A digital sanctuary for silence, stories, and raw emotions.
             </p>
-            <div class="pt-8">
+            <div class="pt-8 flex flex-col md:flex-row gap-4 justify-center items-center">
                 <button onclick="scrollToSection('books')" class="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full shadow-lg shadow-purple-900/20 active:scale-95 transition-transform">
                     Enter Library
+                </button>
+                <button onclick="scrollToSection('visuals')" class="px-8 py-3 border border-white/20 text-white font-bold uppercase tracking-widest text-xs rounded-full hover:bg-white/5 active:scale-95 transition-transform">
+                    View Gallery
                 </button>
             </div>
         </div>
@@ -104,10 +111,10 @@
                 <h2 class="text-2xl font-serif text-white">Cinema & Art</h2>
                 
                 <!-- Simple Filters -->
-                <div class="flex gap-2 p-1 bg-white/5 rounded-full">
-                    <button onclick="filterGallery('all')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold bg-white text-black" data-type="all">All</button>
-                    <button onclick="filterGallery('video')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400" data-type="video">Videos</button>
-                    <button onclick="filterGallery('image')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400" data-type="image">Images</button>
+                <div class="flex gap-2 p-1 bg-white/5 rounded-full backdrop-blur-sm">
+                    <button onclick="filterGallery('all')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold bg-white text-black transition-all" data-type="all">All</button>
+                    <button onclick="filterGallery('video')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400 hover:text-white transition-all" data-type="video">Videos</button>
+                    <button onclick="filterGallery('image')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400 hover:text-white transition-all" data-type="image">Images</button>
                 </div>
             </div>
 
@@ -117,7 +124,7 @@
             </div>
 
             <div class="mt-16 text-center">
-                <button id="loadMoreBtn" onclick="loadMoreMedia()" class="px-8 py-3 border border-white/10 text-gray-300 active:bg-white/10 transition-all rounded-full uppercase tracking-widest text-xs font-bold flex items-center gap-2 mx-auto">
+                <button id="loadMoreBtn" onclick="loadMoreMedia()" class="px-8 py-3 border border-white/10 text-gray-300 hover:bg-white/5 hover:text-white active:bg-white/10 transition-all rounded-full uppercase tracking-widest text-xs font-bold flex items-center gap-2 mx-auto">
                     Load More <span id="remainingCount" class="opacity-50 text-[9px]">(Loading...)</span>
                 </button>
             </div>
@@ -144,7 +151,7 @@
     <div id="bookModal" class="hidden fixed inset-0 z-[100] bg-black flex flex-col animate-fade-in">
         <div class="flex justify-between items-center p-4 border-b border-white/10 bg-neutral-900">
             <span class="text-xs uppercase tracking-widest font-bold text-gray-400">Reading Mode</span>
-            <button onclick="closeBookModal()" class="text-white p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <button onclick="closeBookModal()" class="text-white p-2 hover:bg-white/10 rounded-full"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
         <div class="flex-1 relative bg-black">
             <iframe id="bookIframe" src="" class="w-full h-full border-none" allow="autoplay"></iframe>
@@ -153,23 +160,57 @@
 
     <!-- Media Lightbox (Simple) -->
     <div id="lightbox" class="hidden fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-2 animate-fade-in">
-        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white z-[110] bg-black/50 rounded-full p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white z-[110] bg-black/50 hover:bg-white/20 rounded-full p-2 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
         
         <!-- Content Container -->
-        <div id="lightboxContent" class="w-full max-w-4xl aspect-square md:aspect-video flex items-center justify-center bg-black rounded-lg overflow-hidden relative border border-white/10">
+        <div id="lightboxContent" class="w-full max-w-4xl aspect-square md:aspect-video flex items-center justify-center bg-black rounded-lg overflow-hidden relative border border-white/10 shadow-2xl">
             <!-- Media injected here -->
         </div>
 
         <!-- Mobile Navigation Controls -->
         <div class="absolute bottom-10 flex gap-6 z-[110]">
-            <button onclick="prevMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-            <button onclick="nextMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+            <button onclick="prevMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20 hover:bg-white/20 transition-all backdrop-blur-md"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+            <button onclick="nextMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20 hover:bg-white/20 transition-all backdrop-blur-md"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+        </div>
+    </div>
+
+    <!-- Chat Modal (Restored) -->
+    <div id="chatModal" class="hidden fixed bottom-4 right-4 z-[90] w-[90vw] md:w-96 h-[500px] bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col animate-fade-in overflow-hidden">
+        <!-- Header -->
+        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/40">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-xs font-bold uppercase tracking-widest text-gray-300">Midnight AI</span>
+            </div>
+            <button onclick="toggleChat()" class="text-gray-400 hover:text-white"><i data-lucide="minus" class="w-4 h-4"></i></button>
+        </div>
+        
+        <!-- Messages -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 hide-scroll bg-gradient-to-b from-black/20 to-transparent">
+            <div class="flex justify-start">
+                <div class="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-white/5 text-gray-300 rounded-tl-none border border-white/5">
+                    Welcome to the void. What is weighing on your mind tonight?
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="p-4 border-t border-white/5 bg-black/40">
+            <div class="relative">
+                <input type="text" id="chatInput" 
+                    placeholder="Type a message..." 
+                    class="w-full bg-white/5 border border-white/10 rounded-full py-3 px-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                    onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-purple-600 rounded-full text-white hover:bg-purple-500 transition-colors">
+                    <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         // --- CONFIGURATION ---
-        const PAGE_SIZE = 9; // Kept small for mobile RAM safety
+        const PAGE_SIZE = 12; // Adjusted for better grid layout
         let displayCount = PAGE_SIZE;
         let allMedia = [];
         let filteredMedia = [];
@@ -184,6 +225,278 @@
             { id: 4, title: "ERideBay: Manual", link: "https://drive.google.com/file/d/10WGOieag9-5F7Q4-EOx7geKqVMA09Pl6/preview", coverColor: "from-emerald-900 to-black" }
         ];
 
+        // --- FIX: Empty Arrays initialized to prevent ReferenceError ---
+        const rawVideoIds = []; 
+        const rawImageIds = [];
+
         // --- DATA: MEDIA IDS (Compressed) ---
-        // I've kept the long strings but ensured they process efficiently.
-        const erideBayString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx,1NRaHu4svwZZk0iCHO4VwRNM7JsTIEmS-,1KgUocBuaIZe72dx0_S2W4MNY181P4PJT,1HlhGO0NgBYMG1WJPcB6nbuYuzd4o0QkN,1TnNHdma7Hx_emYJhV3Guu8k_4yQxnAPV,1HcOcFxHhojpNbWDLZYKDLo1OZbTuWWsX,1NLThfrt-nz5gMxzy6r62tnzMPo1DTgYS,1zi5qMjzw4Zhr6qXvm83bwU_zo8PKtTpX,1Ws5wx8x4NiUmvzmIGun3gjO2uFxwc1QY,17PKtlSJWyRmmgosH7RHqdfNlYFaDCjzL,1hcmzbiyYkQNNS-GNnhMdnW6udQPflRkO,158Fm76dIW1cA7x1fhnB2hDrDYXC_oV75,1yd_d3qAMrcBF2z6u1xrdfbTjJ_WwBA-L,16Xu0IDDtURpnJavQNGtuJs7oPwYJbwVw,1AZSU_TzIwW5OkW3oIk8udActIpmJ4eMT,1LTTs-g5ZwpaBLQCcXdBnLT5cBPZVtJDL,15MU47wNp6wdGay_nFNlc8BSCdKrp6lRe,12EZdXVjiwMD90blWKXvzvPWfZKk3s2YN,1p1T1g93D0w-5vfOnM65YnI7dbgH0LGTY,1iZoI0KgZcDEXfWhqxgEPXsG2NmdKW1Nd,18PDfgrkuoHJS-cglTnFFdzdECODw_Z6n,1ogK5V8qgbTjnq3ZdKZV3KFuVX0pg8ZQb,1sMR2xsbrlupdqiHRk6aA0l92XrL-4GbD,10kTHcF9NU4dm_4nQbNfxPMEXmzNj9qiF,1ZtDqSdo4xge6mNw0qjUJTMJDwIg5lych,1CqdXJDQgqREhaBF1Sh8Aw3jGe4Pl_f5Y,1E05lrOqb_aXk4ZQFIbcK5IW3WDImz6zl,1cMBVS9AagEuwqR8bFywaquHmaRnz-TLv,1YJFv_B2herTr8_2sOEP_PHERmaqNc2Ai,1zEKnOHP-_2L_cO4yd-58J39t-59rUzk9,1FQxc41mt4ntq22v2zRMjaYGjfD3ME3YZ,1j6GX0JYAuiC0pwyQ0zZp7FO3n-YqlkIH,1XNqz12vz4OiTIEbdK0mzvwDKsXyEC7JM,1j0LB_kioPv8B9E2Y7Vsi5DN2-1Fc_8rh,1zLeyrylMLnfx7AvWzVix-EIGp__nXGfS,1IyUz6zDsPu6EGjD2Gk3BNcXfJ8K7_M3,1wU3g7Pyqs33kGG30OTbD6JfbSBR2i7eN,1ltnLLxO-WDswpPjl1_Qtb--aEd8DNfEc,1V5rmPt2kowS4_s83Y-XWnaj_AYRQWPJz,1Anv9Umo8mfuV-jF826U3h32Ls1mh7Igl,1BZtbb1u8fnPHmqazXjQ5lqe3lqKr7Ymc,1z13RzN7VFHY5R_nE05MfDvjQongyFXT_,1uzDGwffFsDIBuh8MDH5qb0xVRMEdp5LH,12VJtJ-Yxy_nrHwrr3GVpLfRvyXZ7hUSj,1_-C3Pe3j39rGyt9ocdlZkckcAq_STdq8,1VZpGLMKX6tUwKz41U_thhAY1xpWT0qCJ,1nSvAU3kP3Xrs6c-HRXX1hf9WZPep1cXj,1bA1ZzkIw7Xgt0iEhrpmH1oiatj7vsCAG,1w4EZl3oIrEKsVnSiO3-bZ8HNEBZh_6kL,1c8KSW5nMSyC9hM_cEc0ySXNtRwYUu8_Z,17UVKoq9bPrJFcJmu0xgRojUSbKAvXWdl,1PQZ_o7TtkD3SNEeY6dRZg2M8nOfE-66p,1IyCtAjkx7JToicUn44JV0dNbPSyqttHF,11UGaIR0IEO6x_9musBIi6Nr7sKl7H6N1,1UqPiF5JeH13TsJTlr_-1AfGwsbO84SDF,1nkHNRy-wKpu9-Gpz44BK42pPpP0eQvll,1mvspRJnaf2Ek4IqePzGtzB-P8uzwtomz,1bOppPdbXUQgiUc2SGwy6gex14IJI2XiW,15Z_erjpP1HdvZqcQWsTp7ISgFCXLTUk4,15XiX0Ir5NUsyTV7upndT57fagRJJ8Vwa,1nx5iPHSrbJfjKPuLq8fUG3K9uZbc1OzH,1r5oyTlVKR6f4JGGFL9W5l5H323VjCENe,17tDsdhN4acRB5tEDBVBNdfGofwzQtE52,16p213UiBpO-N6-wQWv3pJYnNLaCADHWY,10cejo4svnT_bfxBXf2lF1UvbebI9JvAG,1QwpfDfcW2YLGCfjl9miNtR8KH5DwiyDg,1hqQ3zRXbN6IpktoCyr_FKjLomBt2JlOd,1a02QCRrTUtyVJDY0v3EWHY28qqC-CfSD,1P3cNHaL_c08B7jPPb4MdTkN9J0el2YvU,1Rng8mtnTovqVmlKlq_dNglShqqRxnB0d,1plPX7i3thK0isHJnCiX3X9gDt0BcpzU_,1mU5lcpcmTHQMkCk6SHuN_5fJh94NSPQa,1NuS9vvJ8x_5txwF7GqsAC7E2PR6wK26L,1QEPujUxjlO3Keqe4H3t2CJ3a22MYIx6_,1T23f0u13SSRbelCp2QoyZde6sk3kEOCy,1Wx_S4fam3s2vb1Rf_Bw-97VDzj16Hjtr,1JTz7R0jBfRqWVGIMmfOB9ZYU4wjPTqKz,1CI7VZ2gwKCpvL0ih2IwVbQ2lrlh_hBsD,1MUqKofa9tW-U9ZCYJgghsn-d_Jsf6Bb3,1TkHl3xtq76NcFnjo4JkXouowm6RHpE3y,1fJtq5bnhlPA3FhZl1rK-n-FYAwad8uHp,182STt7D5zxv2Y-G24fuwe3_3ASFFN94d,1Owx6X4ja5ceP98t-YQFuGrmo1rv0wG5F,1gN_WeQj17e5L1KZ536TaMDIKwQtGYr_e,1AdNPoGaWE6JvBW-Pp_T2GUu6Bj1JIE7z,1cXKCca8L2XD_0ESb2IWJEKPfjHRj9Y2J,1jCcc1DunhD1BeufQ2stuwpb4sjJyKU5e,1m4mqjxMt0XSIbUXQExeTlT77XkF1g34e,1cN8VHjdo8NnhiK-JnuhKJUOjWPBV7m7d,1bcvzoQhYZI12sgYjqxcCe0B5tCUwCsIx,1g48F1vcRaPzHrW_eOYtKt4_bSIW1lwGj,1av_JMqwrqw1613ba5KazQutO4TDgeCXU,1VSqMmMX3J_jY0hb5mymeJpJSy_O4Acrd,1y8vnHkso9U0y6xfxomafiXmtS0J2OJEJ,17MNB66KcsiB_VpQsJo5rR53jrul_6Ygk,1b8Ci4yyiiXyuGE3xQ12G3mgbe5tx_Xy4,1UmSh_suvrGXJkb7h4a-R8ssVdIJ_MTh3,1dN1u8Tn1-_FjcBVRecYddXss2kG-6rfz,1vfOyRuihU4uBJbiK4aBFO15rXRi4b2CH,1rnETNTiJgnqvWCf6Epoevt1jcPbZXeC5,10lbD135v8Rn8UvW_BEoQEzpkevKDrlKV,17bYp8gXv0iOug--YvI5B8WP9oQ9wlZH5,13Sb9umL2W2UDpz0ZXqGOOW2eoA7XYLF3,1dHj1oprfWfdXyZrUFRkG-t5xnTTATdLz,1i7vl-Mwh2srEK6wR9rLR9csdnw4Nxfo8,1d0opDks4tQHNOhM9xUckhsHxHaVKVEJ2,1rgEH4BUndzwBLipwb_8O-v4vVbmkZ0lW,1N1sGAYam0556H4rFEFudSnF70wAyz6YA,1dnKzsGF2dws_57FWyWSEef8NU4yr7ArQ,11ovZoVrz8UvNiJtHaXbcCnJIV3oXoIRq,13k2vSEH9tPOwh47ccXGrVnHs_5aVMXMe,19taM9BNxGBlvkPCQHmAHICqkWq-X0lGO,1JAJuEXSz9L2rT72bxP92SCzOJKcIq9RD,1xsWNaPLdHyYehbc247sdWBAAD87-dEwy,1DniCOjyo18sePzw4TmrM-ed7bdF8eeZH,1cNlM2uIgwTql3OAHdXpl1D4so59aO5oP,13MobxGLBt4G_nA-JendBVRu1P84KGmAE,1WF-94iIjR8_yO4x3cX9NrzYUL2BYGAIe,1nF5dEJkI-dzXEPXCBHT3lqDzzuJxQpek,1OesgtTXYwtE5UHxzHwBuP5u-vSvekcv6,1oz9S0oY2kUlrhx3pvqH7lM0Th5GZ9Omd,1srcxhzk0NxZN90J-VWOdrZhw8nOR0YmK,1AJwGp1R5w2Jp_fp4xK4apz7W1AfOiH6K,18znH_ujBzdyK9aIkdDvFJNh14D9RRzri,19dVguWKcGtxiEK0WYqVbk9OTVeqx67qR,1SeI6zNuIS68IRSILw8BIzcTHx7eRhGhP,1wAgiK5wh_XjzlNyTaAvFBcem84EQWAoO,103KwfiBenZV93L1ibcKz7cXJrR-b4CVq,1ehdA_32HCw3dQhKgiYCypMuLR_xY325,1RBcnlhELE5hxP4g6TG-hUGzGp-YgIGmV,1MR2uLGp3CmtWvGWLlDrrhY8l6eg_uHZ2,16fkEgBGBjiVmmwR0RHkEdP4M3JMnsv7F,1ZBACs3Dor2iQkGKhBqOOqXyK0tJETSrK,1FZ9dpv-uUiSAeE-_cmmUHKvu97aV0My8,1dhjNdNurvKQ07RnXrDt3MFSBiurxi-1P,1IR3dr-K5caDT1Lqx9-IUrO-KwRHyTBdC,1ddfyDaQfzHrW7ILLQBnG5oLJi9XabM8D,1Y5r09RYRJ1SwyEwBLhv21ci5OyIRjjKJ,1as6FnPRPdM8io-jg5jKcdggrTViREPkO,1K4mXpP-Bcek1JzvjfDrpRekWVgbuADSJ,1p40-bSR7BfaRPHdS5VfRmKk0pfNALYoY,1gS5PIKOQXJR756wKMhMK7kU3CTfaI_Rg,1gPuYAXjfQqux0cu5l--4goVfXwe4XGjm,1HT3KuoSV1NkCpB7nvgDkSSfkuIAnU7Si,1Rs_0d_ywJohkL3ajsG7JlRvqAsoAQ0EJ,1mLUmxVI6raatUlcgekgHZFf0wMIiqzqF,19r_CjTS8LOV-6tc06DDsIhIROStzcDWa,18LCNtX7j8Dt8LL9vU4xjZujvJehcAnxw,1gRPYNIe4dGhGlD6JezkLEx2Gju08PzdQ,1aBqM6pX-5QfNy6_-a7129nFjDG6pM-0d,1EEwfFVFGlipoW1WFXvVz2ND8zL3s31BE,1pO6blaw50sF01oTqR08T7i_zRnKOEwvi,1JYrWG7enz3TkM_PjXz13LASX_Qoy9m0z,1r7d11PufObFTjUO_MeGFq5mkKSL7k-ZO,13Uq2JzP5i3PUyDBn0c1YAO1DwvhaQDvD,1WAVsF-UbNDKJuJdK5f1cRWnWR0QSbyV6,1o_ShsvgilivhNWZ6Vl4Pzlp2XqX9tdbA,1LwZUHRl5RnypALxlA54VviOM5AfBJimX,1zPKCaBq6fpR3k8Zmm6a9v4qkZu5KkxZL,15S3Ov6NDh2x_FSGFB9yCihYbUqEOjY5u,1IveXT4BZv2ywbpNtIMSrNeNSW2uGwFsa,1YTxq26rHv1dn8QYVDoMMRPxgfH3RsEK-,1VpQgftw5rjTiDM3AUXHsvzEC1znxNdtN,1gtK_Y1q3rcG77FvIw_gFeQdBApsgKCPA,1VPfBN9V82Pqa34claS6X1V76fy-_JDUC,10_Gg8j7Z9WvshzZo96A1KK61KvyEaVQE,1eG7XPcMXRbIJrq0wtGZVDQ1js6WcBflX,1K7qjGHcee1gquIYy4pHVoVPNRjqj7nQE,1VamCRb-yKcN1USOQ-576CysXPlQUiFW1,1Iv-gS2sJVXrokTrt8E8e5cz7NnHG7mhM,19y5APro0EDK9harXwkffGE6MQOdz3AsK,1h6LwGknJvs-seiRb_UDjFfEJalbUnzLm,1rl_oa5xof49Q8KvzPLeJGnDBfskKussW,1_ff__7dUmEDh4HWMkMn8l_5tt6Wu-ZCs,1yz_89qS2Vcd0vXmwNsBYL17eTFFWkh5W,1qSgd3oYnyd_HKcBcEvivfkZ-dxVPxA5Y,1pWr7D1b551pj53qjy3jNOy6KD11iFDja,1IxjfHTNWgzrrw2oCqgIQktq1NyHcFyWW,1FrScDsiMBflM68h7TGkGd_ZVkHPd56hS,1_mnL5havs4d3TX-UOygD8itHnW6JS2m9,1wYOJVfCpTqrH64bQlt5vP0_8DbjscH_v,1EMC3nVY9O3B7nS9qE4YJ1WMs_Nwim03n,1k_iMN2ljGovUtqDupCSaGbN8e13eZ1Yw,15nHoyV6ON3pXyuz9tEPNE-_-uJJd1VEp,1z7LB74ZEY10SWV1sJeulXHyhRHXlOr9x,1OGcuGo-vrYEFMGzQzeBy4E--ylOs1RaO,1OqOZjzf9e7n3f5MR9aM9_f6qKW6Z0mcO,1sqmzuJhcJhCsmiFdkbYqwFszpsRRU6Xz,1qY-b13tNoerD0b9RLStRVdfmQCs_k8lb,1_HwaydzTCY7GdrE1G1vJbzHRUCff--NO,1meM8o_rFS3vY80qeedLxAXzXWHkYCTPC,1KX1t490jk3npBzITwj73REwhaiguGlV4,1GFAugT12lFcXDtEDqUaZyDFAFR7bkW3h,195x2plzQC3pjcSOB0DvMAT0q_l6R2Dlc,19xoFsy0WANyA60hZh-ULs2qKWEE-Wnac,15H7WZWhIgd1xf5X2HnX46nIyplWLkI73,16rfD1rAdvDxkhiewi5GlLkWsILI-wWsW,14VdnELXHLirMaL8TMLml9RHVbtOXoNnu,10spq2fWvmlvb4Oz1S8zNUVlMW0iL5DOU,1aV1sGEVsudZE0XlHxcZ7wxiOEwGg5MuW,1zbB2rzy_F1iZZswpyUM7-SEI62VblmgC,1ddoJXHaMhEaVd76cG2CdmmWQWyitBusQ,1nHNHjMVeEjT_4cy3sDlVisEgVW4kWwIC,13AkxVvD88Wx9dIbpSP1QAM_smv_tgQ7r,1kFVSdE5OOqF8VMCrCPL2cIdkUkhqBsnP,16acf_MH45w4DGonDISegQEUsCok8-Xuc,1VgiPecfQ6_2Mi_kBAArehoK_V3djjLS2,1taHIaIfuXFgjG5C3twCJkoI6_fkG2wzD,1A6I7NtgTrIiIVcXUiga1K6axmxjcnRJo,12m6ysPrTGbAPrRBRLqYx3G02uZa38Jma,1h2Yn3lkLsrTOhTinlvn3YNulT4o-btn_,1NercVkvrwsJoEPIIcvXy46CWYDzMbZU_,17pNNOJmr44CkzPeRmLO0WKFHSPBrS_Yy,1RDRFU5W4kU1D68xLrXzOcwhiyCUKVecv,1UyhSL2ReuscO3S55A7dKyBgwN_sVgi68,1kqhxoV35gmZkFfGfTaDLfBJ1O-NNzaIw,1xUnnOETbh6AZO6XaeYhLTHryEQibthI5,1k_0_DEFNaroZ8CtLp0QN8QajZ8dRK6nN,1ZT23hc3JZFmL-FZfiSJ1G1BiPnmwAUPV,1wqRpaYlNxpS09y7Jo_YEcPBo97nlINeA,1WCIgKjWIGoh_2agcKA2nQ7XmhcFdtOxb,1cTNrAHn9VNJD-RiTH_VV9OAnyeBNuANe,1zM9QwZZj-qVRHsn3gQlmMwcXiBYR4PE7,1kXtyNY316drzJeLObJGmaLCvsQczqEwO,1Dq4cGsGcUeo3dBlhLTIucFPTGQF-RVqG,1MNjNyZYj1Dkrb0_T_45ooHFpocxNEJp4,1rpM0A1QfnCFp3y6vqCx8cktwGPEnQDwG,1rjLGGT4csA10pbk6zQCIRFFuWQOnBfI2,1ZaQ3GWZSUs8KUbDDue9BlQ21ksQIQNvd,1RpJPI-C6WtJlr9Wri1m23RUEhW1I43vB,1gjXmpR929bLTMTRzwxT0I47uJd_x0BMZ,1NE2hkSCoApecugn2vjkdxdUYmD7VOhzF,1opBVDLvsfZ44KYaTI6LdUeZLYilBxzM-,18stjBruJUsRGy9JKUfPGRLe7a6eM56Q8,1f4xF36ZAWTBQddQCKBDHMP6f2p2RZDIT,1KMdweAs3PVa80-8Rl40XgpPhNAcMLdty,1AoVUZcNtxh
+        const erideBayString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx,1NRaHu4svwZZk0iCHO4VwRNM7JsTIEmS-,1KgUocBuaIZe72dx0_S2W4MNY181P4PJT,1HlhGO0NgBYMG1WJPcB6nbuYuzd4o0QkN,1TnNHdma7Hx_emYJhV3Guu8k_4yQxnAPV,1HcOcFxHhojpNbWDLZYKDLo1OZbTuWWsX,1NLThfrt-nz5gMxzy6r62tnzMPo1DTgYS,1zi5qMjzw4Zhr6qXvm83bwU_zo8PKtTpX,1Ws5wx8x4NiUmvzmIGun3gjO2uFxwc1QY,17PKtlSJWyRmmgosH7RHqdfNlYFaDCjzL,1hcmzbiyYkQNNS-GNnhMdnW6udQPflRkO,158Fm76dIW1cA7x1fhnB2hDrDYXC_oV75,1yd_d3qAMrcBF2z6u1xrdfbTjJ_WwBA-L,16Xu0IDDtURpnJavQNGtuJs7oPwYJbwVw,1AZSU_TzIwW5OkW3oIk8udActIpmJ4eMT,1LTTs-g5ZwpaBLQCcXdBnLT5cBPZVtJDL,15MU47wNp6wdGay_nFNlc8BSCdKrp6lRe,12EZdXVjiwMD90blWKXvzvPWfZKk3s2YN,1p1T1g93D0w-5vfOnM65YnI7dbgH0LGTY,1iZoI0KgZcDEXfWhqxgEPXsG2NmdKW1Nd,18PDfgrkuoHJS-cglTnFFdzdECODw_Z6n,1ogK5V8qgbTjnq3ZdKZV3KFuVX0pg8ZQb,1sMR2xsbrlupdqiHRk6aA0l92XrL-4GbD,10kTHcF9NU4dm_4nQbNfxPMEXmzNj9qiF,1ZtDqSdo4xge6mNw0qjUJTMJDwIg5lych,1CqdXJDQgqREhaBF1Sh8Aw3jGe4Pl_f5Y,1E05lrOqb_aXk4ZQFIbcK5IW3WDImz6zl,1cMBVS9AagEuwqR8bFywaquHmaRnz-TLv,1YJFv_B2herTr8_2sOEP_PHERmaqNc2Ai,1zEKnOHP-_2L_cO4yd-58J39t-59rUzk9,1FQxc41mt4ntq22v2zRMjaYGjfD3ME3YZ,1j6GX0JYAuiC0pwyQ0zZp7FO3n-YqlkIH,1XNqz12vz4OiTIEbdK0mzvwDKsXyEC7JM,1j0LB_kioPv8B9E2Y7Vsi5DN2-1Fc_8rh,1zLeyrylMLnfx7AvWzVix-EIGp__nXGfS,1IyUz6zDsPu6EGjD2Gk3BNcXfJ8K7_M3,1wU3g7Pyqs33kGG30OTbD6JfbSBR2i7eN,1ltnLLxO-WDswpPjl1_Qtb--aEd8DNfEc,1V5rmPt2kowS4_s83Y-XWnaj_AYRQWPJz,1Anv9Umo8mfuV-jF826U3h32Ls1mh7Igl,1BZtbb1u8fnPHmqazXjQ5lqe3lqKr7Ymc,1z13RzN7VFHY5R_nE05MfDvjQongyFXT_,1uzDGwffFsDIBuh8MDH5qb0xVRMEdp5LH,12VJtJ-Yxy_nrHwrr3GVpLfRvyXZ7hUSj,1_-C3Pe3j39rGyt9ocdlZkckcAq_STdq8,1VZpGLMKX6tUwKz41U_thhAY1xpWT0qCJ,1nSvAU3kP3Xrs6c-HRXX1hf9WZPep1cXj,1bA1ZzkIw7Xgt0iEhrpmH1oiatj7vsCAG,1w4EZl3oIrEKsVnSiO3-bZ8HNEBZh_6kL,1c8KSW5nMSyC9hM_cEc0ySXNtRwYUu8_Z,17UVKoq9bPrJFcJmu0xgRojUSbKAvXWdl,1PQZ_o7TtkD3SNEeY6dRZg2M8nOfE-66p,1IyCtAjkx7JToicUn44JV0dNbPSyqttHF,11UGaIR0IEO6x_9musBIi6Nr7sKl7H6N1,1UqPiF5JeH13TsJTlr_-1AfGwsbO84SDF,1nkHNRy-wKpu9-Gpz44BK42pPpP0eQvll,1mvspRJnaf2Ek4IqePzGtzB-P8uzwtomz,1bOppPdbXUQgiUc2SGwy6gex14IJI2XiW,15Z_erjpP1HdvZqcQWsTp7ISgFCXLTUk4,15XiX0Ir5NUsyTV7upndT57fagRJJ8Vwa,1nx5iPHSrbJfjKPuLq8fUG3K9uZbc1OzH,1r5oyTlVKR6f4JGGFL9W5l5H323VjCENe,17tDsdhN4acRB5tEDBVBNdfGofwzQtE52,16p213UiBpO-N6-wQWv3pJYnNLaCADHWY,10cejo4svnT_bfxBXf2lF1UvbebI9JvAG,1QwpfDfcW2YLGCfjl9miNtR8KH5DwiyDg,1hqQ3zRXbN6IpktoCyr_FKjLomBt2JlOd,1a02QCRrTUtyVJDY0v3EWHY28qqC-CfSD,1P3cNHaL_c08B7jPPb4MdTkN9J0el2YvU,1Rng8mtnTovqVmlKlq_dNglShqqRxnB0d,1plPX7i3thK0isHJnCiX3X9gDt0BcpzU_,1mU5lcpcmTHQMkCk6SHuN_5fJh94NSPQa,1NuS9vvJ8x_5txwF7GqsAC7E2PR6wK26L,1QEPujUxjlO3Keqe4H3t2CJ3a22MYIx6_,1T23f0u13SSRbelCp2QoyZde6sk3kEOCy,1Wx_S4fam3s2vb1Rf_Bw-97VDzj16Hjtr,1JTz7R0jBfRqWVGIMmfOB9ZYU4wjPTqKz,1CI7VZ2gwKCpvL0ih2IwVbQ2lrlh_hBsD,1MUqKofa9tW-U9ZCYJgghsn-d_Jsf6Bb3,1TkHl3xtq76NcFnjo4JkXouowm6RHpE3y,1fJtq5bnhlPA3FhZl1rK-n-FYAwad8uHp,182STt7D5zxv2Y-G24fuwe3_3ASFFN94d,1Owx6X4ja5ceP98t-YQFuGrmo1rv0wG5F,1gN_WeQj17e5L1KZ536TaMDIKwQtGYr_e,1AdNPoGaWE6JvBW-Pp_T2GUu6Bj1JIE7z,1cXKCca8L2XD_0ESb2IWJEKPfjHRj9Y2J,1jCcc1DunhD1BeufQ2stuwpb4sjJyKU5e,1m4mqjxMt0XSIbUXQExeTlT77XkF1g34e,1cN8VHjdo8NnhiK-JnuhKJUOjWPBV7m7d,1bcvzoQhYZI12sgYjqxcCe0B5tCUwCsIx,1g48F1vcRaPzHrW_eOYtKt4_bSIW1lwGj,1av_JMqwrqw1613ba5KazQutO4TDgeCXU,1VSqMmMX3J_jY0hb5mymeJpJSy_O4Acrd,1y8vnHkso9U0y6xfxomafiXmtS0J2OJEJ,17MNB66KcsiB_VpQsJo5rR53jrul_6Ygk,1b8Ci4yyiiXyuGE3xQ12G3mgbe5tx_Xy4,1UmSh_suvrGXJkb7h4a-R8ssVdIJ_MTh3,1dN1u8Tn1-_FjcBVRecYddXss2kG-6rfz,1vfOyRuihU4uBJbiK4aBFO15rXRi4b2CH,1rnETNTiJgnqvWCf6Epoevt1jcPbZXeC5,10lbD135v8Rn8UvW_BEoQEzpkevKDrlKV,17bYp8gXv0iOug--YvI5B8WP9oQ9wlZH5,13Sb9umL2W2UDpz0ZXqGOOW2eoA7XYLF3,1dHj1oprfWfdXyZrUFRkG-t5xnTTATdLz,1i7vl-Mwh2srEK6wR9rLR9csdnw4Nxfo8,1d0opDks4tQHNOhM9xUckhsHxHaVKVEJ2,1rgEH4BUndzwBLipwb_8O-v4vVbmkZ0lW,1N1sGAYam0556H4rFEFudSnF70wAyz6YA,1dnKzsGF2dws_57FWyWSEef8NU4yr7ArQ,11ovZoVrz8UvNiJtHaXbcCnJIV3oXoIRq,13k2vSEH9tPOwh47ccXGrVnHs_5aVMXMe,19taM9BNxGBlvkPCQHmAHICqkWq-X0lGO,1JAJuEXSz9L2rT72bxP92SCzOJKcIq9RD,1xsWNaPLdHyYehbc247sdWBAAD87-dEwy,1DniCOjyo18sePzw4TmrM-ed7bdF8eeZH,1cNlM2uIgwTql3OAHdXpl1D4so59aO5oP,13MobxGLBt4G_nA-JendBVRu1P84KGmAE,1WF-94iIjR8_yO4x3cX9NrzYUL2BYGAIe,1nF5dEJkI-dzXEPXCBHT3lqDzzuJxQpek,1OesgtTXYwtE5UHxzHwBuP5u-vSvekcv6,1oz9S0oY2kUlrhx3pvqH7lM0Th5GZ9Omd,1srcxhzk0NxZN90J-VWOdrZhw8nOR0YmK,1AJwGp1R5w2Jp_fp4xK4apz7W1AfOiH6K,18znH_ujBzdyK9aIkdDvFJNh14D9RRzri,19dVguWKcGtxiEK0WYqVbk9OTVeqx67qR,1SeI6zNuIS68IRSILw8BIzcTHx7eRhGhP,1wAgiK5wh_XjzlNyTaAvFBcem84EQWAoO,103KwfiBenZV93L1ibcKz7cXJrR-b4CVq,1ehdA_32HCw3dQhKgiYCypMuLR_xY325,1RBcnlhELE5hxP4g6TG-hUGzGp-YgIGmV,1MR2uLGp3CmtWvGWLlDrrhY8l6eg_uHZ2,16fkEgBGBjiVmmwR0RHkEdP4M3JMnsv7F,1ZBACs3Dor2iQkGKhBqOOqXyK0tJETSrK,1FZ9dpv-uUiSAeE-_cmmUHKvu97aV0My8,1dhjNdNurvKQ07RnXrDt3MFSBiurxi-1P,1IR3dr-K5caDT1Lqx9-IUrO-KwRHyTBdC,1ddfyDaQfzHrW7ILLQBnG5oLJi9XabM8D,1Y5r09RYRJ1SwyEwBLhv21ci5OyIRjjKJ,1as6FnPRPdM8io-jg5jKcdggrTViREPkO,1K4mXpP-Bcek1JzvjfDrpRekWVgbuADSJ,1p40-bSR7BfaRPHdS5VfRmKk0pfNALYoY,1gS5PIKOQXJR756wKMhMK7kU3CTfaI_Rg,1gPuYAXjfQqux0cu5l--4goVfXwe4XGjm,1HT3KuoSV1NkCpB7nvgDkSSfkuIAnU7Si,1Rs_0d_ywJohkL3ajsG7JlRvqAsoAQ0EJ,1mLUmxVI6raatUlcgekgHZFf0wMIiqzqF,19r_CjTS8LOV-6tc06DDsIhIROStzcDWa,18LCNtX7j8Dt8LL9vU4xjZujvJehcAnxw,1gRPYNIe4dGhGlD6JezkLEx2Gju08PzdQ,1aBqM6pX-5QfNy6_-a7129nFjDG6pM-0d,1EEwfFVFGlipoW1WFXvVz2ND8zL3s31BE,1pO6blaw50sF01oTqR08T7i_zRnKOEwvi,1JYrWG7enz3TkM_PjXz13LASX_Qoy9m0z,1r7d11PufObFTjUO_MeGFq5mkKSL7k-ZO,13Uq2JzP5i3PUyDBn0c1YAO1DwvhaQDvD,1WAVsF-UbNDKJuJdK5f1cRWnWR0QSbyV6,1o_ShsvgilivhNWZ6Vl4Pzlp2XqX9tdbA,1LwZUHRl5RnypALxlA54VviOM5AfBJimX,1zPKCaBq6fpR3k8Zmm6a9v4qkZu5KkxZL,15S3Ov6NDh2x_FSGFB9yCihYbUqEOjY5u,1IveXT4BZv2ywbpNtIMSrNeNSW2uGwFsa,1YTxq26rHv1dn8QYVDoMMRPxgfH3RsEK-,1VpQgftw5rjTiDM3AUXHsvzEC1znxNdtN,1gtK_Y1q3rcG77FvIw_gFeQdBApsgKCPA,1VPfBN9V82Pqa34claS6X1V76fy-_JDUC,10_Gg8j7Z9WvshzZo96A1KK61KvyEaVQE,1eG7XPcMXRbIJrq0wtGZVDQ1js6WcBflX,1K7qjGHcee1gquIYy4pHVoVPNRjqj7nQE,1VamCRb-yKcN1USOQ-576CysXPlQUiFW1,1Iv-gS2sJVXrokTrt8E8e5cz7NnHG7mhM,19y5APro0EDK9harXwkffGE6MQOdz3AsK,1h6LwGknJvs-seiRb_UDjFfEJalbUnzLm,1rl_oa5xof49Q8KvzPLeJGnDBfskKussW,1_ff__7dUmEDh4HWMkMn8l_5tt6Wu-ZCs,1yz_89qS2Vcd0vXmwNsBYL17eTFFWkh5W,1qSgd3oYnyd_HKcBcEvivfkZ-dxVPxA5Y,1pWr7D1b551pj53qjy3jNOy6KD11iFDja,1IxjfHTNWgzrrw2oCqgIQktq1NyHcFyWW,1FrScDsiMBflM68h7TGkGd_ZVkHPd56hS,1_mnL5havs4d3TX-UOygD8itHnW6JS2m9,1wYOJVfCpTqrH64bQlt5vP0_8DbjscH_v,1EMC3nVY9O3B7nS9qE4YJ1WMs_Nwim03n,1k_iMN2ljGovUtqDupCSaGbN8e13eZ1Yw,15nHoyV6ON3pXyuz9tEPNE-_-uJJd1VEp,1z7LB74ZEY10SWV1sJeulXHyhRHXlOr9x,1OGcuGo-vrYEFMGzQzeBy4E--ylOs1RaO,1OqOZjzf9e7n3f5MR9aM9_f6qKW6Z0mcO,1sqmzuJhcJhCsmiFdkbYqwFszpsRRU6Xz,1qY-b13tNoerD0b9RLStRVdfmQCs_k8lb,1_HwaydzTCY7GdrE1G1vJbzHRUCff--NO,1meM8o_rFS3vY80qeedLxAXzXWHkYCTPC,1KX1t490jk3npBzITwj73REwhaiguGlV4,1GFAugT12lFcXDtEDqUaZyDFAFR7bkW3h,195x2plzQC3pjcSOB0DvMAT0q_l6R2Dlc,19xoFsy0WANyA60hZh-ULs2qKWEE-Wnac,15H7WZWhIgd1xf5X2HnX46nIyplWLkI73,16rfD1rAdvDxkhiewi5GlLkWsILI-wWsW,14VdnELXHLirMaL8TMLml9RHVbtOXoNnu,10spq2fWvmlvb4Oz1S8zNUVlMW0iL5DOU,1aV1sGEVsudZE0XlHxcZ7wxiOEwGg5MuW,1zbB2rzy_F1iZZswpyUM7-SEI62VblmgC,1ddoJXHaMhEaVd76cG2CdmmWQWyitBusQ,1nHNHjMVeEjT_4cy3sDlVisEgVW4kWwIC,13AkxVvD88Wx9dIbpSP1QAM_smv_tgQ7r,1kFVSdE5OOqF8VMCrCPL2cIdkUkhqBsnP,16acf_MH45w4DGonDISegQEUsCok8-Xuc,1VgiPecfQ6_2Mi_kBAArehoK_V3djjLS2,1taHIaIfuXFgjG5C3twCJkoI6_fkG2wzD,1A6I7NtgTrIiIVcXUiga1K6axmxjcnRJo,12m6ysPrTGbAPrRBRLqYx3G02uZa38Jma,1h2Yn3lkLsrTOhTinlvn3YNulT4o-btn_,1NercVkvrwsJoEPIIcvXy46CWYDzMbZU_,17pNNOJmr44CkzPeRmLO0WKFHSPBrS_Yy,1RDRFU5W4kU1D68xLrXzOcwhiyCUKVecv,1UyhSL2ReuscO3S55A7dKyBgwN_sVgi68,1kqhxoV35gmZkFfGfTaDLfBJ1O-NNzaIw,1xUnnOETbh6AZO6XaeYhLTHryEQibthI5,1k_0_DEFNaroZ8CtLp0QN8QajZ8dRK6nN,1ZT23hc3JZFmL-FZfiSJ1G1BiPnmwAUPV,1wqRpaYlNxpS09y7Jo_YEcPBo97nlINeA,1WCIgKjWIGoh_2agcKA2nQ7XmhcFdtOxb,1cTNrAHn9VNJD-RiTH_VV9OAnyeBNuANe,1zM9QwZZj-qVRHsn3gQlmMwcXiBYR4PE7,1kXtyNY316drzJeLObJGmaLCvsQczqEwO,1Dq4cGsGcUeo3dBlhLTIucFPTGQF-RVqG,1MNjNyZYj1Dkrb0_T_45ooHFpocxNEJp4,1rpM0A1QfnCFp3y6vqCx8cktwGPEnQDwG,1rjLGGT4csA10pbk6zQCIRFFuWQOnBfI2,1ZaQ3GWZSUs8KUbDDue9BlQ21ksQIQNvd,1RpJPI-C6WtJlr9Wri1m23RUEhW1I43vB,1gjXmpR929bLTMTRzwxT0I47uJd_x0BMZ,1NE2hkSCoApecugn2vjkdxdUYmD7VOhzF,1opBVDLvsfZ44KYaTI6LdUeZLYilBxzM-,18stjBruJUsRGy9JKUfPGRLe7a6eM56Q8,1f4xF36ZAWTBQddQCKBDHMP6f2p2RZDIT,1KMdweAs3PVa80-8Rl40XgpPhNAcMLdty,1AoVUZcNtxh-wCS7vGFwziOoGTdmKFg0c,1fkAaGrwcZLhShdn6lKIfgtiLDyjx_7xF,1QG_W0_Oo5ONMV8o0i2nHusQLzbM6iv9f,1noSdn0s6KQZJi0xYJ0jhUmSFO59U1vUf,1qOQoILdgsdOYuwkf_JT-PZU2dkbxKUzq,1_IarXkwN3anBGvZRmhJ5PyPQLlSkS3wG,14aiMY3CZLWrP6z9itjadZN2twLhW57X6,1kTBmQcraCcFzoVESiDWoLQCC-DU-N3ig,1HEBuxYoOKBYERFPUkyrdUyYh2Iyzx9Nr,1bZzrVRuowdVuVtJqHQKcHcL6uMAfRSvj,1Hd80bw4SmT9HFDDJsul55XOC1H3edEXb,1iLzOQLdKZyCCfQXDm9022Bb_Y3-DUbmU,1cyUBrEnLt3zOAyVe3ifncbKUVrFZ75yu,1FaKOG7sfgj_PjATgotIsBryF6WcOvb_c,1ss-IUaH2TwaL7SsnnTKzr61Fihxyd2a-,141ttumbBdEW34WaMujD2EReIbcayL6sJ,1ycw7HstFd_SpXgHTHt4kDOxp2A4yK9ME,1DiOIXDZJYe0XHSxUPkKfkN6hFsFc9KSq,1SNUgFNI3kTiq0xEDSI2IeX5sB2aYg-Bc,1boQd0NN1sCrnH4rQyqP9AEMItDE5r5q2,17QDgBjdIHe0g7OZMZik1hotSw9lCcJMO,1yyhHwau09S2Cqx7KGQkwlHaFGK156sKm,1HU_aVhi1V6WPjuuUByhMPxShigkEDtdC,1pc_ECHkc2SrGkeChuwc4AntDrJEGxmjK,1oouJ8Z7Bi8i9eO_V-SLElYRP-OsJcR4S,1uWoL1rc9VihlAZwqiCgXVcNmx1L5odN3,1hgLt3NZU-_Batlf-ngHPGEz8uP3-J_XV,1I_vOcVepQU7NfLYQRaVrXWkLMFivAdRt,1ysnH-tTc4KtbkXaBXTFIMtwdupfONyi_,1DAPUzbyhyYsMZ7tir7dlAEDHwjNKsYJa,10f-2LFuLwmb_gHoFjbCqpMtctxvPjyV3,1ojVPNobtwkbfBs_r6YZwO6QUFm5bj0d4,1SRz37yplSNAuJFEexgSXJBJi9JqN45mP,1IIMxfwxjRMV3a4lEbjQz63FSoVzIlhBJ,1dTyR6wv8fNkGr_KLOQYoeMwr4G6Y9Dac,1Xy_-qgbtK2txkndSfZg0peiNzga2O9ij,1ZLnlR8ApmOUdbexVKonDn6Da3mAifyY4,1XV8PqaXuJW0I7EOXdrScnr-JhApweo_F,1LVMET9dyYX5O0NRSegNSydqeCMd8B_3w,1Sw8HHMsn12XmnXOzO4pq1YoxN4XAE9Yv,1hdh9xz_56Gpzq7qmx8sbkCiUT_y3wizg,1Noj76p22YGcnh7gDTrks8V0bkY9c8Eei,1iv-L8H0s45HMZRxdjXc3L5lHzm-9jV4K,19hpyVQ7OyqHhd5Nv9nADhfIdU0qh5-Ly,1y-q-HK8Huxyg4mYa1lFtLR5WtqynIcZx,1Vrm2ycbtqK1JO_MxJd82exLwvdM_RIFt,1b1_gS7XP9B5F0cEqfVlDLAzOwtbSk4a6,1R5cb-pEJgKbEziTV1G-4kVjd_IhEvyUx,1MVj3lwdEvxqDofKuxqBK-FRCwY-gC0-9,1nFRsT4ulZdgLRrfzRd_nrUz2gdLABAyf,1SeLqJhkontll79-NHsBSt3ARc8RBUtcC,1U1VwZ3LrF_Ak_kmarZf8agidn7bOozA3,1D9owa3YHlsAwas11mjGrzqjEnP5-Z_H1,1QtZEDCDcWpQpxrMFUw3SZa-OmIkHbxqN,1iTKJ29Qhxq6_GeGcUZMzmeuDvKfRM3pa,1ThhQNojmJtBRNAnbyB-XsjWyulVVKamH,1-wFGjYPgES9M9bZmE45yXOeIeiwcf1C0,1FxdzNttle7EyHtLUS0R13hRHbkkr2It1,11KkrRBCFoe7MrWk9muxael9fRowKF4Ap,1HUYoMLFQ_mdeyinMBkrwt6TFpib0Cmfy,1odN-bLdOc77UiL8cgD1y6E80CjoeqoT_,1OC3Kv0CV4bk5KR5QUj_o5UW_WNeXd8nd,1mMBWxVH4O17lZOv_ic5fyDnFXbvghHUK,1Shw8oPZUGIPuW347X2QW32eEqy7iaPNm,18TftxZceOqXYdDWFBJuLYX3Py3mPYObc,1hAIpYZDxtIOnvDvzExDLo2l5ohXEaMrQ,1n_OtAlfDtQZOSWPzn-vmXBW60fnqxkh7,1GkZ08IrTISqLe4eAqLZjyZLYKuJJwbeJ,1ZWzWhShPcjk9gBG9VzOUiLTJklGpRr0t,1J75yAX1evJvSo2-emJ-ClaUs5I3h7Imh,1wtLhm98rOZGHItWUHqPqE2rVumRIeDzZ,182-EJOhUXtW8TwJbeMMS028h_k8E61rL,12RWUC72Wgf4NNIdcu9Uivovsf_Q7s7k8,1_XTqfbrejZdaagE1C4Q9s2vrKmToOEFX,1pkfUqqDMaOd7KUuTerNmv40_nlzoTrW5,1fWdhCUFC0rHsiwezbMpwHicQKROA20gi,1OGbHCQoPdKiouI51B2-II-QkgBRo5ryg,1A4eVpfS956V0rbL0s3-mZ3j_fX8QLFjg,1h9fSqjivs5ghJ9qAowYKXxL1SyXMVuok,1ZpzdjdVnnlrUXssam7X1s6EcbC8JE10g,1nyiL2rp5YKjukcSg2QTP6AV-3Ned_zFt,1qZjUPn8OJO-pu8qHqoSUtyYJS60srrAE,196JV4LGYzxguzMnobVVs7YnCQ-h8b5Fv,1dJghgvKw6sCQ5x8Y2EuF3H_-JePl-HIW,1Nq0S7ANjaJSo6ZBg9F8jUzJZuZ8iNxNR,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia"
+
+        // --- UTILITY ---
+        function generateMediaData() {
+            // Logic to prevent crash if data is missing
+            const erideIds = erideBayString ? erideBayString.split(',').map(id => id.trim()).filter(id => id.length > 0).map(id => ({ id, type: 'video', source: 'eridebay' })) : [];
+            const otherVideos = rawVideoIds ? rawVideoIds.map(id => ({ id, type: 'video', source: 'collection' })) : [];
+            const images = rawImageIds ? rawImageIds.map(id => ({ id, type: 'image', source: 'collection' })) : [];
+            
+            return [...erideIds, ...otherVideos, ...images];
+        }
+
+        const motivationalFillers = [
+            "Khwab dekhna chhodna mat.", "Raat jitni gehri, sitare utne chamakdaar.", "Sabr ka fal sukoon hota hai.",
+            "Tum akele nahi ho.", "Apni kahani khud likho.", "Haar sirf tab hoti hai jab tum maan lo.",
+            "Waqt badlega, bas chalte raho.", "Jo chala gaya, usse jaane do.", "Nayi shuruaat kabhi bhi ho sakti hai."
+        ];
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initData();
+            renderBooks();
+            renderGallery();
+            renderQuotes();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+            
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    nav.classList.add('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-white/5', 'py-4', 'shadow-2xl');
+                    nav.classList.remove('bg-transparent', 'py-8');
+                } else {
+                    nav.classList.remove('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-white/5', 'py-4', 'shadow-2xl');
+                    nav.classList.add('bg-transparent', 'py-8');
+                }
+            });
+        });
+
+        function initData() {
+            allMedia = generateMediaData();
+            filteredMedia = allMedia;
+            updateRemainingCount();
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateRemainingCount() {
+            const remaining = filteredMedia.length - displayCount;
+            const label = document.getElementById('remainingCount');
+            const btn = document.getElementById('loadMoreBtn');
+            
+            if (remaining > 0) {
+                label.innerText = `(${remaining} more)`;
+                btn.classList.remove('hidden');
+                btn.classList.add('flex');
+            } else {
+                label.innerText = "";
+                btn.classList.add('hidden');
+                btn.classList.remove('flex');
+            }
+        }
+
+        // --- RENDERERS ---
+        function renderBooks() {
+            const grid = document.getElementById('booksGrid');
+            grid.innerHTML = books.map(book => `
+                <div class="group cursor-pointer perspective-1000" onclick="openBookModal('${book.link}', '${book.title}')">
+                    <div class="relative bg-neutral-900 border border-white/5 p-1 rounded-sm card-hover transition-all duration-700 h-full flex flex-col hover:border-purple-500/30">
+                        <div class="h-64 w-full bg-gradient-to-br ${book.coverColor} relative overflow-hidden flex items-center justify-center p-6 text-center">
+                            <div class="absolute inset-0 bg-black/20"></div>
+                            <div class="relative z-10 border border-white/20 p-4 w-full h-full flex flex-col justify-between items-center transition-transform duration-500 group-hover:scale-105">
+                                <span class="text-[10px] tracking-[0.3em] uppercase opacity-60">Originals</span>
+                                <h3 class="font-serif text-xl md:text-2xl text-white leading-tight drop-shadow-lg">${book.title}</h3>
+                                <div class="w-full h-[1px] bg-white/30"></div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-between bg-black/40">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">${book.title}</h3>
+                            </div>
+                            <button class="w-full py-3 bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-[10px] tracking-[0.2em] uppercase mt-2">Read Now</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const visibleItems = filteredMedia.slice(0, displayCount);
+            
+            // We use a counter to inject quotes but map the click index correctly to the DATA array
+            let html = '';
+            
+            visibleItems.forEach((item, index) => {
+                // VISUAL ONLY: Insert Quote Card (does not affect index)
+                if ((index + 1) % 12 === 0) {
+                    html += `
+                        <div class="break-inside-avoid mb-4 p-6 bg-gradient-to-br from-purple-900/10 to-black border border-white/5 rounded-lg flex items-center justify-center text-center min-h-[200px]">
+                            <div>
+                                <i data-lucide="feather" class="mx-auto text-purple-500 mb-3 opacity-30 w-5 h-5"></i>
+                                <p class="font-serif text-base text-gray-400 italic leading-relaxed">"${motivationalFillers[index % motivationalFillers.length]}"</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Actual Media Item
+                const thumbUrl = `https://drive.google.com/thumbnail?id=${item.id}&sz=w600`;
+                const typeLabel = item.type === 'video' ? 'Watch' : 'View';
+                const playIcon = item.type === 'video' ? `<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20"><i data-lucide="play" class="w-4 h-4 text-white fill-white ml-0.5"></i></div></div>` : '';
+
+                html += `
+                    <div onclick="openLightbox(${index})" class="break-inside-avoid relative group rounded-lg overflow-hidden border border-white/5 bg-neutral-900 cursor-pointer mb-3 shadow-lg transition-all duration-500 hover:border-white/20">
+                        <div class="relative w-full overflow-hidden bg-gray-900" style="min-height: 150px;">
+                            <img src="${thumbUrl}" loading="lazy" alt="Content" class="w-full h-auto object-cover transition-transform duration-700 opacity-80 group-hover:opacity-100 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/400x300/000000/FFFFFF?text=Media'"/>
+                        </div>
+                        ${playIcon}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <div class="flex justify-between w-full items-center transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                <span class="text-[9px] text-white/90 uppercase tracking-widest font-bold bg-black/50 px-2 py-1 rounded backdrop-blur-sm">${typeLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+            if(window.lucide) lucide.createIcons();
+            updateRemainingCount();
+        }
+
+        function filterGallery(type) {
+            currentFilter = type;
+            displayCount = PAGE_SIZE; // Reset to initial page size
+            
+            // Update UI Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.type === type) {
+                    btn.classList.add('bg-white', 'text-black');
+                    btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('bg-white', 'text-black');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            // Filter Data
+            if (type === 'all') {
+                filteredMedia = allMedia;
+            } else {
+                filteredMedia = allMedia.filter(item => item.type === type);
+            }
+            renderGallery();
+        }
+
+        function loadMoreMedia() {
+            displayCount += PAGE_SIZE;
+            renderGallery();
+        }
+
+        function renderQuotes() {
+            const quotes = [
+                { text: "Jo samajh gaya, wo chup ho gaya.", author: "Unknown" },
+                { text: "Strong dikhna aadat ban gayi.", author: "Diary Entry #42" },
+                { text: "Har cheez mil jaaye zaroori nahi.", author: "Late Night Thought" },
+                { text: "Dard wahi hai jo chupa liya jaaye.", author: "Anonymous" }
+            ];
+            const grid = document.getElementById('quotesGrid');
+            grid.innerHTML = quotes.map(q => `
+                <div class="glass-panel p-8 text-center rounded-xl transition-all duration-500 group hover:border-purple-500/20">
+                    <p class="font-serif text-lg md:text-xl text-gray-300 mb-4 leading-relaxed group-hover:text-white transition-colors">"${q.text}"</p>
+                    <div class="flex justify-center items-center gap-4 opacity-50"><span class="text-[10px] text-gray-500 tracking-widest uppercase">— ${q.author}</span></div>
+                </div>
+            `).join('');
+        }
+
+        // --- MODALS & LIGHTBOX ---
+
+        function openBookModal(link, title) {
+            document.getElementById('bookIframe').src = link;
+            document.getElementById('bookModal').classList.remove('hidden');
+        }
+
+        function closeBookModal() {
+            document.getElementById('bookModal').classList.add('hidden');
+            document.getElementById('bookIframe').src = "";
+        }
+
+        function openLightbox(index) {
+            currentLightboxIndex = index;
+            updateLightbox();
+            document.getElementById('lightbox').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.add('hidden');
+            document.getElementById('lightboxContent').innerHTML = "";
+        }
+
+        function nextMedia() {
+            if(filteredMedia.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex + 1) % filteredMedia.length;
+            updateLightbox();
+        }
+
+        function prevMedia() {
+            if(filteredMedia.length === 0) return;
+            currentLightboxIndex = (currentLightboxIndex - 1 + filteredMedia.length) % filteredMedia.length;
+            updateLightbox();
+        }
+
+        function updateLightbox() {
+            if(filteredMedia.length === 0) return;
+            const item = filteredMedia[currentLightboxIndex];
+            const container = document.getElementById('lightboxContent');
+            
+            // Direct Embed Logic
+            if (item.type === 'video') {
+                container.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-full border-none" allow="autoplay" title="Satyam Player"></iframe>`;
+            } else {
+                container.innerHTML = `<img src="https://drive.google.com/uc?export=view&id=${item.id}" alt="Full Screen" class="max-h-full max-w-full object-contain" />`;
+            }
+        }
+
+        // --- CHAT ---
+        function toggleChat() {
+            const modal = document.getElementById('chatModal');
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => document.getElementById('chatInput').focus(), 100);
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const val = input.value.trim();
+            if(!val) return;
+            
+            const area = document.getElementById('chatMessages');
+            
+            // User Message
+            const userMsg = document.createElement('div');
+            userMsg.className = "flex justify-end animate-fade-in";
+            userMsg.innerHTML = `<div class="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-purple-900/40 text-gray-100 rounded-tr-none border border-purple-500/20 mb-4">${val}</div>`;
+            area.appendChild(userMsg);
+            
+            input.value = "";
+            area.scrollTop = area.scrollHeight;
+
+            // Bot Response (Simulated)
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = "flex justify-start animate-fade-in";
+                botMsg.innerHTML = `<div class="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-white/5 text-gray-300 rounded-tl-none border border-white/5 mb-4">Tumhare shabdon mein gehrai hai. <br><span class="text-[10px] opacity-50 uppercase tracking-wider mt-1 block">Listening...</span></div>`;
+                area.appendChild(botMsg);
+                area.scrollTop = area.scrollHeight;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
+
