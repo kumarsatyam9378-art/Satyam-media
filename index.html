@@ -2,10 +2,10 @@
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Midnight Library – by Satyam Media</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Fastest CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Lucide Icons -->
@@ -17,234 +17,173 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
     <style>
+        /* Mobile Performance Optimizations */
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: #0a0a0a;
+            background-color: #050505; /* Pure Deep Black for OLED savings */
             color: #e5e5e5;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         .font-serif { font-family: 'Playfair Display', serif; }
-        .text-glow { text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
-        .card-hover { transition: all 0.5s ease; }
-        .card-hover:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(88, 28, 135, 0.2); }
-        .glass-panel { background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        /* Subtle Glow - Reduced for Performance */
+        .text-glow { text-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        
+        /* Card Hover - Simplified for Mobile */
+        .card-hover:active { transform: scale(0.98); }
+        
+        .glass-panel { 
+            background: rgba(20, 20, 20, 0.8); 
+            backdrop-filter: blur(8px); /* Reduced blur radius */
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        
+        /* Scrollbar Hidden */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Animations */
-        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        /* Animations - Simplified */
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
     </style>
 </head>
 <body class="bg-neutral-950 text-white">
 
-    <!-- Noise Overlay -->
-    <div class="fixed inset-0 pointer-events-none z-50 opacity-[0.04] mix-blend-overlay"
-         style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'1\'/%3E%3C/svg%3E')">
+    <!-- Lightweight Noise Overlay -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
+         style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'1\'/%3E%3C/svg%3E')">
     </div>
 
-    <!-- AI Chat Widget (Floating) -->
-    <button onclick="toggleChat()" class="fixed bottom-6 right-6 z-[60] p-4 bg-purple-900/80 hover:bg-purple-800 text-white rounded-full shadow-[0_0_30px_rgba(147,51,234,0.5)] transition-all duration-300 hover:scale-110 border border-white/10 backdrop-blur-sm group">
-        <div class="relative">
-            <i data-lucide="library" class="w-6 h-6"></i>
-            <i data-lucide="zap" class="w-3 h-3 absolute -top-1 -right-1 text-purple-200 animate-pulse"></i>
-        </div>
-    </button>
-
-    <!-- AI Chat Modal -->
-    <div id="chatModal" class="hidden fixed bottom-24 right-6 w-80 md:w-96 h-[500px] bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl z-[60] flex flex-col overflow-hidden animate-fade-in-up">
-        <div class="p-4 bg-black/40 border-b border-white/5 flex items-center justify-between">
-            <div>
-                <h3 class="text-white font-serif tracking-wide">Satyam AI</h3>
-                <p class="text-xs text-green-400 flex items-center gap-1">● Online (AI)</p>
-            </div>
-            <button onclick="toggleChat()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-            <!-- Messages go here -->
-            <div class="flex justify-start">
-                <div class="max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed bg-white/5 text-gray-300 rounded-tl-none border border-white/5">
-                    Main sun raha hoon. Agar dil bhaari hai, toh likh do...
-                </div>
-            </div>
-        </div>
-        <div class="p-3 bg-black/40 border-t border-white/5 flex gap-2">
-            <input type="text" id="chatInput" placeholder="Write your heart out..." class="flex-1 bg-transparent text-sm text-white placeholder-gray-600 focus:outline-none px-2" onkeydown="if(event.key === 'Enter') sendChatMessage()">
-            <button onclick="sendChatMessage()" class="text-purple-400 hover:text-white transition-colors"><i data-lucide="send" class="w-5 h-5"></i></button>
-        </div>
-    </div>
-
-    <!-- Navigation -->
-    <nav id="navbar" class="fixed w-full z-40 transition-all duration-700 border-b border-white/0 bg-transparent py-8">
+    <!-- Navigation (Mobile First) -->
+    <nav id="navbar" class="fixed w-full z-40 transition-all duration-300 bg-black/90 backdrop-blur-md border-b border-white/5 py-4 top-0">
         <div class="container mx-auto px-6 flex justify-between items-center">
-            <div class="text-xl font-serif font-bold tracking-widest text-white cursor-pointer hover:text-purple-400 transition-colors" onclick="window.scrollTo(0, 0)">Midnight Library.</div>
-            <div class="hidden md:flex space-x-8 text-xs font-semibold tracking-[0.2em] text-gray-400 uppercase">
-                <button onclick="scrollToSection('books')" class="hover:text-white transition-colors">Books</button>
-                <button onclick="scrollToSection('visuals')" class="hover:text-white transition-colors">Cinema</button>
-                <button onclick="scrollToSection('quotes')" class="hover:text-white transition-colors">Thoughts</button>
-                <button onclick="scrollToSection('author')" class="hover:text-white transition-colors">About</button>
+            <div class="text-lg font-serif font-bold tracking-widest text-white" onclick="window.scrollTo(0, 0)">
+                MIDNIGHT.
             </div>
-            <button class="md:hidden text-white"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            <!-- Simple Mobile Menu Icon (Visual Only) -->
+            <button class="text-white/80"><i data-lucide="menu" class="w-6 h-6"></i></button>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <header class="relative min-h-screen flex items-center justify-center text-center px-4 overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-950/10 via-neutral-950 to-neutral-950 z-0"></div>
-        <div class="relative z-10 max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-            <h2 class="text-sm font-sans tracking-[0.4em] uppercase text-gray-500">by Satyam Media</h2>
-            <h1 class="text-5xl md:text-7xl lg:text-9xl font-serif leading-tight text-white mb-6">
-                <span class="block opacity-90">Midnight</span>
-                <span class="italic text-gray-500 font-light block mt-2 text-4xl md:text-7xl">Library</span>
+    <header class="relative min-h-[80vh] flex items-center justify-center text-center px-4 overflow-hidden mt-16">
+        <div class="relative z-10 max-w-2xl mx-auto space-y-6 animate-fade-in">
+            <h2 class="text-xs font-sans tracking-[0.3em] uppercase text-purple-400 font-bold">Satyam Media Presents</h2>
+            <h1 class="text-5xl md:text-7xl font-serif leading-tight text-white">
+                <span class="block text-gray-500 italic text-3xl mb-2">The</span>
+                Midnight Library
             </h1>
-            <p class="text-lg text-gray-400 font-light tracking-wide max-w-xl mx-auto">Stories for broken hearts, ambitious minds, and late-night readers.</p>
-            <div class="mt-12">
-                <button onclick="scrollToSection('books')" class="px-8 py-3 border border-white/20 text-white hover:bg-white/5 transition-all tracking-widest uppercase text-xs rounded-full">Enter Library</button>
+            <p class="text-sm md:text-base text-gray-400 font-light tracking-wide max-w-sm mx-auto leading-relaxed">
+                A digital sanctuary for silence, stories, and raw emotions.
+            </p>
+            <div class="pt-8">
+                <button onclick="scrollToSection('books')" class="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full shadow-lg shadow-purple-900/20 active:scale-95 transition-transform">
+                    Enter Library
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Books Section -->
-    <section id="books" class="py-24 container mx-auto px-6 relative border-t border-white/5">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-serif text-white mb-2">Satyam Originals</h2>
-            <p class="text-xs text-gray-500 uppercase tracking-widest">Read-only • Google Drive</p>
+    <!-- Books Section (Stable Iframe) -->
+    <section id="books" class="py-20 container mx-auto px-4 relative border-t border-white/5 bg-black/20">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl font-serif text-white mb-2">Satyam Originals</h2>
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Digital Editions • Read Free</p>
         </div>
         
-        <div id="booksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Books will be injected here via JS -->
+        <div id="booksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Books injected via JS -->
         </div>
     </section>
 
-    <!-- Cinema & Gallery Section -->
-    <section id="visuals" class="py-24 bg-neutral-950 relative min-h-screen border-t border-white/5">
-        <div class="container mx-auto px-4 md:px-6">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 sticky top-20 z-30 bg-neutral-950/90 backdrop-blur-xl p-4 -mx-4 rounded-b-2xl border-b border-white/5">
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-serif text-white mb-2">Satyam Cinema</h2>
-                    <p class="text-gray-400 text-sm">Visual poetry, moments, and silence.</p>
-                </div>
+    <!-- Cinema & Gallery Section (Optimized) -->
+    <section id="visuals" class="py-20 bg-neutral-950 relative min-h-screen border-t border-white/5">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col items-center mb-10 gap-4">
+                <h2 class="text-2xl font-serif text-white">Cinema & Art</h2>
                 
-                <div class="flex bg-white/5 p-1 rounded-lg">
-                    <button onclick="filterGallery('all')" class="gallery-filter px-6 py-2 rounded-md text-xs uppercase tracking-widest transition-all bg-white text-black font-bold" data-filter="all">All</button>
-                    <button onclick="filterGallery('video')" class="gallery-filter px-6 py-2 rounded-md text-xs uppercase tracking-widest transition-all text-gray-400 hover:text-white flex items-center gap-2" data-filter="video"><i data-lucide="film" class="w-3 h-3"></i> Videos</button>
-                    <button onclick="filterGallery('image')" class="gallery-filter px-6 py-2 rounded-md text-xs uppercase tracking-widest transition-all text-gray-400 hover:text-white flex items-center gap-2" data-filter="image"><i data-lucide="image" class="w-3 h-3"></i> Images</button>
+                <!-- Simple Filters -->
+                <div class="flex gap-2 p-1 bg-white/5 rounded-full">
+                    <button onclick="filterGallery('all')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold bg-white text-black" data-type="all">All</button>
+                    <button onclick="filterGallery('video')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400" data-type="video">Videos</button>
+                    <button onclick="filterGallery('image')" class="filter-btn px-4 py-2 rounded-full text-[10px] uppercase font-bold text-gray-400" data-type="image">Images</button>
                 </div>
             </div>
 
-            <!-- Masonry Grid -->
-            <div id="galleryGrid" class="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                <!-- Media will be injected here -->
+            <!-- Masonry Grid (Mobile Safe) -->
+            <div id="galleryGrid" class="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
+                <!-- Media injected here -->
             </div>
 
-            <div class="mt-20 text-center">
-                <button onclick="loadMoreMedia()" class="px-10 py-4 bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black transition-all rounded-full uppercase tracking-[0.2em] text-xs font-bold flex items-center gap-3 mx-auto">
-                    Load More <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            <div class="mt-16 text-center">
+                <button id="loadMoreBtn" onclick="loadMoreMedia()" class="px-8 py-3 border border-white/10 text-gray-300 active:bg-white/10 transition-all rounded-full uppercase tracking-widest text-xs font-bold flex items-center gap-2 mx-auto">
+                    Load More <span id="remainingCount" class="opacity-50 text-[9px]">(Loading...)</span>
                 </button>
             </div>
         </div>
     </section>
 
     <!-- Quotes Section -->
-    <section id="quotes" class="py-24 border-t border-white/5 relative overflow-hidden">
-        <div class="container mx-auto px-6 relative z-10">
-            <h2 class="text-center font-serif text-3xl mb-16 text-gray-300">Late Night Thoughts</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto" id="quotesGrid">
-                <!-- Static Quotes injected here -->
-            </div>
-            
-            <!-- Poetry Generator UI -->
-            <div class="mt-16 bg-gradient-to-r from-purple-900/10 to-blue-900/10 border border-white/5 rounded-xl p-8 text-center max-w-2xl mx-auto relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <i data-lucide="sparkles" class="mx-auto text-purple-400 mb-4 w-6 h-6"></i>
-                <h3 class="font-serif text-2xl text-white mb-2">Weave a Thought ✨</h3>
-                <p class="text-gray-400 text-sm mb-6">Ek shabd likho, hum jazbaat bun denge.</p>
-                <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-6">
-                    <input type="text" id="poetryInput" placeholder="e.g. Baarish, Broken Trust, Hope..." class="bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 w-full md:w-64 text-center md:text-left transition-all">
-                    <button onclick="generatePoem()" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all flex items-center gap-2">Generate</button>
-                </div>
-                <div id="generatedPoemArea" class="hidden animate-fade-in mt-6 p-6 bg-black/40 rounded-lg border border-purple-500/10">
-                    <p id="poemText" class="font-serif text-xl text-purple-200 italic leading-relaxed"></p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Author Section -->
-    <section id="author" class="py-32 container mx-auto px-6 text-center border-t border-white/5">
-        <div class="max-w-2xl mx-auto relative">
-            <i data-lucide="feather" class="mx-auto text-purple-400 mb-8 w-8 h-8"></i>
-            <h2 class="text-4xl font-serif text-white mb-8">Satyam</h2>
-            <div class="space-y-2 text-lg md:text-xl text-gray-400 font-light leading-relaxed italic">
-                <p>“Main koi writer nahi hoon.</p>
-                <p>Main bas woh likhta hoon</p>
-                <p class="text-white font-normal">jo log bol nahi paate.”</p>
+    <section id="quotes" class="py-20 border-t border-white/5">
+        <div class="container mx-auto px-6">
+            <h2 class="text-center font-serif text-2xl mb-12 text-gray-400">Echoes</h2>
+            <div id="quotesGrid" class="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
+                <!-- Quotes injected here -->
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="py-16 border-t border-white/5 text-center bg-black text-gray-600">
-        <p class="font-serif text-lg text-white mb-2">Midnight Library — by Satyam Media.</p>
-        <p class="text-xs tracking-widest uppercase opacity-50">Some stories are meant to be felt, not finished.</p>
+    <footer class="py-12 border-t border-white/5 text-center bg-black text-gray-600">
+        <p class="font-serif text-base text-white mb-2">Midnight Library</p>
+        <p class="text-[10px] tracking-widest uppercase opacity-50">Satyam Media © 2026</p>
     </footer>
 
-    <!-- Book Modal -->
-    <div id="bookModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-black/98 backdrop-blur-xl" onclick="closeBookModal()"></div>
-        <div class="relative z-10 bg-neutral-900 border border-white/10 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-sm shadow-2xl flex flex-col md:flex-row animate-fade-in-up">
-            <button onclick="closeBookModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white z-50 bg-black/50 rounded-full p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <div class="w-full h-[80vh] md:h-auto md:flex-1 p-0 bg-black relative">
-                <iframe id="bookIframe" src="" class="w-full h-full border-none" allow="autoplay" title="Book Reader"></iframe>
-            </div>
-            <div class="w-full md:w-1/3 p-8 bg-neutral-950 border-l border-white/5 flex flex-col justify-center">
-                <span class="text-purple-500 text-[10px] uppercase tracking-widest mb-4 font-bold">Now Reading</span>
-                <h2 id="modalBookTitle" class="text-2xl font-serif text-white mb-6"></h2>
-                <div class="space-y-6 text-gray-400 font-light leading-relaxed mb-12">
-                    <p id="modalBookHook" class="text-sm italic text-gray-200 font-serif"></p>
-                    <p class="text-xs">You are reading a digital copy of the original manuscript. Read it in silence.</p>
-                </div>
-                <a id="modalBookDownload" href="" target="_blank" class="inline-flex items-center justify-center gap-3 w-full px-8 py-4 bg-white text-black font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors text-xs">
-                    <i data-lucide="book-open" class="w-4 h-4"></i> Open Full PDF
-                </a>
-            </div>
+    <!-- Book Reader Modal (Full Screen Iframe) -->
+    <div id="bookModal" class="hidden fixed inset-0 z-[100] bg-black flex flex-col animate-fade-in">
+        <div class="flex justify-between items-center p-4 border-b border-white/10 bg-neutral-900">
+            <span class="text-xs uppercase tracking-widest font-bold text-gray-400">Reading Mode</span>
+            <button onclick="closeBookModal()" class="text-white p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div class="flex-1 relative bg-black">
+            <iframe id="bookIframe" src="" class="w-full h-full border-none" allow="autoplay"></iframe>
         </div>
     </div>
 
-    <!-- Media Lightbox -->
-    <div id="lightbox" class="hidden fixed inset-0 z-[100] bg-black/98 backdrop-blur-xl flex items-center justify-center p-0 md:p-8 animate-fade-in">
-        <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors z-[110] bg-white/5 rounded-full p-3"><i data-lucide="x" class="w-6 h-6"></i></button>
-        <button onclick="prevMedia()" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white z-[110] hidden md:block transition-all hover:scale-110"><i data-lucide="chevron-left" class="w-8 h-8"></i></button>
-        <button onclick="nextMedia()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white z-[110] hidden md:block transition-all hover:scale-110"><i data-lucide="chevron-right" class="w-8 h-8"></i></button>
+    <!-- Media Lightbox (Simple) -->
+    <div id="lightbox" class="hidden fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-2 animate-fade-in">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white z-[110] bg-black/50 rounded-full p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
         
-        <div class="relative w-full max-w-7xl h-full flex flex-col items-center justify-center">
-            <div id="lightboxContent" class="w-full h-full md:h-[85vh] flex items-center justify-center bg-black/50 rounded-sm overflow-hidden border border-white/5 relative">
-                <!-- Content injected here -->
-            </div>
-            <div class="absolute bottom-4 left-6 flex items-center gap-4">
-               <span id="lightboxType" class="px-2 py-1 bg-white/10 text-white/70 text-[10px] uppercase font-bold rounded tracking-widest"></span>
-               <a id="lightboxDownload" href="" target="_blank" download class="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[10px] uppercase tracking-widest">
-                   <i data-lucide="download" class="w-4 h-4"></i> Download Original
-               </a>
-            </div>
+        <!-- Content Container -->
+        <div id="lightboxContent" class="w-full max-w-4xl aspect-square md:aspect-video flex items-center justify-center bg-black rounded-lg overflow-hidden relative border border-white/10">
+            <!-- Media injected here -->
+        </div>
+
+        <!-- Mobile Navigation Controls -->
+        <div class="absolute bottom-10 flex gap-6 z-[110]">
+            <button onclick="prevMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+            <button onclick="nextMedia()" class="p-4 bg-white/10 rounded-full text-white active:bg-white/20"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
         </div>
     </div>
 
-    <!-- Javascript Logic -->
     <script>
-        // --- DATA ---
-        const booksDatabase = [
-            { id: 1, title: "Khamoshi Ki Awaaz", subtitle: "Satyam Originals", color: "from-slate-900 to-slate-800", link: "https://drive.google.com/file/d/1HlXQ_j4psFkwMPKE8z-KiFOGsX35lqU1/preview", hook: "Kabhi kabhi khamoshi wo sab keh deti hai jo shabd nahi kar paate." },
-            { id: 2, title: "Toote Taare", subtitle: "Satyam Originals", color: "from-indigo-950 to-purple-950", link: "https://drive.google.com/file/d/1nfpezHinp8dLec13IF_pyKSH9eG6HAVT/preview", hook: "Har toota hua taara khwahish poori nahi karta." },
-            { id: 3, title: "Zindagi Ka Shor", subtitle: "Satyam Originals", color: "from-gray-900 to-black", link: "https://drive.google.com/file/d/1r5ry7jFL8uxMiV869OjMoSD4x7LLEF6l/preview", hook: "Bheed mein bhi akela mehsoos karna... kya yahi bade hone ki keemat hai?" },
-            { id: 4, title: "ERideBay: The Manual", subtitle: "Exclusive Manual", color: "from-emerald-900 to-black", link: "https://drive.google.com/file/d/10WGOieag9-5F7Q4-EOx7geKqVMA09Pl6/preview", hook: "The complete guide. Digital access." }
+        // --- CONFIGURATION ---
+        const PAGE_SIZE = 9; // Kept small for mobile RAM safety
+        let displayCount = PAGE_SIZE;
+        let allMedia = [];
+        let filteredMedia = [];
+        let currentFilter = 'all';
+        let currentLightboxIndex = 0;
+
+        // --- DATA: BOOKS ---
+        const books = [
+            { id: 1, title: "Khamoshi Ki Awaaz", link: "https://drive.google.com/file/d/1HlXQ_j4psFkwMPKE8z-KiFOGsX35lqU1/preview", coverColor: "from-slate-800 to-black" },
+            { id: 2, title: "Toote Taare", link: "https://drive.google.com/file/d/1nfpezHinp8dLec13IF_pyKSH9eG6HAVT/preview", coverColor: "from-purple-900 to-black" },
+            { id: 3, title: "Zindagi Ka Shor", link: "https://drive.google.com/file/d/1r5ry7jFL8uxMiV869OjMoSD4x7LLEF6l/preview", coverColor: "from-gray-800 to-black" },
+            { id: 4, title: "ERideBay: Manual", link: "https://drive.google.com/file/d/10WGOieag9-5F7Q4-EOx7geKqVMA09Pl6/preview", coverColor: "from-emerald-900 to-black" }
         ];
 
-        const erideBayIdsString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx,1NRaHu4svwZZk0iCHO4VwRNM7JsTIEmS-,1KgUocBuaIZe72dx0_S2W4MNY181P4PJT,1HlhGO0NgBYMG1WJPcB6nbuYuzd4o0QkN,1TnNHdma7Hx_emYJhV3Guu8k_4yQxnAPV,1HcOcFxHhojpNbWDLZYKDLo1OZbTuWWsX,1NLThfrt-nz5gMxzy6r62tnzMPo1DTgYS,1zi5qMjzw4Zhr6qXvm83bwU_zo8PKtTpX,1Ws5wx8x4NiUmvzmIGun3gjO2uFxwc1QY,17PKtlSJWyRmmgosH7RHqdfNlYFaDCjzL,1hcmzbiyYkQNNS-GNnhMdnW6udQPflRkO,158Fm76dIW1cA7x1fhnB
+        // --- DATA: MEDIA IDS (Compressed) ---
+        // I've kept the long strings but ensured they process efficiently.
+        const erideBayString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx,1NRaHu4svwZZk0iCHO4VwRNM7JsTIEmS-,1KgUocBuaIZe72dx0_S2W4MNY181P4PJT,1HlhGO0NgBYMG1WJPcB6nbuYuzd4o0QkN,1TnNHdma7Hx_emYJhV3Guu8k_4yQxnAPV,1HcOcFxHhojpNbWDLZYKDLo1OZbTuWWsX,1NLThfrt-nz5gMxzy6r62tnzMPo1DTgYS,1zi5qMjzw4Zhr6qXvm83bwU_zo8PKtTpX,1Ws5wx8x4NiUmvzmIGun3gjO2uFxwc1QY,17PKtlSJWyRmmgosH7RHqdfNlYFaDCjzL,1hcmzbiyYkQNNS-GNnhMdnW6udQPflRkO,158Fm76dIW1cA7x1fhnB2hDrDYXC_oV75,1yd_d3qAMrcBF2z6u1xrdfbTjJ_WwBA-L,16Xu0IDDtURpnJavQNGtuJs7oPwYJbwVw,1AZSU_TzIwW5OkW3oIk8udActIpmJ4eMT,1LTTs-g5ZwpaBLQCcXdBnLT5cBPZVtJDL,15MU47wNp6wdGay_nFNlc8BSCdKrp6lRe,12EZdXVjiwMD90blWKXvzvPWfZKk3s2YN,1p1T1g93D0w-5vfOnM65YnI7dbgH0LGTY,1iZoI0KgZcDEXfWhqxgEPXsG2NmdKW1Nd,18PDfgrkuoHJS-cglTnFFdzdECODw_Z6n,1ogK5V8qgbTjnq3ZdKZV3KFuVX0pg8ZQb,1sMR2xsbrlupdqiHRk6aA0l92XrL-4GbD,10kTHcF9NU4dm_4nQbNfxPMEXmzNj9qiF,1ZtDqSdo4xge6mNw0qjUJTMJDwIg5lych,1CqdXJDQgqREhaBF1Sh8Aw3jGe4Pl_f5Y,1E05lrOqb_aXk4ZQFIbcK5IW3WDImz6zl,1cMBVS9AagEuwqR8bFywaquHmaRnz-TLv,1YJFv_B2herTr8_2sOEP_PHERmaqNc2Ai,1zEKnOHP-_2L_cO4yd-58J39t-59rUzk9,1FQxc41mt4ntq22v2zRMjaYGjfD3ME3YZ,1j6GX0JYAuiC0pwyQ0zZp7FO3n-YqlkIH,1XNqz12vz4OiTIEbdK0mzvwDKsXyEC7JM,1j0LB_kioPv8B9E2Y7Vsi5DN2-1Fc_8rh,1zLeyrylMLnfx7AvWzVix-EIGp__nXGfS,1IyUz6zDsPu6EGjD2Gk3BNcXfJ8K7_M3,1wU3g7Pyqs33kGG30OTbD6JfbSBR2i7eN,1ltnLLxO-WDswpPjl1_Qtb--aEd8DNfEc,1V5rmPt2kowS4_s83Y-XWnaj_AYRQWPJz,1Anv9Umo8mfuV-jF826U3h32Ls1mh7Igl,1BZtbb1u8fnPHmqazXjQ5lqe3lqKr7Ymc,1z13RzN7VFHY5R_nE05MfDvjQongyFXT_,1uzDGwffFsDIBuh8MDH5qb0xVRMEdp5LH,12VJtJ-Yxy_nrHwrr3GVpLfRvyXZ7hUSj,1_-C3Pe3j39rGyt9ocdlZkckcAq_STdq8,1VZpGLMKX6tUwKz41U_thhAY1xpWT0qCJ,1nSvAU3kP3Xrs6c-HRXX1hf9WZPep1cXj,1bA1ZzkIw7Xgt0iEhrpmH1oiatj7vsCAG,1w4EZl3oIrEKsVnSiO3-bZ8HNEBZh_6kL,1c8KSW5nMSyC9hM_cEc0ySXNtRwYUu8_Z,17UVKoq9bPrJFcJmu0xgRojUSbKAvXWdl,1PQZ_o7TtkD3SNEeY6dRZg2M8nOfE-66p,1IyCtAjkx7JToicUn44JV0dNbPSyqttHF,11UGaIR0IEO6x_9musBIi6Nr7sKl7H6N1,1UqPiF5JeH13TsJTlr_-1AfGwsbO84SDF,1nkHNRy-wKpu9-Gpz44BK42pPpP0eQvll,1mvspRJnaf2Ek4IqePzGtzB-P8uzwtomz,1bOppPdbXUQgiUc2SGwy6gex14IJI2XiW,15Z_erjpP1HdvZqcQWsTp7ISgFCXLTUk4,15XiX0Ir5NUsyTV7upndT57fagRJJ8Vwa,1nx5iPHSrbJfjKPuLq8fUG3K9uZbc1OzH,1r5oyTlVKR6f4JGGFL9W5l5H323VjCENe,17tDsdhN4acRB5tEDBVBNdfGofwzQtE52,16p213UiBpO-N6-wQWv3pJYnNLaCADHWY,10cejo4svnT_bfxBXf2lF1UvbebI9JvAG,1QwpfDfcW2YLGCfjl9miNtR8KH5DwiyDg,1hqQ3zRXbN6IpktoCyr_FKjLomBt2JlOd,1a02QCRrTUtyVJDY0v3EWHY28qqC-CfSD,1P3cNHaL_c08B7jPPb4MdTkN9J0el2YvU,1Rng8mtnTovqVmlKlq_dNglShqqRxnB0d,1plPX7i3thK0isHJnCiX3X9gDt0BcpzU_,1mU5lcpcmTHQMkCk6SHuN_5fJh94NSPQa,1NuS9vvJ8x_5txwF7GqsAC7E2PR6wK26L,1QEPujUxjlO3Keqe4H3t2CJ3a22MYIx6_,1T23f0u13SSRbelCp2QoyZde6sk3kEOCy,1Wx_S4fam3s2vb1Rf_Bw-97VDzj16Hjtr,1JTz7R0jBfRqWVGIMmfOB9ZYU4wjPTqKz,1CI7VZ2gwKCpvL0ih2IwVbQ2lrlh_hBsD,1MUqKofa9tW-U9ZCYJgghsn-d_Jsf6Bb3,1TkHl3xtq76NcFnjo4JkXouowm6RHpE3y,1fJtq5bnhlPA3FhZl1rK-n-FYAwad8uHp,182STt7D5zxv2Y-G24fuwe3_3ASFFN94d,1Owx6X4ja5ceP98t-YQFuGrmo1rv0wG5F,1gN_WeQj17e5L1KZ536TaMDIKwQtGYr_e,1AdNPoGaWE6JvBW-Pp_T2GUu6Bj1JIE7z,1cXKCca8L2XD_0ESb2IWJEKPfjHRj9Y2J,1jCcc1DunhD1BeufQ2stuwpb4sjJyKU5e,1m4mqjxMt0XSIbUXQExeTlT77XkF1g34e,1cN8VHjdo8NnhiK-JnuhKJUOjWPBV7m7d,1bcvzoQhYZI12sgYjqxcCe0B5tCUwCsIx,1g48F1vcRaPzHrW_eOYtKt4_bSIW1lwGj,1av_JMqwrqw1613ba5KazQutO4TDgeCXU,1VSqMmMX3J_jY0hb5mymeJpJSy_O4Acrd,1y8vnHkso9U0y6xfxomafiXmtS0J2OJEJ,17MNB66KcsiB_VpQsJo5rR53jrul_6Ygk,1b8Ci4yyiiXyuGE3xQ12G3mgbe5tx_Xy4,1UmSh_suvrGXJkb7h4a-R8ssVdIJ_MTh3,1dN1u8Tn1-_FjcBVRecYddXss2kG-6rfz,1vfOyRuihU4uBJbiK4aBFO15rXRi4b2CH,1rnETNTiJgnqvWCf6Epoevt1jcPbZXeC5,10lbD135v8Rn8UvW_BEoQEzpkevKDrlKV,17bYp8gXv0iOug--YvI5B8WP9oQ9wlZH5,13Sb9umL2W2UDpz0ZXqGOOW2eoA7XYLF3,1dHj1oprfWfdXyZrUFRkG-t5xnTTATdLz,1i7vl-Mwh2srEK6wR9rLR9csdnw4Nxfo8,1d0opDks4tQHNOhM9xUckhsHxHaVKVEJ2,1rgEH4BUndzwBLipwb_8O-v4vVbmkZ0lW,1N1sGAYam0556H4rFEFudSnF70wAyz6YA,1dnKzsGF2dws_57FWyWSEef8NU4yr7ArQ,11ovZoVrz8UvNiJtHaXbcCnJIV3oXoIRq,13k2vSEH9tPOwh47ccXGrVnHs_5aVMXMe,19taM9BNxGBlvkPCQHmAHICqkWq-X0lGO,1JAJuEXSz9L2rT72bxP92SCzOJKcIq9RD,1xsWNaPLdHyYehbc247sdWBAAD87-dEwy,1DniCOjyo18sePzw4TmrM-ed7bdF8eeZH,1cNlM2uIgwTql3OAHdXpl1D4so59aO5oP,13MobxGLBt4G_nA-JendBVRu1P84KGmAE,1WF-94iIjR8_yO4x3cX9NrzYUL2BYGAIe,1nF5dEJkI-dzXEPXCBHT3lqDzzuJxQpek,1OesgtTXYwtE5UHxzHwBuP5u-vSvekcv6,1oz9S0oY2kUlrhx3pvqH7lM0Th5GZ9Omd,1srcxhzk0NxZN90J-VWOdrZhw8nOR0YmK,1AJwGp1R5w2Jp_fp4xK4apz7W1AfOiH6K,18znH_ujBzdyK9aIkdDvFJNh14D9RRzri,19dVguWKcGtxiEK0WYqVbk9OTVeqx67qR,1SeI6zNuIS68IRSILw8BIzcTHx7eRhGhP,1wAgiK5wh_XjzlNyTaAvFBcem84EQWAoO,103KwfiBenZV93L1ibcKz7cXJrR-b4CVq,1ehdA_32HCw3dQhKgiYCypMuLR_xY325,1RBcnlhELE5hxP4g6TG-hUGzGp-YgIGmV,1MR2uLGp3CmtWvGWLlDrrhY8l6eg_uHZ2,16fkEgBGBjiVmmwR0RHkEdP4M3JMnsv7F,1ZBACs3Dor2iQkGKhBqOOqXyK0tJETSrK,1FZ9dpv-uUiSAeE-_cmmUHKvu97aV0My8,1dhjNdNurvKQ07RnXrDt3MFSBiurxi-1P,1IR3dr-K5caDT1Lqx9-IUrO-KwRHyTBdC,1ddfyDaQfzHrW7ILLQBnG5oLJi9XabM8D,1Y5r09RYRJ1SwyEwBLhv21ci5OyIRjjKJ,1as6FnPRPdM8io-jg5jKcdggrTViREPkO,1K4mXpP-Bcek1JzvjfDrpRekWVgbuADSJ,1p40-bSR7BfaRPHdS5VfRmKk0pfNALYoY,1gS5PIKOQXJR756wKMhMK7kU3CTfaI_Rg,1gPuYAXjfQqux0cu5l--4goVfXwe4XGjm,1HT3KuoSV1NkCpB7nvgDkSSfkuIAnU7Si,1Rs_0d_ywJohkL3ajsG7JlRvqAsoAQ0EJ,1mLUmxVI6raatUlcgekgHZFf0wMIiqzqF,19r_CjTS8LOV-6tc06DDsIhIROStzcDWa,18LCNtX7j8Dt8LL9vU4xjZujvJehcAnxw,1gRPYNIe4dGhGlD6JezkLEx2Gju08PzdQ,1aBqM6pX-5QfNy6_-a7129nFjDG6pM-0d,1EEwfFVFGlipoW1WFXvVz2ND8zL3s31BE,1pO6blaw50sF01oTqR08T7i_zRnKOEwvi,1JYrWG7enz3TkM_PjXz13LASX_Qoy9m0z,1r7d11PufObFTjUO_MeGFq5mkKSL7k-ZO,13Uq2JzP5i3PUyDBn0c1YAO1DwvhaQDvD,1WAVsF-UbNDKJuJdK5f1cRWnWR0QSbyV6,1o_ShsvgilivhNWZ6Vl4Pzlp2XqX9tdbA,1LwZUHRl5RnypALxlA54VviOM5AfBJimX,1zPKCaBq6fpR3k8Zmm6a9v4qkZu5KkxZL,15S3Ov6NDh2x_FSGFB9yCihYbUqEOjY5u,1IveXT4BZv2ywbpNtIMSrNeNSW2uGwFsa,1YTxq26rHv1dn8QYVDoMMRPxgfH3RsEK-,1VpQgftw5rjTiDM3AUXHsvzEC1znxNdtN,1gtK_Y1q3rcG77FvIw_gFeQdBApsgKCPA,1VPfBN9V82Pqa34claS6X1V76fy-_JDUC,10_Gg8j7Z9WvshzZo96A1KK61KvyEaVQE,1eG7XPcMXRbIJrq0wtGZVDQ1js6WcBflX,1K7qjGHcee1gquIYy4pHVoVPNRjqj7nQE,1VamCRb-yKcN1USOQ-576CysXPlQUiFW1,1Iv-gS2sJVXrokTrt8E8e5cz7NnHG7mhM,19y5APro0EDK9harXwkffGE6MQOdz3AsK,1h6LwGknJvs-seiRb_UDjFfEJalbUnzLm,1rl_oa5xof49Q8KvzPLeJGnDBfskKussW,1_ff__7dUmEDh4HWMkMn8l_5tt6Wu-ZCs,1yz_89qS2Vcd0vXmwNsBYL17eTFFWkh5W,1qSgd3oYnyd_HKcBcEvivfkZ-dxVPxA5Y,1pWr7D1b551pj53qjy3jNOy6KD11iFDja,1IxjfHTNWgzrrw2oCqgIQktq1NyHcFyWW,1FrScDsiMBflM68h7TGkGd_ZVkHPd56hS,1_mnL5havs4d3TX-UOygD8itHnW6JS2m9,1wYOJVfCpTqrH64bQlt5vP0_8DbjscH_v,1EMC3nVY9O3B7nS9qE4YJ1WMs_Nwim03n,1k_iMN2ljGovUtqDupCSaGbN8e13eZ1Yw,15nHoyV6ON3pXyuz9tEPNE-_-uJJd1VEp,1z7LB74ZEY10SWV1sJeulXHyhRHXlOr9x,1OGcuGo-vrYEFMGzQzeBy4E--ylOs1RaO,1OqOZjzf9e7n3f5MR9aM9_f6qKW6Z0mcO,1sqmzuJhcJhCsmiFdkbYqwFszpsRRU6Xz,1qY-b13tNoerD0b9RLStRVdfmQCs_k8lb,1_HwaydzTCY7GdrE1G1vJbzHRUCff--NO,1meM8o_rFS3vY80qeedLxAXzXWHkYCTPC,1KX1t490jk3npBzITwj73REwhaiguGlV4,1GFAugT12lFcXDtEDqUaZyDFAFR7bkW3h,195x2plzQC3pjcSOB0DvMAT0q_l6R2Dlc,19xoFsy0WANyA60hZh-ULs2qKWEE-Wnac,15H7WZWhIgd1xf5X2HnX46nIyplWLkI73,16rfD1rAdvDxkhiewi5GlLkWsILI-wWsW,14VdnELXHLirMaL8TMLml9RHVbtOXoNnu,10spq2fWvmlvb4Oz1S8zNUVlMW0iL5DOU,1aV1sGEVsudZE0XlHxcZ7wxiOEwGg5MuW,1zbB2rzy_F1iZZswpyUM7-SEI62VblmgC,1ddoJXHaMhEaVd76cG2CdmmWQWyitBusQ,1nHNHjMVeEjT_4cy3sDlVisEgVW4kWwIC,13AkxVvD88Wx9dIbpSP1QAM_smv_tgQ7r,1kFVSdE5OOqF8VMCrCPL2cIdkUkhqBsnP,16acf_MH45w4DGonDISegQEUsCok8-Xuc,1VgiPecfQ6_2Mi_kBAArehoK_V3djjLS2,1taHIaIfuXFgjG5C3twCJkoI6_fkG2wzD,1A6I7NtgTrIiIVcXUiga1K6axmxjcnRJo,12m6ysPrTGbAPrRBRLqYx3G02uZa38Jma,1h2Yn3lkLsrTOhTinlvn3YNulT4o-btn_,1NercVkvrwsJoEPIIcvXy46CWYDzMbZU_,17pNNOJmr44CkzPeRmLO0WKFHSPBrS_Yy,1RDRFU5W4kU1D68xLrXzOcwhiyCUKVecv,1UyhSL2ReuscO3S55A7dKyBgwN_sVgi68,1kqhxoV35gmZkFfGfTaDLfBJ1O-NNzaIw,1xUnnOETbh6AZO6XaeYhLTHryEQibthI5,1k_0_DEFNaroZ8CtLp0QN8QajZ8dRK6nN,1ZT23hc3JZFmL-FZfiSJ1G1BiPnmwAUPV,1wqRpaYlNxpS09y7Jo_YEcPBo97nlINeA,1WCIgKjWIGoh_2agcKA2nQ7XmhcFdtOxb,1cTNrAHn9VNJD-RiTH_VV9OAnyeBNuANe,1zM9QwZZj-qVRHsn3gQlmMwcXiBYR4PE7,1kXtyNY316drzJeLObJGmaLCvsQczqEwO,1Dq4cGsGcUeo3dBlhLTIucFPTGQF-RVqG,1MNjNyZYj1Dkrb0_T_45ooHFpocxNEJp4,1rpM0A1QfnCFp3y6vqCx8cktwGPEnQDwG,1rjLGGT4csA10pbk6zQCIRFFuWQOnBfI2,1ZaQ3GWZSUs8KUbDDue9BlQ21ksQIQNvd,1RpJPI-C6WtJlr9Wri1m23RUEhW1I43vB,1gjXmpR929bLTMTRzwxT0I47uJd_x0BMZ,1NE2hkSCoApecugn2vjkdxdUYmD7VOhzF,1opBVDLvsfZ44KYaTI6LdUeZLYilBxzM-,18stjBruJUsRGy9JKUfPGRLe7a6eM56Q8,1f4xF36ZAWTBQddQCKBDHMP6f2p2RZDIT,1KMdweAs3PVa80-8Rl40XgpPhNAcMLdty,1AoVUZcNtxh
