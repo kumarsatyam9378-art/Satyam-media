@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Midnight Library – Full Access</title>
+    <title>Midnight Library | Stable Access</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,32 +20,23 @@
         :root {
             --app-bg: #000000;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--app-bg);
             color: #e5e5e5;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
-
         .font-serif { font-family: 'Playfair Display', serif; }
-        
+
         /* --- HIDE SCROLLBARS --- */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* --- PINTEREST MASONRY --- */
-        .masonry-grid {
-            column-count: 2;
-            column-gap: 12px;
-        }
-        @media (min-width: 768px) {
-            .masonry-grid { column-count: 3; column-gap: 20px; }
-        }
-        @media (min-width: 1024px) {
-            .masonry-grid { column-count: 4; column-gap: 24px; }
-        }
+        .masonry-grid { column-count: 2; column-gap: 12px; }
+        @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 20px; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 4; column-gap: 24px; } }
         
         .pin-card {
             break-inside: avoid;
@@ -60,7 +51,7 @@
         /* --- REELS SCROLL SNAP --- */
         .reels-wrapper {
             height: 100vh;
-            height: 100dvh; /* Mobile fix */
+            height: 100dvh;
             width: 100%;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
@@ -71,7 +62,6 @@
             left: 0;
             z-index: 40;
         }
-
         .reel-item {
             height: 100%;
             width: 100%;
@@ -83,12 +73,14 @@
             align-items: center;
             justify-content: center;
         }
-
         .reel-iframe {
             width: 100%;
             height: 100%;
             border: none;
             object-fit: cover;
+            /* Critical: Allows clicking the iframe to play */
+            pointer-events: auto; 
+            z-index: 20; 
         }
 
         /* --- BOOKSHELF 3D --- */
@@ -119,18 +111,15 @@
             <div class="hidden md:block text-xl font-serif font-bold tracking-widest text-white cursor-pointer">
                 MIDNIGHT.
             </div>
-
             <div class="flex w-full md:w-auto justify-around md:justify-end md:gap-8 items-center">
                 <button onclick="switchView('library')" id="btn-library" class="nav-btn flex flex-col md:flex-row items-center gap-1 text-purple-500">
                     <i data-lucide="library" class="w-6 h-6 md:w-5 md:h-5"></i>
                     <span class="text-[10px] md:text-sm font-medium">Library</span>
                 </button>
-                
                 <button onclick="switchView('reels')" id="btn-reels" class="nav-btn flex flex-col md:flex-row items-center gap-1 text-gray-500 hover:text-white transition-colors">
                     <i data-lucide="clapperboard" class="w-6 h-6 md:w-5 md:h-5"></i>
                     <span class="text-[10px] md:text-sm font-medium">Reels</span>
                 </button>
-                
                 <button onclick="switchView('gallery')" id="btn-gallery" class="nav-btn flex flex-col md:flex-row items-center gap-1 text-gray-500 hover:text-white transition-colors">
                     <i data-lucide="layout-grid" class="w-6 h-6 md:w-5 md:h-5"></i>
                     <span class="text-[10px] md:text-sm font-medium">Pins</span>
@@ -141,7 +130,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="min-h-screen relative">
-        
+
         <!-- VIEW 1: LIBRARY (Bookshelf) -->
         <section id="view-library" class="view-section min-h-screen bg-neutral-950 pb-24 md:pt-20">
             <header class="pt-12 pb-12 px-6 text-center animate-fade-in">
@@ -163,18 +152,19 @@
             </div>
         </section>
 
-        <!-- VIEW 2: REELS (Instagram Infinite) -->
+        <!-- VIEW 2: REELS (Maximum Stability) -->
         <section id="view-reels" class="view-section hidden">
             <div id="reels-wrapper" class="reels-wrapper hide-scroll">
+                
                 <!-- Mobile Top Bar Overlay -->
                 <div class="absolute top-0 left-0 w-full p-4 z-50 flex justify-between items-start pointer-events-none bg-gradient-to-b from-black/60 to-transparent">
                     <h2 class="text-lg font-bold text-white drop-shadow-md font-serif">Reels</h2>
                 </div>
-                
+
                 <div id="reels-container">
                     <!-- Reels injected via JS -->
                 </div>
-                
+
                 <div id="reels-loader" class="h-24 flex items-center justify-center text-gray-500">
                     <span class="text-xs tracking-widest">LOADING MORE...</span>
                 </div>
@@ -208,6 +198,16 @@
         <iframe id="bookIframe" class="flex-1 w-full border-none bg-black"></iframe>
     </div>
 
+    <!-- PIN LIGHTBOX MODAL (Gallery View) -->
+    <div id="pinLightbox" class="hidden fixed inset-0 z-[200] bg-black/95 flex flex-col justify-center items-center animate-fade-in backdrop-blur-sm">
+        <button onclick="closePinLightbox()" class="absolute top-4 right-4 bg-white/10 p-2 rounded-full hover:bg-white/20 text-white z-50">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <div id="pinLightboxContent" class="w-full h-full md:w-[90%] md:h-[90%] flex items-center justify-center p-2">
+            <!-- Content Injected Here -->
+        </div>
+    </div>
+
     <script>
         // --- DATA ---
         const books = [
@@ -217,34 +217,42 @@
             { id: 4, title: "ERideBay Manual", link: "https://drive.google.com/file/d/10WGOieag9-5F7Q4-EOx7geKqVMA09Pl6/preview", color: "from-emerald-900 to-black", h: "h-56 md:h-64", w: "w-36 md:w-44" }
         ];
 
-        // MASSIVE ID LIST (Compressed for brevity in code, but represents 300+ items)
+        // MASSIVE ID LIST
         const mediaString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx";
-
-        // --- CORE LOGIC FIX: OPTION 1 ---
+        
         const allIds = mediaString.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        
-        // ✅ TRUTH: ALL IDs used for Reels
-        const reelIds = allIds; 
-        
-        // ✅ TRUTH: ALL IDs used for Pins
+        // Both sections use ALL data
+        const reelIds = allIds;
         const pinIds = allIds;
 
         // State for Lazy Loading
         let reelsLoadedCount = 0;
         const REELS_BATCH_SIZE = 5;
+        
         let pinsLoadedCount = 0;
         const PINS_BATCH_SIZE = 20;
+
+        // --- OBSERVER FOR PERFORMANCE (Auto-hide offscreen reels) ---
+        const reelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const iframe = entry.target.querySelector('iframe');
+                if (!iframe) return;
+                
+                if (entry.isIntersecting) {
+                    iframe.style.visibility = 'visible';
+                } else {
+                    iframe.style.visibility = 'hidden';
+                }
+            });
+        }, { threshold: 0.1 });
 
         // --- INIT ---
         window.onload = () => {
             renderBooks();
-            
-            // Initial render batches
             loadMoreReels();
             loadMorePins();
-            
             lucide.createIcons();
-            
+
             // Setup Infinite Scroll for Reels
             const reelsWrapper = document.getElementById('reels-wrapper');
             reelsWrapper.addEventListener('scroll', () => {
@@ -258,7 +266,6 @@
 
         // --- NAVIGATION ---
         function switchView(view) {
-            // UI Toggles
             ['library', 'reels', 'gallery'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
                 document.getElementById(`btn-${v}`).classList.remove('text-purple-500', 'text-white');
@@ -269,23 +276,19 @@
             document.getElementById(`btn-${view}`).classList.add('text-purple-500');
             document.getElementById(`btn-${view}`).classList.remove('text-gray-500');
 
-            // Scroll Logic
             if(view === 'reels') {
-                document.body.style.overflow = 'hidden'; // Lock body, scroll internal wrapper
+                document.body.style.overflow = 'hidden';
             } else {
                 document.body.style.overflow = 'auto';
             }
         }
 
         // --- RENDERERS ---
-
         function renderBooks() {
             const container = document.getElementById('bookshelf-container');
             container.innerHTML = books.map(book => `
                 <div onclick="openBookModal('${book.link}')" class="book-3d relative cursor-pointer group ${book.h} ${book.w} rounded-r-md shadow-2xl transition-transform">
-                    <!-- Spine -->
                     <div class="absolute left-0 top-0 bottom-0 w-3 bg-white/10 z-20 border-r border-black/30"></div>
-                    <!-- Cover -->
                     <div class="w-full h-full bg-gradient-to-br ${book.color} flex flex-col p-4 justify-between relative overflow-hidden border-l border-white/10">
                         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/leather.png')] opacity-40 mix-blend-overlay"></div>
                         <div class="relative z-10 border border-white/20 p-2 text-center mt-4">
@@ -299,7 +302,7 @@
             `).join('');
         }
 
-        // --- INFINITE REELS LOGIC ---
+        // --- INFINITE REELS LOGIC (STABLE) ---
         function loadMoreReels() {
             if (reelsLoadedCount >= reelIds.length) {
                 document.getElementById('reels-loader').style.display = 'none';
@@ -312,26 +315,37 @@
             batch.forEach(id => {
                 const el = document.createElement('div');
                 el.className = 'reel-item';
+                
                 el.innerHTML = `
                     <div class="absolute inset-0 flex items-center justify-center bg-neutral-900">
-                        <!-- IFRAME (Lazy Loaded) -->
-                        <iframe src="https://drive.google.com/file/d/${id}/preview" class="reel-iframe" allow="autoplay" loading="lazy"></iframe>
-                        <!-- Click Guard to allow scrolling -->
-                        <div class="absolute inset-0 z-10" onclick="this.style.display='none'"></div>
+                        <!-- PLAY ICON OVERLAY (Standard Browser Behavior) -->
+                        <!-- pointer-events-none lets click pass to iframe -->
+                        <div class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                             <div class="bg-black/60 backdrop-blur-md rounded-full p-5 animate-pulse">
+                                <i data-lucide="play" class="w-10 h-10 text-white fill-white"></i>
+                             </div>
+                        </div>
+
+                        <iframe 
+                            src="https://drive.google.com/file/d/${id}/preview" 
+                            class="reel-iframe" 
+                            allow="fullscreen" 
+                            loading="lazy">
+                        </iframe>
                     </div>
 
                     <!-- Right Side Actions -->
                     <div class="absolute right-4 bottom-24 z-30 flex flex-col gap-6 items-center">
                         <div class="flex flex-col items-center gap-1">
-                            <div class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
+                            <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
                                 <i data-lucide="heart" class="w-6 h-6 text-white"></i>
-                            </div>
+                            </button>
                             <span class="text-[10px] font-bold">Like</span>
                         </div>
                         <div class="flex flex-col items-center gap-1">
-                            <div class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
-                                <i data-lucide="more-horizontal" class="w-6 h-6 text-white"></i>
-                            </div>
+                            <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
+                                <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -342,20 +356,22 @@
                             <span class="text-sm font-bold drop-shadow-md">Satyam Media</span>
                             <button class="px-2 py-0.5 border border-white/30 rounded text-[10px] font-bold bg-white/10 backdrop-blur-md">Follow</button>
                         </div>
-                        <p class="text-sm text-gray-200 line-clamp-2 drop-shadow-md">Midnight Library Collection. <span class="text-blue-400">#archive #mood</span></p>
+                        <p class="text-sm text-gray-200 line-clamp-2 drop-shadow-md">Midnight Collection. <span class="text-blue-400">#archive</span></p>
                     </div>
 
                     <!-- Gradient Overlay -->
                     <div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-20"></div>
                 `;
+                
                 container.appendChild(el);
+                reelObserver.observe(el);
             });
 
             reelsLoadedCount += batch.length;
             if(window.lucide) lucide.createIcons();
         }
 
-        // --- INFINITE PINS LOGIC ---
+        // --- INFINITE PINS LOGIC (STABLE) ---
         function loadMorePins() {
             if (pinsLoadedCount >= pinIds.length) return;
 
@@ -363,22 +379,18 @@
             const container = document.getElementById('pinterest-grid');
 
             batch.forEach(id => {
-                // Random height to simulate masonry aspect ratios if we can't detect real size
-                const aspect = Math.random() > 0.6 ? 'aspect-[3/4]' : 'aspect-square';
-                
                 const el = document.createElement('div');
-                el.className = 'pin-card group relative break-inside-avoid mb-4';
+                el.className = 'pin-card group relative break-inside-avoid mb-4 cursor-pointer';
+                el.setAttribute('onclick', `openPinLightbox('${id}')`);
+                
                 el.innerHTML = `
                     <div class="relative w-full overflow-hidden bg-gray-900 rounded-xl">
                         <img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" loading="lazy" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" alt="Pin">
                         
-                        <!-- Hover Overlay -->
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Visual</span>
-                                <a href="https://drive.google.com/file/d/${id}/view" target="_blank" class="bg-white text-black p-1.5 rounded-full hover:scale-110 transition-transform">
-                                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-                                </a>
+                        <!-- Hover Overlay - PLAY ICON CENTERED -->
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                            <div class="bg-black/60 rounded-full p-3 backdrop-blur-sm border border-white/10">
+                                <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
                             </div>
                         </div>
                     </div>
@@ -390,7 +402,31 @@
             if(window.lucide) lucide.createIcons();
         }
 
-        // --- MODALS ---
+        // --- PIN LIGHTBOX LOGIC ---
+        function openPinLightbox(id) {
+            const modal = document.getElementById('pinLightbox');
+            const content = document.getElementById('pinLightboxContent');
+            
+            // Fullscreen viewer with Play capability
+            content.innerHTML = `
+                <iframe 
+                    src="https://drive.google.com/file/d/${id}/preview" 
+                    class="w-full h-full md:w-[80vw] md:h-[80vh] border-none rounded-lg shadow-2xl bg-black"
+                    allow="fullscreen">
+                </iframe>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closePinLightbox() {
+            const modal = document.getElementById('pinLightbox');
+            const content = document.getElementById('pinLightboxContent');
+            modal.classList.add('hidden');
+            content.innerHTML = '';
+        }
+
+        // --- BOOK READER ---
         function openBookModal(link) {
             const modal = document.getElementById('bookModal');
             const iframe = document.getElementById('bookIframe');
@@ -404,7 +440,9 @@
             modal.classList.add('hidden');
             iframe.src = "";
         }
+
     </script>
 </body>
 </html>
+
 
