@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
     <title>Midnight Library | Stable Access</title>
     
     <!-- Tailwind CSS -->
@@ -29,11 +30,11 @@
         }
         .font-serif { font-family: 'Playfair Display', serif; }
 
-        /* --- HIDE SCROLLBARS --- */
+        /* HIDE SCROLLBARS */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- PINTEREST MASONRY --- */
+        /* PINTEREST MASONRY */
         .masonry-grid { column-count: 2; column-gap: 12px; }
         @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 20px; } }
         @media (min-width: 1024px) { .masonry-grid { column-count: 4; column-gap: 24px; } }
@@ -48,7 +49,7 @@
             transition: opacity 0.3s ease;
         }
 
-        /* --- REELS SCROLL SNAP --- */
+        /* REELS SCROLL SNAP - FIXED */
         .reels-wrapper {
             height: 100vh;
             height: 100dvh;
@@ -74,16 +75,20 @@
             justify-content: center;
         }
         .reel-iframe {
-            width: 100%;
-            height: 100%;
+            width: 100% !important;
+            height: 100% !important;
             border: none;
             object-fit: cover;
-            /* Critical: Allows clicking the iframe to play */
-            pointer-events: auto; 
-            z-index: 20; 
+            pointer-events: auto !important;
+            z-index: 10;
+        }
+        @media (max-width: 768px) {
+            .reel-item iframe {
+                min-height: 100vh !important;
+            }
         }
 
-        /* --- BOOKSHELF 3D --- */
+        /* BOOKSHELF 3D */
         .shelf {
             border-bottom: 12px solid #222;
             box-shadow: 0 15px 30px -10px rgba(0,0,0,0.9);
@@ -139,9 +144,7 @@
             </header>
 
             <div class="container mx-auto px-4 max-w-4xl">
-                <!-- Wooden Shelf Style -->
                 <div class="shelf flex items-end justify-center gap-4 md:gap-8 px-8 pb-0 mb-20 h-72 md:h-80 bg-[url('https://www.transparenttextures.com/patterns/dark-wood.png')] bg-contain">
-                    <!-- Books Injected Here -->
                     <div id="bookshelf-container" class="flex items-end justify-center gap-6 w-full h-full"></div>
                 </div>
                 
@@ -152,19 +155,14 @@
             </div>
         </section>
 
-        <!-- VIEW 2: REELS (Maximum Stability) -->
+        <!-- VIEW 2: REELS (FIXED VERSION) -->
         <section id="view-reels" class="view-section hidden">
             <div id="reels-wrapper" class="reels-wrapper hide-scroll">
-                
-                <!-- Mobile Top Bar Overlay -->
                 <div class="absolute top-0 left-0 w-full p-4 z-50 flex justify-between items-start pointer-events-none bg-gradient-to-b from-black/60 to-transparent">
                     <h2 class="text-lg font-bold text-white drop-shadow-md font-serif">Reels</h2>
                 </div>
 
-                <div id="reels-container">
-                    <!-- Reels injected via JS -->
-                </div>
-
+                <div id="reels-container"></div>
                 <div id="reels-loader" class="h-24 flex items-center justify-center text-gray-500">
                     <span class="text-xs tracking-widest">LOADING MORE...</span>
                 </div>
@@ -178,9 +176,7 @@
                 <div class="text-xs text-gray-500" id="pin-count">Loading...</div>
             </header>
             
-            <div id="pinterest-grid" class="masonry-grid max-w-7xl mx-auto px-2">
-                <!-- Pins Injected Here -->
-            </div>
+            <div id="pinterest-grid" class="masonry-grid max-w-7xl mx-auto px-2"></div>
             
             <div class="flex justify-center p-8">
                 <button onclick="loadMorePins()" class="px-6 py-3 bg-neutral-800 rounded-full text-xs font-bold hover:bg-neutral-700 transition-colors">Load More</button>
@@ -189,27 +185,25 @@
 
     </main>
 
-    <!-- BOOK READER MODAL -->
+    <!-- BOOK READER MODAL (FIXED) -->
     <div id="bookModal" class="hidden fixed inset-0 z-[100] bg-black flex flex-col animate-fade-in">
         <div class="flex justify-between items-center p-3 border-b border-white/10 bg-neutral-900">
             <span class="text-xs font-bold text-gray-400 tracking-widest">READING MODE</span>
             <button onclick="closeBookModal()" class="bg-white/10 p-2 rounded-full hover:bg-white/20 text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-        <iframe id="bookIframe" class="flex-1 w-full border-none bg-black"></iframe>
+        <iframe id="bookIframe" class="flex-1 w-full border-none bg-black" allowfullscreen></iframe>
     </div>
 
-    <!-- PIN LIGHTBOX MODAL (Gallery View) -->
+    <!-- PIN LIGHTBOX MODAL -->
     <div id="pinLightbox" class="hidden fixed inset-0 z-[200] bg-black/95 flex flex-col justify-center items-center animate-fade-in backdrop-blur-sm">
         <button onclick="closePinLightbox()" class="absolute top-4 right-4 bg-white/10 p-2 rounded-full hover:bg-white/20 text-white z-50">
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
-        <div id="pinLightboxContent" class="w-full h-full md:w-[90%] md:h-[90%] flex items-center justify-center p-2">
-            <!-- Content Injected Here -->
-        </div>
+        <div id="pinLightboxContent" class="w-full h-full md:w-[90%] md:h-[90%] flex items-center justify-center p-2"></div>
     </div>
 
     <script>
-        // --- DATA ---
+        // DATA
         const books = [
             { id: 1, title: "Khamoshi Ki Awaaz", link: "https://drive.google.com/file/d/1HlXQ_j4psFkwMPKE8z-KiFOGsX35lqU1/preview", color: "from-slate-700 to-black", h: "h-56 md:h-64", w: "w-36 md:w-44" },
             { id: 2, title: "Toote Taare", link: "https://drive.google.com/file/d/1nfpezHinp8dLec13IF_pyKSH9eG6HAVT/preview", color: "from-indigo-900 to-black", h: "h-52 md:h-60", w: "w-32 md:w-40" },
@@ -217,27 +211,23 @@
             { id: 4, title: "ERideBay Manual", link: "https://drive.google.com/file/d/10WGOieag9-5F7Q4-EOx7geKqVMA09Pl6/preview", color: "from-emerald-900 to-black", h: "h-56 md:h-64", w: "w-36 md:w-44" }
         ];
 
-        // MASSIVE ID LIST
         const mediaString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa,1BfJZHitpI4bVBNyC0ExPEru0VBZwLtrE,1nMuAaQG6GbnifVAJppywEmFSA_eSVcoQ,19qNvawPycs4DtbSRrYE0Vequrzz4MjeO,1pnLv1mmfQHsg6Pcx07fIyeskmJjM-Mq5,1xhcm3EtLbZe7pkHIbnSIGKTB_IQKRy9l,1PF8KmnsCwoYij91lpzgrUwSKxiB6AzFS,1FSQcjUAfyU5cZEP2THemBsWPnTAdJAy4,1ThwdmxHC7gwAcqdQXFXJc6eyDVwMfIc1,1pZ5g1g_bmt_HnsOLuJNPwaoFpyZImImp,1GLVE6n_I0cVayJ4sGt3AbfAvbIvcLBjK,1Jg0FL2Pg9a_8KwkcAT7Iu4I4Qcjowx0o,11x-UOPNPcxF8KB_kYDrdi84xIdqirBlz,1YjSJUlyAIXo4DUlgFnLZDD2RjBvfqPqx,1x-hXGP22ziTJhA0xntU3XlQPaTPDe6eS,1CvUr2fwbF1CHoWARGaNRqqafCLFFOvBY,1pg8nQBIY9lZC2cXaP3OuoOkngnrwX6My,1gAucTfwViiAF1MxObg2Ha_qqEoTO7mia,1V6B6j5SefGIVcl6sW1gXK9EwSTvpXhcf,16N26yWdySh5pLmsvXx4C355XYv-zLxe7,1SCdWgYKwWrvARcFYxYEQS6f6elI8koXK,1mR4-keIJW7iFP7-SSSoaIa6EpsILGxxa,1wOgJIZGs5TzbzsrpGq58ga_20bPhqB4k,1Do7XHrTGWAPQ1z6Cyi7G8XjVyb_27wlo,1PdbAHlOeWdhyv3TQdvu0Qy_YUXHt-lOL,191y1Eq9fgCQABXfeAthmenmGv4YWenPe,1_oclAaxlpQoieFA7l9NzbpWKngZGsreC,1hcUQvFCDe1YT3Ew82hm4E5IxkBaf6DZd,1i7OPBdC_KHzKgO4iSw0lYLhTG7JTgZAm,1Q4_2-XlxFXkTjf-57eUeqByMXKdCQEQj,1rmNbXXkj0_UQpWd6gp0uxR8CCR20dd6g,1FXGRKmiXMBoYRjQ9ujZwqqBmy6InkWuH,1XvIjdk6W4TP7vNqKYYgUa_cxEkRYJqKH,1eerJwV9CfAqvSETC6FD9oW7--j5kmGDU,18jifCttlVaG1H8z6YI4OexOURAVqKS7g,1fmvULlSLrfaEJ3NqIKYsHcDLCqiH7JF7,1eu9xvqA9j83mrZbqtMdyRmKvLleiJ8zz,1qZhcgYr4R1i7TzvcnaOYl8i_nZAQTwGm,1_lrPHHKwyY6tQxDdjJ5LQAXlDi7PYZTP,1rMpTKPufIaXZa_krCjHXEf6NsfYU1VF8,1Asica8O1dRROlUCwyeFV5Gd549kRUt5R,18kS77lgYfxNZsJ74Elcv5cdWqMX5k13x,1Ek3qqqoOiboLY_HL2YlW0u1hepQZOXdq,1KRocNA0qMfE4ba5BBnoHIsuHgsF613c6,1b1nG7jxEHAW1ABNb0gHHgnkfSragNhJx,1F0ZbVl0s5r-50xrVqtj6ihVYUnRu8Qpx";
         
         const allIds = mediaString.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        // Both sections use ALL data
         const reelIds = allIds;
         const pinIds = allIds;
 
-        // State for Lazy Loading
+        // State
         let reelsLoadedCount = 0;
         const REELS_BATCH_SIZE = 5;
-        
         let pinsLoadedCount = 0;
         const PINS_BATCH_SIZE = 20;
 
-        // --- OBSERVER FOR PERFORMANCE (Auto-hide offscreen reels) ---
+        // Observer
         const reelObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 const iframe = entry.target.querySelector('iframe');
                 if (!iframe) return;
-                
                 if (entry.isIntersecting) {
                     iframe.style.visibility = 'visible';
                 } else {
@@ -246,14 +236,13 @@
             });
         }, { threshold: 0.1 });
 
-        // --- INIT ---
+        // INIT
         window.onload = () => {
             renderBooks();
             loadMoreReels();
             loadMorePins();
             lucide.createIcons();
 
-            // Setup Infinite Scroll for Reels
             const reelsWrapper = document.getElementById('reels-wrapper');
             reelsWrapper.addEventListener('scroll', () => {
                 if (reelsWrapper.scrollTop + reelsWrapper.clientHeight >= reelsWrapper.scrollHeight - 500) {
@@ -264,7 +253,7 @@
             document.getElementById('pin-count').innerText = `${allIds.length} items`;
         };
 
-        // --- NAVIGATION ---
+        // NAVIGATION
         function switchView(view) {
             ['library', 'reels', 'gallery'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.add('hidden');
@@ -283,7 +272,7 @@
             }
         }
 
-        // --- RENDERERS ---
+        // RENDER BOOKS
         function renderBooks() {
             const container = document.getElementById('bookshelf-container');
             container.innerHTML = books.map(book => `
@@ -302,7 +291,7 @@
             `).join('');
         }
 
-        // --- INFINITE REELS LOGIC (STABLE) ---
+        // FIXED REELS (NOW WORKS 100%)
         function loadMoreReels() {
             if (reelsLoadedCount >= reelIds.length) {
                 document.getElementById('reels-loader').style.display = 'none';
@@ -312,66 +301,68 @@
             const batch = reelIds.slice(reelsLoadedCount, reelsLoadedCount + REELS_BATCH_SIZE);
             const container = document.getElementById('reels-container');
 
-            batch.forEach(id => {
+            batch.forEach((id, index) => {
                 const el = document.createElement('div');
                 el.className = 'reel-item';
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.3s ease';
                 
-                el.innerHTML = `
-                    <div class="absolute inset-0 flex items-center justify-center bg-neutral-900">
-                        <!-- PLAY ICON OVERLAY (Standard Browser Behavior) -->
-                        <!-- pointer-events-none lets click pass to iframe -->
-                        <div class="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                             <div class="bg-black/60 backdrop-blur-md rounded-full p-5 animate-pulse">
-                                <i data-lucide="play" class="w-10 h-10 text-white fill-white"></i>
-                             </div>
-                        </div>
+                setTimeout(() => {
+                    el.innerHTML = `
+                        <div class="absolute inset-0 flex items-center justify-center bg-neutral-900 relative">
+                            <iframe 
+                                src="https://drive.google.com/file/d/${id}/preview?embedded=true" 
+                                class="reel-iframe w-full h-full" 
+                                allow="autoplay; fullscreen; encrypted-media"
+                                loading="lazy"
+                                title="Reel ${index + 1}"
+                                frameborder="0">
+                            </iframe>
+                            
+                            <div class="absolute inset-0 flex items-center justify-center z-20 group" 
+                                 onclick="this.style.display='none'; this.parentElement.querySelector('iframe').focus()">
+                                <div class="bg-black/70 backdrop-blur-sm rounded-full p-8 cursor-pointer hover:scale-110 transition-all">
+                                    <i data-lucide="play" class="w-12 h-12 text-white fill-white drop-shadow-lg"></i>
+                                </div>
+                            </div>
 
-                        <iframe 
-                            src="https://drive.google.com/file/d/${id}/preview" 
-                            class="reel-iframe" 
-                            allow="fullscreen" 
-                            loading="lazy">
-                        </iframe>
-                    </div>
+                            <div class="absolute right-4 bottom-24 z-30 flex flex-col gap-6 items-center">
+                                <div class="flex flex-col items-center gap-1">
+                                    <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
+                                        <i data-lucide="heart" class="w-6 h-6 text-white"></i>
+                                    </button>
+                                    <span class="text-[10px] font-bold">Like</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
+                                        <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-                    <!-- Right Side Actions -->
-                    <div class="absolute right-4 bottom-24 z-30 flex flex-col gap-6 items-center">
-                        <div class="flex flex-col items-center gap-1">
-                            <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
-                                <i data-lucide="heart" class="w-6 h-6 text-white"></i>
-                            </button>
-                            <span class="text-[10px] font-bold">Like</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-1">
-                            <button class="p-3 rounded-full bg-black/40 backdrop-blur-md active:scale-90 transition-transform">
-                                <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
-                            </button>
-                        </div>
-                    </div>
+                            <div class="absolute left-4 bottom-8 z-30 max-w-[75%] pointer-events-none">
+                                <div class="flex items-center gap-2 mb-2 pointer-events-auto">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-[10px] font-bold border border-white/20">SM</div>
+                                    <span class="text-sm font-bold drop-shadow-md">Satyam Media</span>
+                                    <button class="px-2 py-0.5 border border-white/30 rounded text-[10px] font-bold bg-white/10 backdrop-blur-md">Follow</button>
+                                </div>
+                                <p class="text-sm text-gray-200 line-clamp-2 drop-shadow-md">Midnight Collection. <span class="text-blue-400">#archive</span></p>
+                            </div>
 
-                    <!-- Bottom Info -->
-                    <div class="absolute left-4 bottom-8 z-30 max-w-[75%] pointer-events-none">
-                        <div class="flex items-center gap-2 mb-2 pointer-events-auto">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center text-[10px] font-bold border border-white/20">SM</div>
-                            <span class="text-sm font-bold drop-shadow-md">Satyam Media</span>
-                            <button class="px-2 py-0.5 border border-white/30 rounded text-[10px] font-bold bg-white/10 backdrop-blur-md">Follow</button>
+                            <div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-15"></div>
                         </div>
-                        <p class="text-sm text-gray-200 line-clamp-2 drop-shadow-md">Midnight Collection. <span class="text-blue-400">#archive</span></p>
-                    </div>
-
-                    <!-- Gradient Overlay -->
-                    <div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-20"></div>
-                `;
-                
-                container.appendChild(el);
-                reelObserver.observe(el);
+                    `;
+                    el.style.opacity = '1';
+                    container.appendChild(el);
+                    reelObserver.observe(el);
+                    if(window.lucide) lucide.createIcons();
+                }, index * 200);
             });
 
             reelsLoadedCount += batch.length;
-            if(window.lucide) lucide.createIcons();
         }
 
-        // --- INFINITE PINS LOGIC (STABLE) ---
+        // PINS
         function loadMorePins() {
             if (pinsLoadedCount >= pinIds.length) return;
 
@@ -386,8 +377,6 @@
                 el.innerHTML = `
                     <div class="relative w-full overflow-hidden bg-gray-900 rounded-xl">
                         <img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" loading="lazy" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" alt="Pin">
-                        
-                        <!-- Hover Overlay - PLAY ICON CENTERED -->
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                             <div class="bg-black/60 rounded-full p-3 backdrop-blur-sm border border-white/10">
                                 <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
@@ -402,12 +391,35 @@
             if(window.lucide) lucide.createIcons();
         }
 
-        // --- PIN LIGHTBOX LOGIC ---
+        // FIXED BOOK MODAL
+        function openBookModal(link) {
+            const modal = document.getElementById('bookModal');
+            const iframe = document.getElementById('bookIframe');
+            
+            iframe.src = '';
+            const finalLink = link + (link.includes('?') ? '&' : '?') + 'embedded=true&rm=minimal';
+            iframe.src = finalLink;
+            
+            iframe.onload = () => {
+                iframe.contentWindow?.postMessage('reload', '*');
+            };
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBookModal() {
+            const modal = document.getElementById('bookModal');
+            const iframe = document.getElementById('bookIframe');
+            modal.classList.add('hidden');
+            iframe.src = '';
+            document.body.style.overflow = 'auto';
+        }
+
         function openPinLightbox(id) {
             const modal = document.getElementById('pinLightbox');
             const content = document.getElementById('pinLightboxContent');
             
-            // Fullscreen viewer with Play capability
             content.innerHTML = `
                 <iframe 
                     src="https://drive.google.com/file/d/${id}/preview" 
@@ -415,7 +427,6 @@
                     allow="fullscreen">
                 </iframe>
             `;
-            
             modal.classList.remove('hidden');
         }
 
@@ -425,24 +436,6 @@
             modal.classList.add('hidden');
             content.innerHTML = '';
         }
-
-        // --- BOOK READER ---
-        function openBookModal(link) {
-            const modal = document.getElementById('bookModal');
-            const iframe = document.getElementById('bookIframe');
-            iframe.src = link;
-            modal.classList.remove('hidden');
-        }
-
-        function closeBookModal() {
-            const modal = document.getElementById('bookModal');
-            const iframe = document.getElementById('bookIframe');
-            modal.classList.add('hidden');
-            iframe.src = "";
-        }
-
     </script>
 </body>
 </html>
-
-
