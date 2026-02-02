@@ -1,221 +1,496 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate CricVerse | Login</title>
+    <title>Midnight Library | QueuePro</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Outfit"', 'sans-serif'],
+                        body: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        background: '#0f172a', // Slate 900
+                        surface: '#1e293b',    // Slate 800
+                        primary: '#8b5cf6',    // Violet 500
+                        secondary: '#334155',  // Slate 700
+                        accent: '#0ea5e9',     // Sky 500
+                        gold: '#fbbf24',       // Amber 400
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root { --primary: #0f0c29; --secondary: #302b63; --accent: #00d4ff; --text: #ffffff; }
-        body { background: linear-gradient(to right, var(--primary), var(--secondary)); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        
-        /* HEADER */
-        header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .logo h1 { margin: 0; color: var(--accent); letter-spacing: 1px; font-size: 1.5rem; }
-        
-        /* USER PROFILE (HIDDEN INITIALLY) */
-        #user-profile { display: none; align-items: center; gap: 10px; }
-        #user-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); }
-        #user-name { font-weight: bold; font-size: 0.9rem; }
-
-        /* SCREENS */
-        .screen { width: 100%; max-width: 500px; display: none; animation: fadeIn 0.5s; }
-        .active { display: block; }
-
-        /* LOGIN CARD */
-        .login-card { background: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); margin-top: 50px; }
-        
-        /* GOOGLE BTN */
-        .google-btn { background: white; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 20px auto 0; width: 100%; max-width: 250px; }
-        .google-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
-
-        /* GAME CARDS */
-        .player-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
-        .player-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; }
-        .player-card.selected { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
-        
-        /* GAME CONSOLE */
-        .ai-terminal { background: #000; color: #00ff00; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; min-height: 120px; margin-bottom: 15px; border: 1px solid #333; overflow-y: auto; max-height: 200px; text-align: left; }
-        .visual-box { width: 100%; height: 250px; background: #111; margin-bottom: 15px; border-radius: 8px; object-fit: cover; display: none; }
-        
-        .btn { background: var(--accent); color: #000; border: none; padding: 14px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
-        .btn:disabled { background: #555; opacity: 0.6; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Cinematic Glassmorphism */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #c084fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-cinematic {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-cinematic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
     </style>
 </head>
-<body>
+<body class="antialiased selection:bg-primary/30 selection:text-white">
 
-    <header>
-        <div class="logo">
-            <h1>🏏 CRICVERSE</h1>
-        </div>
-        <div id="user-profile">
-            <span id="user-name">Player</span>
-            <img id="user-pic" src="" alt="Profile">
-        </div>
-    </header>
+    <div id="root"></div>
 
-    <div id="login-screen" class="screen active">
-        <div class="login-card">
-            <h2>Welcome to the Arena</h2>
-            <p>Login to save your stats and play.</p>
-            
-            <button id="googleLoginBtn" class="google-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                Sign in with Google
-            </button>
-        </div>
-    </div>
-
-    <div id="lobby-screen" class="screen">
-        <h3>Select Your Avatar</h3>
-        <div class="player-grid">
-            <div class="player-card" id="card-virat">
-                <div style="font-size:2rem;">👑</div>
-                <strong>Virat Kohli</strong><br><span style="color:#ffd700">₹50</span>
-            </div>
-            <div class="player-card" id="card-rohit">
-                <div style="font-size:2rem;">🧢</div>
-                <strong>Rohit Sharma</strong><br><span style="color:#ffd700">₹40</span>
-            </div>
-            <div class="player-card" id="card-bumrah">
-                <div style="font-size:2rem;">⚡</div>
-                <strong>J. Bumrah</strong><br><span style="color:#ffd700">₹30</span>
-            </div>
-        </div>
-        <button id="pay-btn" class="btn" disabled>Select Player First</button>
-    </div>
-
-    <div id="game-screen" class="screen">
-        <h3>Playing as <span id="active-player" style="color:var(--accent)">...</span></h3>
-        <img id="game-visual" class="visual-box">
-        <div id="ai-feed" class="ai-terminal">> SYSTEM: Connecting to Stadium...</div>
-        <button id="action-btn" class="btn" style="background:#ff0055; color:white;">🏏 PLAY NEXT BALL</button>
-    </div>
-
-    <script type="module">
-        // 1. FIREBASE IMPORTS
+    <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getAuth, GoogleAuthProvider, signInWithPopup, 
+            signOut, onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // 2. YOUR CONFIG (Exactly as you provided)
+        // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
             authDomain: "midnight-library-satyam-media.firebaseapp.com",
             projectId: "midnight-library-satyam-media",
-            storageBucket: "midnight-library-satyam-media.firebasestorage.app",
-            messagingSenderId: "842047619495",
-            appId: "1:842047619495:web:7483bc7e4a9029d6dc7682",
-            measurementId: "G-CGDLDBT4HH"
+            appId: "1:842047619495:web:7483bc7e4a9029d6dc7682"
         };
 
-        // 3. INITIALIZE FIREBASE
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // 4. AUTH LOGIC
-        const loginBtn = document.getElementById("googleLoginBtn");
-        
-        loginBtn.addEventListener("click", async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                alert("Login Failed: " + error.message);
-            }
-        });
+        // --- 2. MOCK DATABASE (LocalStorage) ---
+        const MOCK_SALONS = [
+            { id: 1, name: "Midnight Cuts", location: "Cyber Hub, Delhi", isOpen: true, currentToken: 12, waitTime: 25, image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80" },
+            { id: 2, name: "Satyam's Studio", location: "Indiranagar, BLR", isOpen: true, currentToken: 5, waitTime: 10, image: "https://images.unsplash.com/photo-1503951914875-452162b7f30a?w=600&q=80" },
+            { id: 3, name: "Luxe Lounge", location: "Bandra, Mumbai", isOpen: false, currentToken: 0, waitTime: 0, image: "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=600&q=80" },
+        ];
 
-        // 5. AUTH STATE LISTENER (Auto-Redirect)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is logged in
-                console.log("Logged in as:", user.displayName);
-                
-                // Update UI Header
-                document.getElementById("user-name").innerText = user.displayName.split(" ")[0]; // First Name
-                document.getElementById("user-pic").src = user.photoURL;
-                document.getElementById("user-profile").style.display = "flex";
+        const MOCK_SERVICES = [
+            { id: 1, name: "Classic Haircut", price: 250, time: 30 },
+            { id: 2, name: "Beard Trim & Shape", price: 150, time: 20 },
+            { id: 3, name: "Full Royal Service", price: 800, time: 60 },
+        ];
 
-                // Switch Screens
-                showScreen("lobby-screen");
-            } else {
-                // User is logged out
-                showScreen("login-screen");
-            }
-        });
+        // --- 3. COMPONENTS ---
+        const { useState, useEffect } = React;
 
-        // Helper to switch screens
-        function showScreen(screenId) {
-            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-            document.getElementById(screenId).classList.add("active");
-        }
-
-        // --- GAME LOGIC START ---
-        
-        let gameState = { player: "", price: 0, role: "", ball: 0 };
-        const UPI_ID = "kumarsatyam9378@okhdfcbank";
-
-        // Player Selection Logic
-        document.getElementById("card-virat").onclick = () => selectPlayer("Virat Kohli", 50, "Batter", "card-virat");
-        document.getElementById("card-rohit").onclick = () => selectPlayer("Rohit Sharma", 40, "Batter", "card-rohit");
-        document.getElementById("card-bumrah").onclick = () => selectPlayer("Jasprit Bumrah", 30, "Bowler", "card-bumrah");
-
-        function selectPlayer(name, price, role, id) {
-            gameState = { player: name, price: price, role: role, ball: 0 };
-            
-            // Visual Selection
-            document.querySelectorAll(".player-card").forEach(c => c.classList.remove("selected"));
-            document.getElementById(id).classList.add("selected");
-
-            // Enable Pay Button
-            const btn = document.getElementById("pay-btn");
-            btn.innerText = `PAY ₹${price} & PLAY`;
-            btn.disabled = false;
-        }
-
-        // Fake Payment Logic
-        document.getElementById("pay-btn").onclick = () => {
-            if(confirm(`Confirm payment of ₹${gameState.price}?`)) {
-                showScreen("game-screen");
-                document.getElementById("active-player").innerText = gameState.player;
-            }
+        // Simple Icon Component Wrapper
+        const Icon = ({ name, className }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className}></i>;
         };
 
-        // AI Game Logic (Pollinations)
-        const actionBtn = document.getElementById("action-btn");
-        const aiFeed = document.getElementById("ai-feed");
-        const gameVisual = document.getElementById("game-visual");
+        // --- AUTH SCREEN ---
+        const LoginScreen = ({ onLogin }) => {
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
 
-        actionBtn.onclick = async () => {
-            actionBtn.disabled = true;
-            actionBtn.innerText = "Generating...";
-            gameState.ball++;
+            const handleGoogleLogin = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    onLogin(result.user);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-            const promptText = `Cricket commentary in Hindi. ${gameState.player} is ${gameState.role === 'Batter' ? 'batting' : 'bowling'}. Ball number ${gameState.ball}. Result is exciting. Short 2 lines.`;
-            const promptImg = `Cricket stadium, ${gameState.player} close up action shot, 4k realistic`;
-
-            try {
-                // Fetch Text & Image Parallel
-                const [txtRes, imgRes] = await Promise.all([
-                    fetch(`https://pollinations.ai/api/text?prompt=${encodeURIComponent(promptText)}`).then(r=>r.text()),
-                    fetch(`https://pollinations.ai/p/${encodeURIComponent(promptImg)}?width=400&height=250&seed=${Math.random()}`).then(r=>r.blob())
-                ]);
-
-                // Update UI
-                aiFeed.innerHTML += `<br><br>> <b>Ball ${gameState.ball}:</b> ${txtRes}`;
-                aiFeed.scrollTop = aiFeed.scrollHeight;
-                
-                gameVisual.src = URL.createObjectURL(imgRes);
-                gameVisual.style.display = "block";
-
-            } catch (e) {
-                console.error(e);
-            }
-
-            actionBtn.disabled = false;
-            actionBtn.innerText = "🏏 PLAY NEXT BALL";
+            return (
+                <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+                    {/* Cinematic Background */}
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
+                    
+                    <div className="relative z-10 p-8 glass-card rounded-3xl w-full max-w-md text-center shadow-2xl animate-fade-in border border-white/10">
+                        <div className="mb-6 flex justify-center">
+                            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center border border-primary/50 shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                                <Icon name="scissors" className="w-8 h-8 text-primary" />
+                            </div>
+                        </div>
+                        <h1 className="text-4xl font-bold font-display text-white mb-2 tracking-tight">Midnight Library</h1>
+                        <p className="text-slate-400 mb-8 font-light">Premium Queue Management System</p>
+                        
+                        {error && <div className="bg-red-500/20 text-red-200 p-3 rounded-lg mb-4 text-sm border border-red-500/30">{error}</div>}
+                        
+                        <button 
+                            onClick={handleGoogleLogin} 
+                            disabled={loading}
+                            className="w-full bg-white text-slate-900 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all active:scale-95 shadow-xl"
+                        >
+                            {loading ? (
+                                <Icon name="loader-2" className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                    </svg>
+                                    Continue with Google
+                                </>
+                            )}
+                        </button>
+                        <p className="mt-6 text-xs text-slate-500">By continuing, you agree to our Terms & Services.</p>
+                    </div>
+                </div>
+            );
         };
 
+        // --- CUSTOMER DASHBOARD ---
+        const CustomerDashboard = ({ user }) => {
+            const [activeTab, setActiveTab] = useState('home');
+            const [selectedSalon, setSelectedSalon] = useState(null);
+            const [myToken, setMyToken] = useState(null);
+
+            // Simulating booking
+            const bookToken = (salon) => {
+                const token = {
+                    salonName: salon.name,
+                    number: salon.currentToken + 4, // Mock logic
+                    service: "Classic Haircut",
+                    wait: salon.waitTime + 15
+                };
+                setMyToken(token);
+                setSelectedSalon(null);
+                setActiveTab('tokens');
+            };
+
+            return (
+                <div className="pb-20 animate-fade-in">
+                    {/* Header */}
+                    <div className="sticky top-0 z-50 glass border-b border-white/5 px-4 py-4 flex justify-between items-center">
+                        <div>
+                            <p className="text-xs text-slate-400">Welcome back,</p>
+                            <h2 className="text-lg font-bold font-display">{user.displayName.split(' ')[0]}</h2>
+                        </div>
+                        <div className="w-10 h-10 rounded-full border-2 border-primary/30 overflow-hidden">
+                            <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 space-y-6">
+                        {activeTab === 'home' && !selectedSalon && (
+                            <>
+                                {/* Search */}
+                                <div className="relative">
+                                    <div className="absolute left-4 top-3.5 text-slate-400"><Icon name="search" className="w-5 h-5" /></div>
+                                    <input type="text" placeholder="Find a salon nearby..." className="w-full bg-surface border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-primary/50 transition-colors" />
+                                </div>
+
+                                {/* Featured Salons */}
+                                <h3 className="text-lg font-bold font-display mt-2">Top Rated Nearby</h3>
+                                <div className="space-y-4">
+                                    {MOCK_SALONS.map(salon => (
+                                        <div key={salon.id} onClick={() => setSelectedSalon(salon)} className="bg-surface border border-white/5 rounded-2xl overflow-hidden shadow-lg active:scale-[0.98] transition-transform cursor-pointer">
+                                            <div className="h-32 w-full relative">
+                                                <img src={salon.image} className="w-full h-full object-cover opacity-80" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent"></div>
+                                                <div className={`absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-bold uppercase backdrop-blur-md ${salon.isOpen ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                                    {salon.isOpen ? 'Open' : 'Closed'}
+                                                </div>
+                                            </div>
+                                            <div className="p-4 relative -mt-6">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h3 className="text-xl font-bold font-display text-white">{salon.name}</h3>
+                                                        <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
+                                                            <Icon name="map-pin" className="w-3 h-3" /> {salon.location}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-primary/10 px-3 py-1 rounded-lg text-center border border-primary/20">
+                                                        <span className="text-xs text-primary block font-bold">WAIT</span>
+                                                        <span className="text-sm font-bold text-white">{salon.waitTime}m</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Salon Detail View */}
+                        {selectedSalon && (
+                            <div className="animate-slide-up">
+                                <button onClick={() => setSelectedSalon(null)} className="mb-4 text-sm text-slate-400 flex items-center gap-1 hover:text-white"><Icon name="chevron-left" className="w-4 h-4" /> Back</button>
+                                <div className="bg-surface border border-white/5 p-6 rounded-3xl text-center space-y-4">
+                                    <h2 className="text-3xl font-bold font-display text-white">{selectedSalon.name}</h2>
+                                    <div className="grid grid-cols-3 gap-2 text-center">
+                                        <div className="bg-white/5 p-3 rounded-xl">
+                                            <div className="text-2xl font-bold text-primary">{selectedSalon.currentToken}</div>
+                                            <div className="text-[10px] uppercase text-slate-400 tracking-wider">Serving</div>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-xl">
+                                            <div className="text-2xl font-bold text-primary">{selectedSalon.currentToken + 4}</div>
+                                            <div className="text-[10px] uppercase text-slate-400 tracking-wider">Next Token</div>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-xl">
+                                            <div className="text-2xl font-bold text-primary">{selectedSalon.waitTime}m</div>
+                                            <div className="text-[10px] uppercase text-slate-400 tracking-wider">Est. Wait</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 text-left">
+                                        <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Select Service</h4>
+                                        <div className="space-y-2">
+                                            {MOCK_SERVICES.map(s => (
+                                                <div key={s.id} className="flex justify-between items-center p-3 rounded-xl bg-background border border-white/5 hover:border-primary/50 cursor-pointer transition-colors group">
+                                                    <div>
+                                                        <p className="font-semibold text-white">{s.name}</p>
+                                                        <p className="text-xs text-slate-500">{s.time} mins</p>
+                                                    </div>
+                                                    <div className="text-primary font-bold">₹{s.price}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <button onClick={() => bookToken(selectedSalon)} className="w-full btn-cinematic text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2">
+                                        Get Digital Token
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* My Tokens View */}
+                        {activeTab === 'tokens' && (
+                            <div className="animate-slide-up">
+                                <h2 className="text-2xl font-bold font-display mb-6">Active Tokens</h2>
+                                {myToken ? (
+                                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-indigo-600 p-1 shadow-2xl shadow-primary/30">
+                                        <div className="bg-background rounded-[22px] p-6 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                                            
+                                            <div className="text-center border-b border-dashed border-white/10 pb-6 mb-6">
+                                                <p className="text-sm text-slate-400 uppercase tracking-widest mb-1">Your Token Number</p>
+                                                <h1 className="text-7xl font-bold text-white font-display tracking-tighter">{myToken.number}</h1>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Salon</span>
+                                                    <span className="font-bold text-white">{myToken.salonName}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Service</span>
+                                                    <span className="font-bold text-white">{myToken.service}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-4 bg-primary/10 p-3 rounded-xl border border-primary/20">
+                                                    <span className="text-primary font-bold flex items-center gap-2">
+                                                        <Icon name="clock" className="w-4 h-4" /> Estimated Wait
+                                                    </span>
+                                                    <span className="font-bold text-white text-lg">{myToken.wait} min</span>
+                                                </div>
+                                            </div>
+
+                                            <button onClick={() => setMyToken(null)} className="w-full mt-6 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-semibold">
+                                                Cancel Booking
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 opacity-50">
+                                        <div className="mx-auto w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                            <Icon name="ticket" className="w-8 h-8" />
+                                        </div>
+                                        <p>No active bookings.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-6 py-4 flex justify-around z-50">
+                        <button onClick={() => { setActiveTab('home'); setSelectedSalon(null); }} className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-primary' : 'text-slate-500'}`}>
+                            <Icon name="home" className="w-6 h-6" />
+                            <span className="text-[10px] font-medium">Home</span>
+                        </button>
+                        <button onClick={() => setActiveTab('tokens')} className={`flex flex-col items-center gap-1 ${activeTab === 'tokens' ? 'text-primary' : 'text-slate-500'}`}>
+                            <Icon name="ticket" className="w-6 h-6" />
+                            <span className="text-[10px] font-medium">Tokens</span>
+                        </button>
+                        <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-primary' : 'text-slate-500'}`}>
+                            <Icon name="user" className="w-6 h-6" />
+                            <span className="text-[10px] font-medium">Profile</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- BARBER DASHBOARD (Owner View) ---
+        const BarberDashboard = ({ user }) => {
+            const [currentToken, setCurrentToken] = useState(12);
+            const [queue, setQueue] = useState([
+                { id: 101, name: "Rahul Kumar", service: "Haircut", token: 13 },
+                { id: 102, name: "Amit Singh", service: "Shave", token: 14 },
+                { id: 103, name: "Vikram R", service: "Combo", token: 15 },
+            ]);
+
+            const nextCustomer = () => {
+                if (queue.length > 0) {
+                    setCurrentToken(queue[0].token);
+                    setQueue(queue.slice(1));
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-background pb-20 p-4">
+                    <div className="flex items-center justify-between mb-8">
+                        <h1 className="text-2xl font-bold font-display text-white">Barber Panel</h1>
+                        <div className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-bold uppercase flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live
+                        </div>
+                    </div>
+
+                    {/* Current Customer Card */}
+                    <div className="bg-surface border border-white/10 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden mb-6">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-accent"></div>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Now Serving Token</p>
+                        <div className="text-8xl font-bold text-white font-display mb-2">{currentToken}</div>
+                        
+                        <div className="my-6 border-t border-dashed border-white/10"></div>
+                        
+                        <button 
+                            onClick={nextCustomer}
+                            className="w-full btn-cinematic text-white font-bold h-16 rounded-xl text-xl flex items-center justify-center gap-2 shadow-primary/25"
+                        >
+                            <Icon name="check-circle-2" className="w-6 h-6" />
+                            Next Customer
+                        </button>
+                    </div>
+
+                    {/* Queue List */}
+                    <h3 className="font-bold text-lg text-slate-300 mb-4 px-2">Up Next ({queue.length})</h3>
+                    <div className="space-y-3">
+                        {queue.map((item, index) => (
+                            <div key={item.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between animate-slide-up" style={{animationDelay: `${index * 0.1}s`}}>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-surface border border-white/10 flex items-center justify-center text-xl font-bold text-primary">
+                                        {item.token}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">{item.name}</h4>
+                                        <p className="text-xs text-slate-400">{item.service}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right text-xs text-slate-500">
+                                    ~{(index + 1) * 15}m wait
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP COMPONENT ---
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [role, setRole] = useState('customer'); // 'customer' or 'barber'
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    setUser(currentUser);
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            if (loading) return (
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                    <Icon name="loader-2" className="w-8 h-8 text-primary animate-spin" />
+                </div>
+            );
+
+            if (!user) {
+                return <LoginScreen onLogin={setUser} />;
+            }
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen relative shadow-2xl bg-background border-x border-white/5">
+                    {/* Role Toggler (For Demo Purposes) */}
+                    <div className="fixed top-20 right-4 z-50">
+                        <button 
+                            onClick={() => setRole(role === 'customer' ? 'barber' : 'customer')}
+                            className="bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-full shadow-lg text-xs font-bold text-white hover:bg-white/20 transition-all"
+                            title="Switch View"
+                        >
+                            <Icon name="repeat" className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {role === 'customer' ? <CustomerDashboard user={user} /> : <BarberDashboard user={user} />}
+                    
+                    {/* Logout Button (Hidden in bottom menu usually, putting here for easy access in single file) */}
+                    {role === 'barber' && (
+                        <div className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-4 z-50 flex justify-around">
+                            <button onClick={() => setRole('customer')} className="flex flex-col items-center gap-1 text-slate-500"><Icon name="home" className="w-6 h-6" /><span className="text-[10px]">Back</span></button>
+                            <button onClick={() => signOut(auth)} className="flex flex-col items-center gap-1 text-red-400"><Icon name="log-out" className="w-6 h-6" /><span className="text-[10px]">Logout</span></button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
