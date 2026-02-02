@@ -3,154 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROOH | Vid-Stream Universe</title>
+  <title>SATYAMVERSE | The Digital Empire</title>
   
+  <!-- LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
-    /* --- CORE THEME --- */
-    :root { --bg: #050505; --accent: #e11d48; } /* Red Accent for VidMate feel */
+    /* --- THEME: GOD MODE (RED/BLACK) --- */
+    :root { --bg: #000000; --accent: #dc2626; --panel: #0a0a0a; }
     body { background-color: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
     
-    /* SCROLLBAR HIDING */
+    /* NO SCROLLBARS */
     * { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; }
 
-    /* --- CINEMA FRAME --- */
-    .cinema-frame {
-      width: 100vw; height: 100vh; border: none; background: #000;
-    }
-
-    /* --- GHOST PLAYER (ZOOM HACK) --- */
-    /* YouTube ka logo chhupane ke liye 165% zoom */
-    .ghost-wrapper {
-      position: relative; width: 100%; height: 100%; overflow: hidden; background: black; border-radius: 12px;
+    /* --- GHOST PLAYER V5 (Ultimate Masking) --- */
+    /* 170% Zoom to ensure NO YouTube branding is visible even on large screens */
+    .ghost-container {
+      position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
     .ghost-frame {
       position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(1.65); 
+      transform: translate(-50%, -50%) scale(1.70); 
       width: 100%; height: 100%;
       pointer-events: auto;
     }
-    /* Title Hide karne ke liye Overlay */
+    /* Invisible Shield (Blocks Title Clicks) */
     .click-shield {
-      position: absolute; top: 0; left: 0; right: 0; height: 60px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-      z-index: 10; pointer-events: none;
+      position: absolute; top: 0; left: 0; right: 0; height: 15%;
+      z-index: 10; cursor: default;
     }
+    
+    /* --- DOCS FRAME (OpenClaw Mask) --- */
+    .docs-frame { width: 100%; height: 100%; border: none; background: #fff; filter: invert(0.9) hue-rotate(180deg); } /* Dark Mode Hack for Docs */
 
-    /* --- TAB ANIMATIONS --- */
-    .tab-content { transition: opacity 0.3s ease; }
+    /* --- ANIMATIONS --- */
+    @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .animate-beat { animation: heartbeat 2s infinite; }
   </style>
 </head>
 <body>
 
-<!-- ==================== 1. LOGIN GATE ==================== -->
-<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
-  <div class="text-center">
-    <div class="w-24 h-24 mx-auto bg-gradient-to-br from-red-600 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(225,29,72,0.6)] animate-pulse">
-      <i data-lucide="play-circle" class="w-12 h-12 text-white"></i>
+<!-- ==================== 1. AUTH GATE ==================== -->
+<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center transition-all duration-700">
+  <div class="relative z-10 text-center">
+    <div class="w-24 h-24 mx-auto bg-red-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_red] animate-beat">
+      <i data-lucide="crown" class="w-12 h-12 text-white"></i>
     </div>
-    <h1 class="text-5xl font-bold mb-2 tracking-tighter">ROOH</h1>
-    <p class="text-gray-400 text-xs mb-10 tracking-[0.3em] uppercase">Universal Video Engine</p>
-    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform shadow-xl">
-      ENTER SYSTEM
+    <h1 class="text-6xl font-black mb-2 tracking-tighter">SATYAM<span class="text-red-600">VERSE</span></h1>
+    <p class="text-gray-500 text-xs tracking-[0.4em] uppercase mb-12">Private • Premium • Unlimited</p>
+    
+    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto">
+      <i data-lucide="fingerprint" class="w-5 h-5"></i> ENTER SYSTEM
     </button>
   </div>
 </div>
 
-<!-- ==================== 2. MAIN INTERFACE ==================== -->
-<div id="universe" class="fixed inset-0 hidden flex flex-col bg-[#050505]">
+<!-- ==================== 2. MAIN UNIVERSE ==================== -->
+<div id="universe" class="fixed inset-0 hidden flex flex-col bg-black">
   
-  <!-- BOTTOM NAVIGATION (App Like) -->
-  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#111] border-t border-white/5 flex justify-around items-center z-50">
-    <button onclick="switchTab('vidstream')" class="nav-btn text-white p-2 flex flex-col items-center gap-1">
-      <i data-lucide="youtube" class="w-5 h-5"></i>
-      <span class="text-[10px]">Videos</span>
-    </button>
-    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="smartphone" class="w-5 h-5"></i>
-      <span class="text-[10px]">Shorts</span>
-    </button>
-    <button onclick="switchTab('cinema')" class="nav-btn text-red-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="film" class="w-5 h-5"></i>
-      <span class="text-[10px]">Cinema</span>
-    </button>
-    <button onclick="switchTab('search')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="globe" class="w-5 h-5"></i>
-      <span class="text-[10px]">Web</span>
-    </button>
-  </nav>
-
-  <!-- === TAB 1: VID-STREAM (The VidMate Killer) === -->
-  <section id="tab-vidstream" class="tab-content absolute inset-0 pb-16 overflow-y-auto bg-black">
-    <!-- Search Header -->
-    <div class="sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-white/10 p-4">
-      <div class="relative">
-        <input type="text" id="vidInput" 
-          class="w-full bg-[#222] text-white border-none rounded-2xl py-3 pl-10 pr-12 focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-500"
-          placeholder="Search any video (e.g. Song, Movie, Tech)..."
-          onkeydown="if(event.key === 'Enter') searchVideos(this.value)">
-        <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
-        <button onclick="searchVideos(document.getElementById('vidInput').value)" class="absolute right-2 top-2 p-1.5 bg-red-600 rounded-xl">
-          <i data-lucide="arrow-right" class="text-white w-4 h-4"></i>
-        </button>
-      </div>
+  <!-- TOP HEADER (Search) -->
+  <header class="h-16 bg-[#050505] border-b border-white/5 flex items-center px-4 gap-4 z-50">
+    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-black border border-red-600/30 flex items-center justify-center">
+      <span class="font-bold text-white text-lg">S</span>
+    </div>
+    
+    <!-- GOD SEARCH BAR -->
+    <div class="flex-1 relative">
+      <input type="text" id="omniInput" 
+        class="w-full bg-[#111] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-red-600 transition-all text-sm placeholder-gray-600"
+        placeholder="Search SatyamVerse (e.g. 'T-Series', 'Comedy', 'Action')..."
+        onkeydown="if(event.key === 'Enter') performGlobalSearch(this.value)">
+      <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-500 w-4 h-4"></i>
     </div>
 
-    <!-- Video Grid -->
-    <div id="videoFeed" class="p-4 space-y-6 min-h-screen">
-      <!-- Default State -->
-      <div class="text-center py-20 opacity-60">
-        <i data-lucide="tv" class="w-16 h-16 mx-auto mb-4 text-gray-700"></i>
-        <h2 class="text-xl font-bold text-gray-300">Infinite Video Stream</h2>
-        <p class="text-xs text-gray-500 mt-2">Access Global YouTube Database. No Ads. No Logos.</p>
-        
-        <!-- Trending Tags -->
-        <div class="flex flex-wrap gap-2 justify-center mt-6">
-           <span onclick="searchVideos('Lofi Hip Hop')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Lofi</span>
-           <span onclick="searchVideos('New Movie Trailer')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Trailers</span>
-           <span onclick="searchVideos('Coding Setup')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Tech</span>
+    <!-- AI Indicator -->
+    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-red-900/20 rounded-full border border-red-900/30">
+      <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+      <span class="text-[10px] text-red-400 font-bold">LIVE FEED</span>
+    </div>
+  </header>
+
+  <!-- CONTENT VIEWPORT -->
+  <main class="flex-1 relative overflow-hidden">
+    
+    <!-- === TAB 1: MY PLAYLISTS (Music & Movies) === -->
+    <section id="tab-home" class="tab-content absolute inset-0 overflow-y-auto pb-24 p-4">
+      
+      <!-- HERO SECTION: My Music -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="music" class="text-red-500"></i> Satyam Beats (My Songs)
+        </h2>
+        <div class="aspect-video w-full md:w-2/3 lg:w-1/2 bg-[#111] rounded-2xl overflow-hidden shadow-2xl relative group">
+          <div class="ghost-container">
+            <!-- Your Songs Playlist -->
+            <iframe class="ghost-frame" 
+              src="https://www.youtube.com/embed?listType=playlist&list=PL4fGSI1pDJn4pTWyM3t61lOyZ6_4jcNOw&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
+              frameborder="0" allowfullscreen></iframe>
+            <div class="click-shield"></div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- === TAB 2: GHOST SHORTS (Infinite Scroll) === -->
-  <section id="tab-shorts" class="tab-content hidden absolute inset-0 bg-black pb-16">
-    <div id="shortsFeed" class="w-full h-full" style="scroll-snap-type: y mandatory; overflow-y: scroll;">
-      <!-- JS Injected -->
-    </div>
-  </section>
-
-  <!-- === TAB 3: CINEMA (MyFlixerz) === -->
-  <section id="tab-cinema" class="tab-content hidden absolute inset-0 bg-black z-40">
-    <!-- SANDBOXED IFRAME: No Popups, No Redirects -->
-    <iframe 
-      src="https://myflixerz.to" 
-      class="cinema-frame"
-      sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
-      allowfullscreen>
-    </iframe>
-    
-    <!-- FALLBACK BUTTON (Agar site block kare) -->
-    <div class="absolute bottom-20 right-4 z-50">
-       <a href="https://myflixerz.to" target="_blank" class="bg-red-600/90 backdrop-blur text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg flex items-center gap-2">
-         <i data-lucide="external-link" class="w-3 h-3"></i> Force Open
-       </a>
-    </div>
-  </section>
-
-  <!-- === TAB 4: WEB SEARCH (Deep Web) === -->
-  <section id="tab-search" class="tab-content hidden absolute inset-0 pb-16 overflow-y-auto bg-[#050505]">
-    <div class="p-4">
-      <h2 class="text-2xl font-bold mb-6 text-white">Deep Sources</h2>
-      <div id="webSources" class="space-y-3">
-        <!-- Injected via JS -->
+      <!-- SECTION: Satyam Talkies (Your Movies) -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="film" class="text-red-500"></i> Satyam Talkies (Full Movies)
+        </h2>
+        
+        <!-- Horizontal Scroll for Multiple Playlists -->
+        <div class="flex gap-4 overflow-x-auto pb-4">
+          <!-- Playlist 1 -->
+          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
+             <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLjb5kMzP2zok40fNltuemDqd-FlHLvXa9&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+             </div>
+             <div class="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] px-2 py-1 rounded font-bold">BLOCKBUSTER</div>
+          </div>
+          <!-- Playlist 2 -->
+          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
+             <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLum50h_rWpG5F-OAqTk96KSSTsLjA_vx1&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+             </div>
+             <div class="absolute bottom-2 left-2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded font-bold">ACTION</div>
+          </div>
+          <!-- Playlist 3 -->
+          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
+             <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLafSq5UblCNWcweoEqCDqZ76FmADCuGSf&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+             </div>
+             <div class="absolute bottom-2 left-2 bg-green-600 text-white text-[10px] px-2 py-1 rounded font-bold">HITS</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+
+    </section>
+
+    <!-- === TAB 2: CHANNEL FEEDS (Ghost Mode) === -->
+    <section id="tab-channels" class="tab-content hidden absolute inset-0 overflow-y-auto pb-24 p-4">
+      
+      <!-- T-Series Ghost Feed -->
+      <div class="mb-8">
+        <h2 class="text-lg font-bold text-white mb-3">T-Series (Ad-Free View)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden relative">
+              <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=T-Series%20New%20Song&controls=1&modestbranding=1" frameborder="0"></iframe>
+                <div class="click-shield"></div>
+              </div>
+           </div>
+           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden relative">
+              <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=T-Series%20Mixtape&controls=1&modestbranding=1" frameborder="0"></iframe>
+                <div class="click-shield"></div>
+              </div>
+           </div>
+        </div>
+      </div>
+
+      <!-- Shemaroo Comedy -->
+      <div class="mb-8">
+        <h2 class="text-lg font-bold text-white mb-3">Shemaroo Comedy</h2>
+        <div class="aspect-video w-full bg-[#111] rounded-xl overflow-hidden relative">
+          <div class="ghost-container">
+            <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Shemaroo%20Bollywood%20Comedy%20Scenes&controls=1&modestbranding=1" frameborder="0"></iframe>
+            <div class="click-shield"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ultra & Eros -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+         <div>
+           <h2 class="text-sm font-bold text-gray-400 mb-2">Ultra Bollywood</h2>
+           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden">
+             <div class="ghost-container">
+               <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Ultra%20Bollywood%20Cuts&controls=1" frameborder="0"></iframe>
+               <div class="click-shield"></div>
+             </div>
+           </div>
+         </div>
+         <div>
+           <h2 class="text-sm font-bold text-gray-400 mb-2">Eros Now Music</h2>
+           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden">
+             <div class="ghost-container">
+               <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Eros%20Now%20Music%20Hits&controls=1" frameborder="0"></iframe>
+               <div class="click-shield"></div>
+             </div>
+           </div>
+         </div>
+      </div>
+
+    </section>
+
+    <!-- === TAB 3: SECRET ARCHIVES (OpenClaw Docs) === -->
+    <section id="tab-docs" class="tab-content hidden absolute inset-0 bg-[#f0f0f0] pb-16">
+      <div class="h-10 bg-[#0a0a0a] flex items-center px-4 justify-between">
+        <span class="text-xs text-green-500 font-mono">SECURE://INTERNAL-DOCS/OPENCLAW</span>
+        <div class="flex gap-2">
+           <div class="w-2 h-2 rounded-full bg-red-500"></div>
+           <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+           <div class="w-2 h-2 rounded-full bg-green-500"></div>
+        </div>
+      </div>
+      <!-- Disguised Docs -->
+      <iframe src="https://docs.openclaw.ai/start/getting-started?utm_source=sp_auto_dm&utm_referrer=sp_auto_dm" 
+              class="w-full h-full border-none"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+      </iframe>
+    </section>
+
+    <!-- === TAB 4: GLOBAL SEARCH (Dynamic) === -->
+    <section id="tab-search" class="tab-content hidden absolute inset-0 overflow-y-auto pb-24 p-4">
+      <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Results inject here -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#0a0a0a] border-t border-white/5 flex justify-around items-center z-50">
+    <button onclick="switchTab('home')" class="nav-btn text-white p-2 flex flex-col items-center gap-1">
+      <i data-lucide="home" class="w-5 h-5"></i>
+      <span class="text-[10px]">My Zone</span>
+    </button>
+    <button onclick="switchTab('channels')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="tv" class="w-5 h-5"></i>
+      <span class="text-[10px]">Channels</span>
+    </button>
+    <button onclick="switchTab('search')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="search" class="w-5 h-5"></i>
+      <span class="text-[10px]">Search</span>
+    </button>
+    <button onclick="switchTab('docs')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      <span class="text-[10px]">Docs</span>
+    </button>
+  </nav>
 
 </div>
 
@@ -159,7 +255,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
     authDomain: "midnight-library-satyam-media.firebaseapp.com",
@@ -171,138 +266,62 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // --- DATA SOURCES ---
-  const webLinks = [
-    { name: "Google Mirror", url: "https://google.com", color: "border-blue-500" },
-    { name: "Wayback Machine", url: "https://archive.org", color: "border-gray-500" },
-    { name: "Common Crawl", url: "https://commoncrawl.org", color: "border-green-500" },
-    { name: "DuckDuckGo", url: "https://duckduckgo.com", color: "border-orange-500" }
-  ];
-
-  const shortsList = [
-    "jfKfPfyJRdk", "5qap5aO4i9A", "uNKdXj9h_a4", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk",
-    "p770Xv5tq64", "t4g2h4s", "ScMzIvxBSi4", "wbSwFU6tY1c", 
-    "f77SKdyn-1Y", "CDa9M8J_tG0", "S3X-z_7h_w", "n61ULEU7CO0"
-  ];
-
-  // --- UI HANDLERS ---
+  // AUTH HANDLER
   document.getElementById('loginBtn').onclick = async () => {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-    catch(e) { alert("Auth Failed: " + e.message); }
+    catch(e) { alert("Access Denied: " + e.message); }
   };
 
   onAuthStateChanged(auth, (user) => {
     if(user) {
       document.getElementById('authGate').style.display = 'none';
       document.getElementById('universe').classList.remove('hidden');
-      initShorts();
-      initWeb();
     }
   });
 
-  window.switchTab = (tab) => {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-    document.getElementById('tab-' + tab).classList.remove('hidden');
+  // NAVIGATION
+  window.switchTab = (tabId) => {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById('tab-' + tabId).classList.remove('hidden');
     
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-white', 'text-gray-500'));
     event.currentTarget.classList.replace('text-gray-500', 'text-white');
   };
 
-  // --- 🎥 SMART VIDEO ENGINE (VidMate Logic) ---
-  // Ye function kya karta hai:
-  // 1. Wikipedia API se related keywords nikalta hai (e.g. Search "Arijit" -> Gets "Arijit Songs", "Bollywood", "Love Songs")
-  // 2. Har keyword ke liye ek YouTube Embed generate karta hai.
-  // 3. Result: Ek "Playlist" jaisa feel aata hai bina API key ke.
-  window.searchVideos = async (query) => {
+  // GLOBAL SEARCH ENGINE
+  window.performGlobalSearch = (query) => {
     if(!query) return;
-    const container = document.getElementById('videoFeed');
-    container.innerHTML = `<div class="p-10 text-center text-gray-500"><div class="inline-block w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div> Scanning YouTube Nodes...</div>`;
+    switchTab('search');
+    const container = document.getElementById('searchResults');
+    container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">Scanning Satellite Uplinks...</div>`;
 
-    try {
-        // Step 1: Get Related Terms via Wiki
-        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-        const data = await res.json();
-        const terms = data.query.search.map(t => t.title).slice(0, 8); // Top 8 related terms
-        
-        // Add exact query at start
-        terms.unshift(query);
-        
+    setTimeout(() => {
         container.innerHTML = "";
-
-        // Step 2: Generate Ghost Players for each term
-        terms.forEach((term, i) => {
-            const card = document.createElement('div');
-            card.className = "bg-[#111] rounded-2xl overflow-hidden border border-white/5";
-            
-            // "Ghost Mode" Iframe - listType=search plays the top video for that term
-            card.innerHTML = `
-                <div class="aspect-video w-full bg-black relative overflow-hidden group">
-                    <div class="ghost-wrapper">
-                        <iframe 
-                            class="ghost-frame opacity-80 group-hover:opacity-100 transition-opacity" 
-                            src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(term + " video")}&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
-                            frameborder="0" 
-                            allow="encrypted-media"
-                            allowfullscreen>
+        const suffixes = ["Video", "Live Stream", "Playlist", "Full Movie"];
+        
+        suffixes.forEach(suffix => {
+            const term = query + " " + suffix;
+            const div = document.createElement('div');
+            div.className = "bg-[#111] rounded-2xl overflow-hidden shadow-lg border border-white/5";
+            div.innerHTML = `
+                <div class="aspect-video w-full bg-black relative group">
+                    <div class="ghost-container">
+                        <iframe class="ghost-frame opacity-80 group-hover:opacity-100 transition-opacity" 
+                           src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(term)}&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
+                           frameborder="0" allowfullscreen>
                         </iframe>
-                        <div class="click-shield"></div> <!-- Hides Title Bar -->
+                        <div class="click-shield"></div>
                     </div>
                 </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-white truncate">${term}</h3>
-                    <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                        <span class="bg-red-600/10 text-red-500 px-2 py-0.5 rounded border border-red-600/20">YouTube Source</span>
-                        <span>• Best Match</span>
-                    </div>
+                <div class="p-3">
+                    <h3 class="font-bold text-white text-sm">${query} - ${suffix}</h3>
+                    <p class="text-[10px] text-gray-500 mt-1">Global Source • Verified</p>
                 </div>
             `;
-            container.appendChild(card);
+            container.appendChild(div);
         });
-
-    } catch (e) {
-        container.innerHTML = `<p class="text-red-500 text-center">Connection Failed. Try again.</p>`;
-    }
+    }, 1000);
   };
-
-  // --- 📱 SHORTS ENGINE ---
-  function initShorts() {
-    const container = document.getElementById('shortsFeed');
-    for(let i=0; i<30; i++) {
-        const vid = shortsList[i % shortsList.length];
-        const slide = document.createElement('div');
-        slide.style.scrollSnapAlign = 'start';
-        slide.className = "w-full h-full relative bg-black flex items-center justify-center overflow-hidden";
-        slide.innerHTML = `
-           <div class="ghost-wrapper">
-             <iframe class="ghost-frame" 
-               src="https://www.youtube.com/embed/${vid}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vid}&rel=0&showinfo=0&iv_load_policy=3" 
-               frameborder="0" allow="encrypted-media">
-             </iframe>
-             <div class="click-shield"></div>
-           </div>
-           <!-- Fake Interaction UI -->
-           <div class="absolute right-4 bottom-24 flex flex-col gap-6 z-20">
-              <button class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="heart" class="text-white w-6 h-6"></i></button>
-              <button class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="share" class="text-white w-6 h-6"></i></button>
-           </div>
-        `;
-        container.appendChild(slide);
-    }
-  }
-
-  // --- 🌐 WEB SOURCES ---
-  function initWeb() {
-      const grid = document.getElementById('webSources');
-      grid.innerHTML = webLinks.map(l => `
-          <a href="${l.url}" target="_blank" class="block p-4 bg-[#111] rounded-xl border-l-4 ${l.color} hover:bg-[#1a1a1a]">
-              <div class="flex justify-between items-center">
-                  <span class="font-bold text-white">${l.name}</span>
-                  <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
-              </div>
-          </a>
-      `).join('');
-      lucide.createIcons();
-  }
 
   lucide.createIcons();
 </script>
