@@ -3,202 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROOH | The Infinite Universe</title>
+  <title>ROOH | The God Archive</title>
   
-  <!-- CORE ENGINES -->
+  <!-- LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.12.16/framer-motion.umd.min.js"></script>
   
   <!-- FONTS -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
 
   <style>
-    /* --- THE VOID STYLING --- */
-    :root { --black: #030303; --neon: #8b5cf6; --glass: rgba(20, 20, 20, 0.6); }
-    body { background-color: var(--black); color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
+    /* --- CORE AESTHETICS --- */
+    :root { --bg: #000000; --accent: #8b5cf6; --glass: rgba(255, 255, 255, 0.08); }
+    body { background-color: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
     
-    /* NO SCROLLBARS (For Immersion) */
-    ::-webkit-scrollbar { width: 0px; }
-    .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    /* HIDE SCROLLBARS */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* YOUTUBE GHOST HACK (The Magic) */
-    .ghost-player { position: relative; overflow: hidden; border-radius: 16px; background: #000; }
-    .ghost-player iframe {
-      width: 140%; height: 140%;
-      margin-left: -20%; margin-top: -20%; /* Zooms in to hide YT Logo & Watch Later */
+    /* --- THE YOUTUBE "GHOST" HACK (v3.0) --- */
+    /* This zooms into the iframe to physically push logos off-screen */
+    .yt-ghost-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+      border-radius: 0px; 
+    }
+    
+    .yt-ghost-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1.60); /* 160% ZOOM - KILLS LOGO */
+      width: 100%;
+      height: 100%;
       pointer-events: auto;
     }
-    .ghost-overlay {
-      position: absolute; top: 0; left: 0; right: 0; height: 60px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-      z-index: 10; pointer-events: none;
+    
+    /* Overlay to block title clicks */
+    .yt-blocker-top {
+      position: absolute; top: 0; left: 0; right: 0; height: 15%;
+      z-index: 20; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      pointer-events: none; /* Let clicks pass through if needed, or use 'auto' to block */
     }
 
-    /* SEARCH ENGINE STYLES */
-    .g-card { border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); transition: all 0.3s; }
-    .g-card:hover { border-color: var(--neon); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
-    
-    /* ANIMATIONS */
-    @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-    .scanner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, var(--neon), transparent); opacity: 0.1; animation: scanline 4s infinite linear; pointer-events: none; }
+    /* --- SHORTS SNAP SCROLL --- */
+    .snap-y-mandatory { scroll-snap-type: y mandatory; }
+    .snap-center { scroll-snap-align: center; }
 
-    /* MASONRY */
-    .masonry { column-count: 2; column-gap: 1em; }
-    @media(min-width: 768px) { .masonry { column-count: 4; } }
-    .break-inside { break-inside: avoid; margin-bottom: 1em; }
+    /* --- GOOGLE SEARCH STYLING --- */
+    .g-link { color: #8ab4f8; font-size: 1.25rem; line-height: 1.2; text-decoration: none; }
+    .g-link:hover { text-decoration: underline; }
+    .g-url { color: #20c20e; font-size: 0.875rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .g-desc { color: #bdc1c6; font-size: 0.875rem; line-height: 1.58; }
+
+    /* --- ANIMATIONS --- */
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    .animate-float { animation: float 6s ease-in-out infinite; }
   </style>
 </head>
 <body>
 
-<!-- ==================== 1. AUTH GATE (GOOGLE) ==================== -->
-<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center transition-all duration-1000">
-  <div class="absolute inset-0 z-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1518112390430-f4ab02e9c2c8?q=80&w=2081')] bg-cover bg-center scanner"></div>
-  
-  <div class="z-10 text-center glass p-12 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
-    <i data-lucide="infinity" class="w-20 h-20 text-purple-500 mx-auto mb-6 animate-pulse"></i>
-    <h1 class="text-6xl md:text-8xl font-['Syncopate'] font-bold mb-2 tracking-tighter">ROOH</h1>
-    <p class="text-purple-400 tracking-[0.5em] text-sm uppercase mb-12">Infinite Knowledge Architecture</p>
+<!-- ==================== 1. AUTH GATE (GOOGLE FIREBASE) ==================== -->
+<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center p-6 transition-all duration-700">
+  <!-- Background Art -->
+  <div class="absolute inset-0 z-0">
+    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072" class="w-full h-full object-cover opacity-20 animate-pulse">
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+  </div>
+
+  <div class="z-10 relative text-center w-full max-w-md">
+    <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-purple-600 to-blue-600 rounded-full flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(139,92,246,0.5)] animate-float">
+      <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+    </div>
+    <h1 class="text-5xl font-['Cinzel'] font-bold mb-2 text-white tracking-widest">ROOH</h1>
+    <p class="text-gray-400 text-xs tracking-[0.4em] uppercase mb-12">The Infinite Interface</p>
     
-    <button id="loginBtn" class="group relative px-8 py-4 bg-white text-black font-bold rounded-full overflow-hidden hover:scale-105 transition-all w-full max-w-xs mx-auto">
-      <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-      <span class="relative z-10 flex items-center justify-center gap-3">
-        <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        INITIALIZE LINK
-      </span>
+    <button id="loginBtn" class="w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform shadow-xl">
+      <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      ACCESS TERMINAL
     </button>
   </div>
 </div>
 
-<!-- ==================== 2. THE INFINITE INTERFACE ==================== -->
-<div id="universe" class="fixed inset-0 hidden opacity-0 transition-opacity duration-1000 flex flex-col md:flex-row">
+<!-- ==================== 2. MAIN UNIVERSE ==================== -->
+<div id="universe" class="fixed inset-0 hidden flex flex-col md:flex-row bg-black">
   
-  <!-- SIDEBAR (AI COMMAND) -->
-  <aside class="w-full md:w-20 h-16 md:h-full bg-black/90 border-r border-white/5 flex md:flex-col items-center justify-between p-4 z-50">
-    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center font-bold text-lg">R</div>
-    
-    <nav class="flex md:flex-col gap-8">
-      <button onclick="switchMode('search')" class="nav-btn text-purple-400 hover:scale-110 transition"><i data-lucide="globe" class="w-6 h-6"></i></button>
-      <button onclick="switchMode('video')" class="nav-btn text-gray-500 hover:text-white hover:scale-110 transition"><i data-lucide="play" class="w-6 h-6"></i></button>
-      <button onclick="switchMode('images')" class="nav-btn text-gray-500 hover:text-white hover:scale-110 transition"><i data-lucide="aperture" class="w-6 h-6"></i></button>
-      <button onclick="switchMode('shorts')" class="nav-btn text-gray-500 hover:text-white hover:scale-110 transition"><i data-lucide="smartphone" class="w-6 h-6"></i></button>
-    </nav>
-
-    <div class="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-      <img id="userAvatar" src="" class="w-full h-full object-cover">
+  <!-- NAV DOCK (Left/Bottom) -->
+  <nav class="md:w-20 w-full md:h-full h-16 bg-[#0a0a0a] border-r border-white/10 flex md:flex-col items-center justify-around md:justify-center md:gap-10 z-50 fixed bottom-0 md:relative">
+    <button onclick="switchTab('search')" class="nav-btn text-purple-500 p-3 rounded-xl bg-white/5"><i data-lucide="search" class="w-6 h-6"></i></button>
+    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 hover:text-white p-3"><i data-lucide="smartphone" class="w-6 h-6"></i></button>
+    <button onclick="switchTab('cinema')" class="nav-btn text-gray-500 hover:text-red-500 p-3"><i data-lucide="film" class="w-6 h-6"></i></button>
+    <div class="hidden md:block w-8 h-8 rounded-full bg-gray-800 mt-auto mb-8 overflow-hidden border border-white/20">
+      <img id="userAvatar" class="w-full h-full object-cover">
     </div>
-  </aside>
+  </nav>
 
-  <!-- MAIN CONTENT AREA -->
-  <main class="flex-1 relative bg-[#050505] overflow-hidden flex flex-col">
+  <!-- CONTENT AREA -->
+  <main class="flex-1 relative h-full overflow-hidden pb-16 md:pb-0">
     
-    <!-- OMNI-SEARCH HEADER -->
-    <header class="absolute top-0 left-0 right-0 z-40 p-6 bg-gradient-to-b from-black via-black/90 to-transparent">
-      <div class="max-w-4xl mx-auto relative group">
-        <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <i data-lucide="search" class="w-5 h-5 text-gray-500"></i>
-        </div>
-        <input type="text" id="omniInput" 
-          class="w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl py-4 pl-12 pr-32 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-all font-mono shadow-2xl"
-          placeholder="Command the Universe (e.g., 'Space', 'MrBeast', 'Deep Sea')..."
-          onkeydown="if(event.key === 'Enter') executeSearch(this.value)">
-        
-        <div class="absolute right-2 top-2 bottom-2 flex items-center gap-2">
-           <span class="text-[10px] text-purple-500 bg-purple-500/10 px-2 py-1 rounded animate-pulse">AI ACTIVE</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- CONTENT VIEWPORT -->
-    <div id="viewport" class="flex-1 overflow-y-auto no-scroll pt-32 pb-20 px-4 md:px-12">
+    <!-- === TAB 1: SEARCH (THE GOOGLE MIRROR) === -->
+    <section id="tab-search" class="absolute inset-0 overflow-y-auto bg-[#0a0a0a] pt-4 px-4 md:px-20">
       
-      <!-- AI GREETING / EMPTY STATE -->
-      <div id="aiState" class="h-full flex flex-col items-center justify-center text-center opacity-100 transition-opacity">
-        <div class="w-32 h-32 rounded-full border border-purple-500/30 flex items-center justify-center mb-8 relative">
-          <div class="absolute inset-0 rounded-full border-t-2 border-purple-500 animate-spin"></div>
-          <i data-lucide="cpu" class="w-12 h-12 text-purple-500"></i>
+      <!-- GOOGLE SEARCH BAR -->
+      <div class="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur py-4">
+        <div class="max-w-3xl mx-auto">
+          <div class="relative group">
+            <input type="text" id="searchInput" 
+              class="w-full bg-[#1a1a1a] text-white border border-white/10 rounded-full py-3 pl-12 pr-12 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-lg"
+              placeholder="Search the Infinite Web..."
+              onkeydown="if(event.key === 'Enter') performSearch(this.value)">
+            <i data-lucide="search" class="absolute left-4 top-3.5 text-gray-400 w-5 h-5"></i>
+            <button onclick="performSearch(document.getElementById('searchInput').value)" class="absolute right-3 top-2.5 p-1 rounded-full hover:bg-white/10">
+              <i data-lucide="arrow-right" class="text-purple-400 w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <!-- FILTERS -->
+          <div class="flex gap-4 mt-4 text-sm text-gray-400 ml-4">
+            <span class="text-white border-b-2 border-white pb-1 cursor-pointer">All</span>
+            <span class="hover:text-white cursor-pointer">Images</span>
+            <span class="hover:text-white cursor-pointer">Videos</span>
+            <span class="hover:text-white cursor-pointer">Books</span>
+          </div>
         </div>
-        <h2 class="text-4xl md:text-6xl font-['Syncopate'] font-bold mb-4">AWAITING INPUT</h2>
-        <p class="text-gray-500 max-w-md mx-auto mb-8">The neural link is stable. I have access to 4.2 billion simulated nodes. What do you seek?</p>
+      </div>
+
+      <!-- RESULTS FEED -->
+      <div class="max-w-3xl mx-auto py-6 space-y-8 min-h-screen">
         
-        <div class="flex flex-wrap gap-4 justify-center">
-          <button onclick="executeSearch('Cyberpunk City')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-purple-600/20 text-xs tracking-widest uppercase transition">Cyberpunk</button>
-          <button onclick="executeSearch('Cosmic Horror')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-purple-600/20 text-xs tracking-widest uppercase transition">Cosmos</button>
-          <button onclick="executeSearch('Quantum Physics')" class="px-6 py-2 rounded-full border border-white/10 hover:bg-purple-600/20 text-xs tracking-widest uppercase transition">Quantum</button>
+        <!-- AI ANSWER BOX -->
+        <div id="aiBox" class="hidden bg-[#1a1a1a] p-6 rounded-2xl border border-white/10">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
+            <span class="text-sm font-bold text-white">Generative AI Overview</span>
+          </div>
+          <p id="aiText" class="text-gray-300 leading-relaxed text-sm"></p>
         </div>
+
+        <!-- SEARCH RESULTS (Injected JS) -->
+        <div id="searchResults">
+          <!-- Initial State -->
+          <div class="text-center py-20 opacity-50">
+            <i data-lucide="globe" class="w-16 h-16 mx-auto mb-4 text-gray-600"></i>
+            <h2 class="text-xl font-bold">Enter the Void</h2>
+            <p class="text-sm">Access 100+ Billion Nodes instantly.</p>
+          </div>
+        </div>
+
       </div>
+    </section>
 
-      <!-- DYNAMIC RESULTS CONTAINER -->
-      <div id="resultsGrid" class="hidden">
-        
-        <!-- 1. AI OVERVIEW -->
-        <div class="glass p-6 rounded-2xl border-l-4 border-purple-500 mb-12">
-          <h3 class="flex items-center gap-2 text-purple-400 font-bold mb-2">
-            <i data-lucide="sparkles" class="w-4 h-4"></i> NEURAL SUMMARY
-          </h3>
-          <p id="aiSummary" class="text-gray-300 leading-relaxed font-mono text-sm typing-effect"></p>
-        </div>
-
-        <!-- 2. CREATOR/CHANNEL SECTION (Simulated) -->
-        <div id="channelSection" class="hidden mb-12">
-           <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="tv" class="w-5 h-5"></i> IDENTIFIED CHANNELS</h3>
-           <div class="flex gap-4 overflow-x-auto no-scroll pb-4" id="channelRow"></div>
-        </div>
-
-        <!-- 3. MAIN GRID (Websites & Videos Mixed) -->
-        <div class="masonry" id="mixedGrid"></div>
-
-        <!-- LOAD MORE TRIGGER -->
-        <div class="text-center py-12">
-          <div class="inline-block w-8 h-8 border-2 border-white/20 border-t-purple-500 rounded-full animate-spin"></div>
-          <p class="text-[10px] mt-2 text-gray-600 uppercase">Decrypting more data...</p>
-        </div>
+    <!-- === TAB 2: SHORTS (THE GHOST PLAYER) === -->
+    <section id="tab-shorts" class="hidden absolute inset-0 bg-black">
+      <div id="shortsContainer" class="h-full w-full overflow-y-scroll snap-y-mandatory scroll-smooth">
+        <!-- Shorts injected via JS -->
       </div>
+    </section>
 
-    </div>
-
-    <!-- AI STATUS BAR -->
-    <div class="h-8 bg-black border-t border-white/10 flex items-center px-4 justify-between text-[10px] font-mono text-gray-500 z-50">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span>SYSTEM ONLINE</span>
+    <!-- === TAB 3: CINEMA (YOUR WEBSITE) === -->
+    <section id="tab-cinema" class="hidden absolute inset-0 bg-black flex flex-col">
+      <div class="h-14 bg-[#111] flex items-center px-4 justify-between border-b border-white/10">
+        <div class="flex items-center gap-2 text-red-500 font-bold tracking-widest">
+          <i data-lucide="film" class="w-5 h-5"></i> PREMIUM THEATER
+        </div>
+        <div class="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">SECURE SOURCE: wvv-fmovies.com</div>
       </div>
-      <div id="aiTicker">Scanning sector 7G... Indexing YouTube Nodes...</div>
-      <div>SECURE CONNECTION</div>
-    </div>
+      <div class="flex-1 relative">
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <div class="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <!-- Embedding your site -->
+        <iframe src="https://wvv-fmovies.com/all-movies/" class="w-full h-full border-none relative z-10" allowfullscreen></iframe>
+      </div>
+    </section>
 
   </main>
 </div>
 
-<!-- ==================== 3. THE VOID (INTERNAL BROWSER) ==================== -->
-<div id="void" class="fixed inset-0 z-[1000] bg-black hidden flex flex-col transition-transform duration-300 translate-y-full">
-  <!-- Void Header -->
-  <div class="h-14 bg-[#111] border-b border-white/10 flex items-center justify-between px-4">
-    <div class="flex items-center gap-4">
-      <button onclick="closeVoid()" class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center hover:bg-red-500/40 text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
-      <span class="text-gray-500">|</span>
-      <div class="flex items-center gap-2 text-gray-400 text-xs font-mono bg-black px-3 py-1 rounded-full border border-white/10">
-        <i data-lucide="lock" class="w-3 h-3 text-green-500"></i>
-        <span id="voidUrl">rooh://secure-view</span>
-      </div>
-    </div>
-    <div class="flex gap-4">
-       <button class="text-white hover:text-purple-400"><i data-lucide="share-2" class="w-5 h-5"></i></button>
-       <button class="text-white hover:text-purple-400"><i data-lucide="maximize" class="w-5 h-5"></i></button>
-    </div>
-  </div>
-
-  <!-- Void Content -->
-  <div class="flex-1 relative bg-white">
-    <div id="voidLoader" class="absolute inset-0 bg-black flex flex-col items-center justify-center z-20">
-      <div class="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p class="text-purple-400 font-mono text-xs animate-pulse">ESTABLISHING HANDSHAKE...</p>
-    </div>
-    <iframe id="voidFrame" class="w-full h-full border-none z-10" allow="autoplay; fullscreen; picture-in-picture"></iframe>
-  </div>
-</div>
-
-<!-- ==================== SCRIPT ENGINE (THE BRAIN) ==================== -->
+<!-- ==================== LOGIC ENGINE ==================== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { 
@@ -206,7 +191,7 @@
     setPersistence, browserLocalPersistence 
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // --- 1. FIREBASE CONFIG ---
+  // --- FIREBASE CONFIG ---
   const firebaseConfig = {
     apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
     authDomain: "midnight-library-satyam-media.firebaseapp.com",
@@ -220,201 +205,209 @@
   const auth = getAuth(app);
   setPersistence(auth, browserLocalPersistence);
 
-  // --- 2. DATABASE (SIMULATED INFINITY) ---
+  // --- DATABASE ---
   const db = {
-    // Top Channels DB (Simulated)
-    channels: {
-      "mrbeast": { id: "UCX6OQ3DkcsbYNE6H8uQQuVA", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=mrbeast", name: "MrBeast", subs: "200M" },
-      "tseries": { id: "UCq-Fj5jknLsUf-MWSy4_brA", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=tseries", name: "T-Series", subs: "250M" },
-      "pewdiepie": { id: "UC-lHJZR3Gqxm24_Vd_AJ5Yw", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=pewds", name: "PewDiePie", subs: "111M" },
-      "sidemen": { id: "UCDogdKl7t7NHzQ95aEwkdMw", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=sidemen", name: "Sidemen", subs: "20M" }
-    },
-    // Random Videos for "Infinite" feed
-    videos: [
-      "jfKfPfyJRdk", "5qap5aO4i9A", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk", "wbSwFU6tY1c", "turbeWK2wwg", 
-      "LXb3EKWsInQ", "f77SKdyn-1Y", "t4g2h4s", "ScMzIvxBSi4", "n61ULEU7CO0"
-    ],
-    trendingTopics: ["Artificial Intelligence", "Mars Colony", "Deep Sea Mystery", "Cyberpunk Aesthetics", "Quantum Computing", "Ancient History"]
+    // Curated high-quality aesthetic videos for "Infinite" feed
+    shorts: [
+      "jfKfPfyJRdk", "5qap5aO4i9A", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk", "wbSwFU6tY1c", // Lofi/Space
+      "p770Xv5tq64", "t4g2h4s", "uNKdXj9h_a4", "CDa9M8J_tG0" // Random viral
+    ]
   };
 
-  // --- 3. LOGIC CONTROLLER ---
+  // --- UI CONTROLLERS ---
   const authGate = document.getElementById('authGate');
   const universe = document.getElementById('universe');
+  const loginBtn = document.getElementById('loginBtn');
 
-  // Auth Handler
-  document.getElementById('loginBtn').onclick = async () => {
+  // Login Logic
+  loginBtn.onclick = async () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (e) { alert("Secure Connection Failed: " + e.message); }
+    } catch (e) { alert("Access Error: " + e.message); }
   };
 
+  // Auth Listener
   onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById('userAvatar').src = user.photoURL;
       authGate.style.opacity = '0';
       setTimeout(() => {
         authGate.style.display = 'none';
-        universe.style.display = 'flex';
-        setTimeout(() => universe.style.opacity = '1', 50);
-      }, 1000);
-      initAI();
+        universe.classList.remove('hidden');
+        initShorts(); // Preload shorts
+      }, 700);
     }
   });
 
-  // --- 4. INFINITE SEARCH ENGINE (THE CORE) ---
-  window.executeSearch = async (query) => {
+  // Tab Switcher
+  window.switchTab = (tabId) => {
+    ['search', 'shorts', 'cinema'].forEach(t => {
+      document.getElementById('tab-' + t).classList.add('hidden');
+    });
+    document.getElementById('tab-' + tabId).classList.remove('hidden');
+    
+    // Update icons color
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.remove('text-purple-500', 'bg-white/5');
+      b.classList.add('text-gray-500');
+    });
+    // Highlight active (simple logic for demo)
+    event.currentTarget.classList.add('text-purple-500', 'bg-white/5');
+    event.currentTarget.classList.remove('text-gray-500');
+  };
+
+  // --- SEARCH ENGINE LOGIC (THE "GOOGLE" SIMULATION) ---
+  window.performSearch = async (query) => {
     if(!query) return;
     
-    // UI RESET
-    document.getElementById('aiState').classList.add('hidden');
-    document.getElementById('resultsGrid').classList.remove('hidden');
-    document.getElementById('channelSection').classList.add('hidden');
+    const container = document.getElementById('searchResults');
+    const aiBox = document.getElementById('aiBox');
+    const aiText = document.getElementById('aiText');
     
-    // AI TYPEWRITER
-    const summary = document.getElementById('aiSummary');
-    summary.innerHTML = "";
-    const text = `Accessing global archives for "${query}"... Integrating 40,000 video nodes, 12M text articles, and visual databases. Secure protocol enabled.`;
-    let i = 0;
-    const type = setInterval(() => {
-      summary.innerHTML += text.charAt(i);
-      i++;
-      if (i > text.length) clearInterval(type);
-    }, 20);
-
-    // FETCH REAL DATA (Wiki API as "Google Websites")
-    const mixedGrid = document.getElementById('mixedGrid');
-    mixedGrid.innerHTML = ""; // Clear
-
-    // A. CHECK CHANNELS
-    const lowerQ = query.toLowerCase().replace(/\s/g, '');
-    let foundChannel = false;
-    const channelRow = document.getElementById('channelRow');
-    channelRow.innerHTML = "";
+    container.innerHTML = `<div class="text-center py-10"><div class="inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>`;
     
-    Object.keys(db.channels).forEach(key => {
-      if (key.includes(lowerQ) || lowerQ.includes(key)) {
-        foundChannel = true;
-        const ch = db.channels[key];
-        channelRow.innerHTML += `
-          <div class="min-w-[200px] glass p-4 rounded-xl flex flex-col items-center cursor-pointer hover:bg-white/10" onclick="alert('Opening Channel: ${ch.name}')">
-            <img src="${ch.img}" class="w-16 h-16 rounded-full mb-2 border border-purple-500">
-            <h4 class="font-bold">${ch.name}</h4>
-            <p class="text-xs text-gray-500">${ch.subs} Subscribers</p>
-            <button class="mt-2 bg-red-600 px-4 py-1 rounded text-xs font-bold">SUBSCRIBE</button>
-          </div>
-        `;
-      }
-    });
-
-    if(foundChannel) document.getElementById('channelSection').classList.remove('hidden');
-
-    // B. FETCH WIKI (WEB RESULTS)
-    try {
-      const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-      const data = await res.json();
-      
-      data.query.search.forEach((item, index) => {
-        
-        // INTERSPERSE YOUTUBE VIDEOS (Ghost Mode)
-        if (index % 2 === 0) {
-           const vidId = db.videos[Math.floor(Math.random() * db.videos.length)];
-           const vidCard = document.createElement('div');
-           vidCard.className = "break-inside ghost-player mb-6 border border-white/10 group";
-           vidCard.innerHTML = `
-             <div class="relative w-full aspect-video bg-black overflow-hidden">
-                <iframe src="https://www.youtube.com/embed/${vidId}?controls=0&modestbranding=1&rel=0" frameborder="0"></iframe>
-                <div class="ghost-overlay"></div>
-                <div class="absolute bottom-4 left-4 z-20 pointer-events-none">
-                   <span class="bg-red-600 text-white text-[10px] px-1 rounded">LIVE</span>
-                   <p class="text-sm font-bold mt-1 text-white shadow-black drop-shadow-md">Relevant Video Stream ${index}</p>
-                </div>
-             </div>
-           `;
-           mixedGrid.appendChild(vidCard);
-        }
-
-        // TEXT WEBSITES
-        const webCard = document.createElement('div');
-        webCard.className = "break-inside g-card p-5 rounded-xl cursor-pointer mb-6";
-        webCard.onclick = () => openVoid(`https://en.m.wikipedia.org/wiki/${item.title}`, item.title);
-        
-        webCard.innerHTML = `
-           <div class="flex items-center gap-2 mb-2">
-             <div class="w-4 h-4 rounded-full bg-gray-700 text-[8px] flex items-center justify-center">${item.title[0]}</div>
-             <span class="text-[10px] text-gray-400">www.${item.title.replace(/\s/g,'').toLowerCase()}.com</span>
-           </div>
-           <h3 class="text-lg font-bold text-purple-300 mb-2 leading-tight group-hover:underline">${item.title}</h3>
-           <p class="text-xs text-gray-400 line-clamp-3">${item.snippet.replace(/<[^>]*>?/gm, '')}...</p>
-           
-           <div class="mt-3 flex gap-2">
-              <span class="text-[9px] bg-white/5 px-2 py-1 rounded border border-white/5">Research</span>
-              <span class="text-[9px] bg-white/5 px-2 py-1 rounded border border-white/5">Verified</span>
-           </div>
-        `;
-        mixedGrid.appendChild(webCard);
-
-        // IMAGES (Unsplash)
-        if (index % 3 === 0) {
-          const imgCard = document.createElement('div');
-          imgCard.className = "break-inside rounded-xl overflow-hidden mb-6 relative group cursor-pointer";
-          const imgUrl = `https://source.unsplash.com/random/400x600?${query}&sig=${index}`;
-          // Note: Unsplash Source is deprecated, using stable ID logic in prod, but for demo:
-          imgCard.innerHTML = `
-            <img src="https://images.unsplash.com/photo-${index%2===0 ? '1614728853913-1e22ba863009' : '1534447677768-be436bb09401'}?auto=format&fit=crop&w=400&q=80" class="w-full object-cover group-hover:scale-110 transition duration-700">
-            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-               <span class="text-xs tracking-widest uppercase">Visual Node</span>
-            </div>
-          `;
-          mixedGrid.appendChild(imgCard);
-        }
-      });
-
-    } catch(err) { console.error(err); }
-  };
-
-  // --- 5. THE VOID (Modal Logic) ---
-  window.openVoid = (url, title) => {
-    const v = document.getElementById('void');
-    const f = document.getElementById('voidFrame');
-    const l = document.getElementById('voidLoader');
-    
-    v.style.display = 'flex';
-    v.classList.remove('translate-y-full');
-    l.style.display = 'flex';
-    
-    document.getElementById('voidUrl').innerText = `rooh://${title.replace(/\s/g,'-').toLowerCase()}`;
-    
-    f.src = url;
-    f.onload = () => l.style.display = 'none';
-  };
-
-  window.closeVoid = () => {
-    document.getElementById('void').classList.add('translate-y-full');
+    // 1. GENERATE AI SUMMARY
+    aiBox.classList.remove('hidden');
+    aiText.innerText = "Analyzing neural web...";
     setTimeout(() => {
-      document.getElementById('voidFrame').src = '';
-      document.getElementById('void').style.display = 'none';
-    }, 300);
+        aiText.innerText = `Based on 4.2 billion indexed pages regarding "${query}", the consensus is that this topic represents a significant node in the digital archive. It relates to multiple domains including history, science, and pop culture. Below are the most relevant verified links found in the deep index.`;
+    }, 1500);
+
+    // 2. FETCH REAL DATA (Wikipedia API -> Google Style Cards)
+    try {
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
+        const data = await res.json();
+        
+        container.innerHTML = ""; // Clear loader
+
+        // Add "Real" Website Links (Simulated Google Results)
+        data.query.search.forEach((item, i) => {
+            const fakeDomain = item.title.replace(/\s+/g, '').toLowerCase() + '.com';
+            const randomViews = (Math.random() * 10).toFixed(1) + 'M';
+            
+            // Generate Google-style Card
+            const card = document.createElement('div');
+            card.className = "mb-8";
+            card.innerHTML = `
+                <div class="g-url">
+                    <div class="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-400 border border-white/10">
+                        <img src="https://www.google.com/s2/favicons?domain=${fakeDomain}" onerror="this.style.display='none'" class="w-4 h-4">
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-white font-medium">${item.title}</span>
+                        <span class="text-[10px] text-gray-500">https://www.${fakeDomain}</span>
+                    </div>
+                    <i data-lucide="more-vertical" class="w-4 h-4 text-gray-600 ml-auto"></i>
+                </div>
+                <a href="https://en.m.wikipedia.org/wiki/${item.title}" target="_blank" class="g-link text-purple-400 visited:text-purple-600 block mb-1">
+                    ${item.title} - Official Archive & Documentation
+                </a>
+                <p class="g-desc">
+                    ${item.timestamp.split('T')[0]} — ${item.snippet.replace(/<[^>]*>?/gm, '')}... This is a verified result from the master index matching your query about ${query}.
+                </p>
+                <!-- Image Strip -->
+                <div class="flex gap-2 mt-3 overflow-hidden">
+                   ${[1,2,3].map(n => `
+                      <div class="w-24 h-16 rounded-lg bg-gray-800 overflow-hidden relative">
+                         <img src="https://source.unsplash.com/random/200x200?${item.title}&sig=${n+i}" class="w-full h-full object-cover opacity-80 hover:opacity-100">
+                      </div>
+                   `).join('')}
+                </div>
+            `;
+            container.appendChild(card);
+            
+            // Inject a "Ghost Video" every 3 results
+            if(i === 1) {
+                const vidDiv = document.createElement('div');
+                vidDiv.className = "mb-8 border border-white/10 rounded-xl overflow-hidden bg-black";
+                vidDiv.innerHTML = `
+                   <div class="p-4 border-b border-white/10 flex justify-between items-center">
+                      <span class="text-white font-bold text-sm">Videos</span>
+                      <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                   </div>
+                   <div class="flex gap-4 p-4 overflow-x-auto">
+                      <div class="w-64 flex-shrink-0">
+                         <div class="aspect-video bg-black rounded-lg overflow-hidden relative mb-2">
+                             <iframe src="https://www.youtube.com/embed/${db.shorts[0]}?controls=0&modestbranding=1" class="w-full h-full opacity-70 hover:opacity-100 transition"></iframe>
+                         </div>
+                         <p class="text-sm text-white truncate">Top Video for ${query}</p>
+                      </div>
+                      <div class="w-64 flex-shrink-0">
+                         <div class="aspect-video bg-black rounded-lg overflow-hidden relative mb-2">
+                             <iframe src="https://www.youtube.com/embed/${db.shorts[1]}?controls=0&modestbranding=1" class="w-full h-full opacity-70 hover:opacity-100 transition"></iframe>
+                         </div>
+                         <p class="text-sm text-white truncate">Viral Analysis</p>
+                      </div>
+                   </div>
+                `;
+                container.appendChild(vidDiv);
+            }
+        });
+        
+        lucide.createIcons();
+
+    } catch(e) { console.error(e); }
   };
 
-  // --- 6. AI TICKER ---
-  function initAI() {
-    const ticker = document.getElementById('aiTicker');
-    const msgs = [
-      "Analyzing user retina pattern...",
-      "Fetching new data from YouTube servers...",
-      "Decrypting secure nodes...",
-      "AI optimal route established.",
-      "Ghost Protocol Active."
-    ];
-    let i = 0;
-    setInterval(() => {
-      ticker.innerText = msgs[i % msgs.length];
-      i++;
-    }, 4000);
+  // --- SHORTS ENGINE (GHOST MODE) ---
+  function initShorts() {
+    const container = document.getElementById('shortsContainer');
+    // Generate 100 Infinite Slides
+    for(let i=0; i<100; i++) {
+        const vidId = db.shorts[i % db.shorts.length];
+        const slide = document.createElement('div');
+        slide.className = "w-full h-full snap-center relative bg-black flex items-center justify-center overflow-hidden";
+        
+        slide.innerHTML = `
+            <!-- GHOST CONTAINER: This hides the YouTube UI -->
+            <div class="yt-ghost-container">
+                <iframe 
+                    class="yt-ghost-frame" 
+                    src="https://www.youtube.com/embed/${vidId}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vidId}&iv_load_policy=3&rel=0&showinfo=0&playsinline=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+                
+                <!-- TOP BLOCKER (Hides Title) -->
+                <div class="yt-blocker-top"></div>
+            </div>
+
+            <!-- CUSTOM UI OVERLAY (Since we hid real controls) -->
+            <div class="absolute right-4 bottom-24 flex flex-col gap-6 items-center z-30">
+                <div class="flex flex-col items-center gap-1">
+                    <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
+                        <i data-lucide="heart" class="w-6 h-6 text-white fill-white"></i>
+                    </div>
+                    <span class="text-xs font-bold text-white">1.2M</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
+                        <i data-lucide="message-circle" class="w-6 h-6 text-white fill-white"></i>
+                    </div>
+                    <span class="text-xs font-bold text-white">45K</span>
+                </div>
+                <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
+                    <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-6 left-4 right-16 z-30">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">R</div>
+                    <span class="font-bold text-white shadow-black drop-shadow-md">@RoohUniverse</span>
+                </div>
+                <p class="text-sm text-gray-200 line-clamp-2 shadow-black drop-shadow-md">
+                    Infinite stream generated by the neural network. #infinity #cosmos #vibe
+                </p>
+            </div>
+        `;
+        container.appendChild(slide);
+    }
+    lucide.createIcons();
   }
 
-  // Initial Icons
+  // Init Icons
   lucide.createIcons();
 
 </script>
