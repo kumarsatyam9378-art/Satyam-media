@@ -1,382 +1,221 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SATYAMVERSE | God Mode</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <style>
-    /* --- THEME: ULTRA DARK GOD MODE --- */
-    :root { --bg: #000000; --panel: #0a0a0a; --accent: #ff0000; }
-    body { background-color: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
-    
-    /* NO SCROLLBARS */
-    * { -ms-overflow-style: none; scrollbar-width: none; }
-    ::-webkit-scrollbar { display: none; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate CricVerse | Login</title>
+    <style>
+        :root { --primary: #0f0c29; --secondary: #302b63; --accent: #00d4ff; --text: #ffffff; }
+        body { background: linear-gradient(to right, var(--primary), var(--secondary)); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        
+        /* HEADER */
+        header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .logo h1 { margin: 0; color: var(--accent); letter-spacing: 1px; font-size: 1.5rem; }
+        
+        /* USER PROFILE (HIDDEN INITIALLY) */
+        #user-profile { display: none; align-items: center; gap: 10px; }
+        #user-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); }
+        #user-name { font-weight: bold; font-size: 0.9rem; }
 
-    /* --- GHOST PLAYER V6 (Extreme Zoom) --- */
-    .ghost-container {
-      position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .ghost-frame {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(1.75); /* 175% Zoom - Zero Branding */
-      width: 100%; height: 100%;
-      pointer-events: auto;
-    }
-    .click-shield {
-      position: absolute; top: 0; left: 0; right: 0; height: 15%;
-      z-index: 10;
-    }
+        /* SCREENS */
+        .screen { width: 100%; max-width: 500px; display: none; animation: fadeIn 0.5s; }
+        .active { display: block; }
 
-    /* --- ANIMATIONS --- */
-    @keyframes scan { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-    .scanlines {
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-      background-size: 100% 4px;
-      position: absolute; pointer-events: none; inset: 0; z-index: 50; opacity: 0.3;
-    }
-  </style>
+        /* LOGIN CARD */
+        .login-card { background: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); margin-top: 50px; }
+        
+        /* GOOGLE BTN */
+        .google-btn { background: white; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 20px auto 0; width: 100%; max-width: 250px; }
+        .google-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+
+        /* GAME CARDS */
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
+        .player-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; }
+        .player-card.selected { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+        
+        /* GAME CONSOLE */
+        .ai-terminal { background: #000; color: #00ff00; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; min-height: 120px; margin-bottom: 15px; border: 1px solid #333; overflow-y: auto; max-height: 200px; text-align: left; }
+        .visual-box { width: 100%; height: 250px; background: #111; margin-bottom: 15px; border-radius: 8px; object-fit: cover; display: none; }
+        
+        .btn { background: var(--accent); color: #000; border: none; padding: 14px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
+        .btn:disabled { background: #555; opacity: 0.6; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
 
-<!-- ==================== 1. LOGIN GATE ==================== -->
-<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center transition-all duration-700">
-  <div class="relative z-10 text-center">
-    <div class="w-24 h-24 mx-auto bg-gradient-to-t from-red-900 to-black rounded-full border-2 border-red-600 flex items-center justify-center mb-6 shadow-[0_0_60px_red] animate-pulse">
-      <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+    <header>
+        <div class="logo">
+            <h1>🏏 CRICVERSE</h1>
+        </div>
+        <div id="user-profile">
+            <span id="user-name">Player</span>
+            <img id="user-pic" src="" alt="Profile">
+        </div>
+    </header>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-card">
+            <h2>Welcome to the Arena</h2>
+            <p>Login to save your stats and play.</p>
+            
+            <button id="googleLoginBtn" class="google-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                Sign in with Google
+            </button>
+        </div>
     </div>
-    <h1 class="text-5xl font-black mb-2 tracking-tighter text-white">SATYAM<span class="text-red-600">VERSE</span></h1>
-    <p class="text-gray-500 text-xs tracking-[0.5em] uppercase mb-12">Universal Content Hub</p>
-    
-    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto shadow-xl">
-      <i data-lucide="fingerprint" class="w-5 h-5"></i> ACCESS SYSTEM
-    </button>
-  </div>
-</div>
 
-<!-- ==================== 2. MAIN UNIVERSE ==================== -->
-<div id="universe" class="fixed inset-0 hidden flex flex-col bg-black">
-  <div class="scanlines"></div>
-
-  <!-- HEADER -->
-  <header class="h-16 bg-[#050505] border-b border-white/5 flex items-center px-4 gap-4 z-50">
-    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-black border border-red-600/30 flex items-center justify-center">
-      <span class="font-bold text-white text-lg">S</span>
+    <div id="lobby-screen" class="screen">
+        <h3>Select Your Avatar</h3>
+        <div class="player-grid">
+            <div class="player-card" id="card-virat">
+                <div style="font-size:2rem;">👑</div>
+                <strong>Virat Kohli</strong><br><span style="color:#ffd700">₹50</span>
+            </div>
+            <div class="player-card" id="card-rohit">
+                <div style="font-size:2rem;">🧢</div>
+                <strong>Rohit Sharma</strong><br><span style="color:#ffd700">₹40</span>
+            </div>
+            <div class="player-card" id="card-bumrah">
+                <div style="font-size:2rem;">⚡</div>
+                <strong>J. Bumrah</strong><br><span style="color:#ffd700">₹30</span>
+            </div>
+        </div>
+        <button id="pay-btn" class="btn" disabled>Select Player First</button>
     </div>
-    
-    <!-- OMNI SEARCH -->
-    <div class="flex-1 relative">
-      <input type="text" id="omniInput" 
-        class="w-full bg-[#111] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-red-600 transition-all text-sm placeholder-gray-600 font-medium"
-        placeholder="Search (e.g. 'Arijit Singh', 'Marvel', 'Coding')..."
-        onkeydown="if(event.key === 'Enter') performSearch(this.value)">
-      <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-500 w-4 h-4"></i>
+
+    <div id="game-screen" class="screen">
+        <h3>Playing as <span id="active-player" style="color:var(--accent)">...</span></h3>
+        <img id="game-visual" class="visual-box">
+        <div id="ai-feed" class="ai-terminal">> SYSTEM: Connecting to Stadium...</div>
+        <button id="action-btn" class="btn" style="background:#ff0055; color:white;">🏏 PLAY NEXT BALL</button>
     </div>
-  </header>
 
-  <!-- CONTENT VIEWPORT -->
-  <main class="flex-1 relative overflow-hidden">
-    
-    <!-- === TAB 1: HOME (All Categories) === -->
-    <section id="tab-home" class="tab-content absolute inset-0 overflow-y-auto pb-24 p-4">
-      
-      <!-- 🎬 SECTION 1: PREMIUM CINEMA (Rajshri Hits) -->
-      <div class="mb-10">
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span class="w-1 h-6 bg-red-600 rounded-full"></span> 🎬 Premium Cinema (Full Movies)
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Vivah -->
-          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
-            <div class="aspect-video relative">
-              <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Vivah%20Full%20Movie%20Official%20Rajshri&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-              </div>
-            </div>
-            <div class="p-3">
-              <h3 class="font-bold text-sm">Vivah (Full Movie)</h3>
-              <p class="text-[10px] text-gray-500">Shahid Kapoor • Amrita Rao</p>
-            </div>
-          </div>
-          <!-- Hum Saath Saath Hain -->
-          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
-            <div class="aspect-video relative">
-              <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Hum%20Saath%20Saath%20Hain%20Full%20Movie&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-              </div>
-            </div>
-            <div class="p-3">
-              <h3 class="font-bold text-sm">Hum Saath-Saath Hain</h3>
-              <p class="text-[10px] text-gray-500">Classic Family Drama</p>
-            </div>
-          </div>
-          <!-- Hum Aapke Hain Koun -->
-          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
-            <div class="aspect-video relative">
-              <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Hum%20Aapke%20Hain%20Koun%20Full%20Movie&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-              </div>
-            </div>
-            <div class="p-3">
-              <h3 class="font-bold text-sm">Hum Aapke Hain Koun</h3>
-              <p class="text-[10px] text-gray-500">Salman Khan • Madhuri Dixit</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <script type="module">
+        // 1. FIREBASE IMPORTS
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      <!-- 🎵 SECTION 2: GLOBAL BEATS (English) -->
-      <div class="mb-10">
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span class="w-1 h-6 bg-blue-600 rounded-full"></span> 🎵 English Hits 2026
-        </h2>
-        <div class="flex gap-4 overflow-x-auto pb-4">
-           <!-- Card 1 -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Latest%20English%20Songs%202025%20Hits&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Latest English Hits</h3></div>
-           </div>
-           <!-- Card 2 -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Clean%20Classroom%20Pop%20Songs&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Clean Pop (Classroom)</h3></div>
-           </div>
-           <!-- Card 3 -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Christian%20Music%20Playlist%202026&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Christian Music 2026</h3></div>
-           </div>
-        </div>
-      </div>
+        // 2. YOUR CONFIG (Exactly as you provided)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
+            authDomain: "midnight-library-satyam-media.firebaseapp.com",
+            projectId: "midnight-library-satyam-media",
+            storageBucket: "midnight-library-satyam-media.firebasestorage.app",
+            messagingSenderId: "842047619495",
+            appId: "1:842047619495:web:7483bc7e4a9029d6dc7682",
+            measurementId: "G-CGDLDBT4HH"
+        };
 
-      <!-- 🇮🇳 SECTION 3: DESI VIBES (Hindi) -->
-      <div class="mb-10">
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span class="w-1 h-6 bg-orange-600 rounded-full"></span> 🇮🇳 Desi Vibes (Trending)
-        </h2>
-        <div class="flex gap-4 overflow-x-auto pb-4">
-           <!-- Top 100 -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Top%20100%20Songs%20India%20Charts&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Top 100 India Charts</h3></div>
-           </div>
-           <!-- Romantic -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=New%20Hindi%20Romantic%20Songs%202025&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Romantic Love Hits</h3></div>
-           </div>
-           <!-- Indie -->
-           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
-              <div class="aspect-video relative">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Indie%20India%20Best%20Songs&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <div class="p-3"><h3 class="font-bold text-xs">Indie India</h3></div>
-           </div>
-        </div>
-      </div>
+        // 3. INITIALIZE FIREBASE
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-      <!-- 🧠 SECTION 4: KNOWLEDGE & FUN (Creators) -->
-      <div class="mb-10">
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <span class="w-1 h-6 bg-purple-600 rounded-full"></span> 🧠 Knowledge & Fun
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-           <!-- Kapil Sharma -->
-           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
-              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=The%20Great%20Indian%20Kapil%20Show%20Full%20Episode&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <h3 class="font-bold text-xs px-1">Kapil Sharma Show</h3>
-           </div>
-           <!-- WsCube Tech -->
-           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
-              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=WsCube%20Tech%20Python%20Full%20Course&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <h3 class="font-bold text-xs px-1">WsCube Tech (Python)</h3>
-           </div>
-           <!-- Video Editing -->
-           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
-              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Video%20Editing%20Full%20Course%20Premiere%20Pro&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <h3 class="font-bold text-xs px-1">Video Editing Course</h3>
-           </div>
-           <!-- Slayy Point -->
-           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
-              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
-                 <div class="ghost-container">
-                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Slayy%20Point%20New%20Video&controls=1" frameborder="0"></iframe>
-                    <div class="click-shield"></div>
-                 </div>
-              </div>
-              <h3 class="font-bold text-xs px-1">Slayy Point (Fun)</h3>
-           </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- === TAB 2: SEARCH (Dynamic) === -->
-    <section id="tab-search" class="tab-content hidden absolute inset-0 overflow-y-auto pb-24 p-4">
-      <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-    </section>
-
-    <!-- === TAB 3: SECRET DOCS (OpenClaw) === -->
-    <section id="tab-docs" class="tab-content hidden absolute inset-0 bg-[#0a0a0a] pb-16">
-       <div class="h-8 bg-[#111] flex items-center justify-between px-4 border-b border-white/5">
-          <span class="text-[10px] font-mono text-green-500">ENCRYPTED://DOCS/ARCHIVE</span>
-       </div>
-       <iframe src="https://docs.openclaw.ai/start/getting-started?utm_source=sp_auto_dm&utm_referrer=sp_auto_dm" 
-               class="w-full h-full border-none invert-[0.9] hue-rotate-180" 
-               sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-       </iframe>
-    </section>
-
-  </main>
-
-  <!-- BOTTOM NAV -->
-  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#0a0a0a] border-t border-white/5 flex justify-around items-center z-50">
-    <button onclick="switchTab('home')" class="nav-btn text-white p-2 flex flex-col items-center gap-1">
-      <i data-lucide="home" class="w-5 h-5"></i>
-      <span class="text-[10px]">Home</span>
-    </button>
-    <button onclick="switchTab('search')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="search" class="w-5 h-5"></i>
-      <span class="text-[10px]">Search</span>
-    </button>
-    <button onclick="switchTab('docs')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="file-text" class="w-5 h-5"></i>
-      <span class="text-[10px]">Archives</span>
-    </button>
-  </nav>
-
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
-    authDomain: "midnight-library-satyam-media.firebaseapp.com",
-    projectId: "midnight-library-satyam-media",
-    storageBucket: "midnight-library-satyam-media.appspot.com",
-    messagingSenderId: "842047619495",
-    appId: "1:842047619495:web:7483bc7e4a9029d6dc7682"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  // AUTH
-  document.getElementById('loginBtn').onclick = async () => {
-    try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-    catch(e) { alert(e.message); }
-  };
-
-  onAuthStateChanged(auth, (user) => {
-    if(user) {
-      document.getElementById('authGate').style.display = 'none';
-      document.getElementById('universe').classList.remove('hidden');
-    }
-  });
-
-  // NAV
-  window.switchTab = (tabId) => {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.getElementById('tab-' + tabId).classList.remove('hidden');
-    
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-white', 'text-gray-500'));
-    event.currentTarget.classList.replace('text-gray-500', 'text-white');
-  };
-
-  // SEARCH ENGINE
-  window.performSearch = (query) => {
-    if(!query) return;
-    switchTab('search');
-    const container = document.getElementById('searchResults');
-    container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">Decrypting Content Nodes...</div>`;
-
-    setTimeout(() => {
-        container.innerHTML = "";
-        const categories = ["Full Video", "Live", "Shorts", "Playlist", "Review"];
+        // 4. AUTH LOGIC
+        const loginBtn = document.getElementById("googleLoginBtn");
         
-        categories.forEach(cat => {
-            const term = query + " " + cat;
-            const div = document.createElement('div');
-            div.className = "bg-[#111] rounded-xl overflow-hidden shadow-lg border border-white/5";
-            div.innerHTML = `
-                <div class="aspect-video w-full bg-black relative group">
-                    <div class="ghost-container">
-                        <iframe class="ghost-frame opacity-80 group-hover:opacity-100 transition-opacity" 
-                           src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(term)}&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
-                           frameborder="0" allowfullscreen>
-                        </iframe>
-                        <div class="click-shield"></div>
-                    </div>
-                </div>
-                <div class="p-3 flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-white text-sm">${query}</h3>
-                        <p class="text-[10px] text-gray-500">${cat}</p>
-                    </div>
-                    <button class="bg-red-600/20 text-red-500 p-2 rounded-full"><i data-lucide="play" class="w-4 h-4"></i></button>
-                </div>
-            `;
-            container.appendChild(div);
+        loginBtn.addEventListener("click", async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                alert("Login Failed: " + error.message);
+            }
         });
-        lucide.createIcons();
-    }, 800);
-  };
 
-  lucide.createIcons();
-</script>
+        // 5. AUTH STATE LISTENER (Auto-Redirect)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is logged in
+                console.log("Logged in as:", user.displayName);
+                
+                // Update UI Header
+                document.getElementById("user-name").innerText = user.displayName.split(" ")[0]; // First Name
+                document.getElementById("user-pic").src = user.photoURL;
+                document.getElementById("user-profile").style.display = "flex";
+
+                // Switch Screens
+                showScreen("lobby-screen");
+            } else {
+                // User is logged out
+                showScreen("login-screen");
+            }
+        });
+
+        // Helper to switch screens
+        function showScreen(screenId) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+            document.getElementById(screenId).classList.add("active");
+        }
+
+        // --- GAME LOGIC START ---
+        
+        let gameState = { player: "", price: 0, role: "", ball: 0 };
+        const UPI_ID = "kumarsatyam9378@okhdfcbank";
+
+        // Player Selection Logic
+        document.getElementById("card-virat").onclick = () => selectPlayer("Virat Kohli", 50, "Batter", "card-virat");
+        document.getElementById("card-rohit").onclick = () => selectPlayer("Rohit Sharma", 40, "Batter", "card-rohit");
+        document.getElementById("card-bumrah").onclick = () => selectPlayer("Jasprit Bumrah", 30, "Bowler", "card-bumrah");
+
+        function selectPlayer(name, price, role, id) {
+            gameState = { player: name, price: price, role: role, ball: 0 };
+            
+            // Visual Selection
+            document.querySelectorAll(".player-card").forEach(c => c.classList.remove("selected"));
+            document.getElementById(id).classList.add("selected");
+
+            // Enable Pay Button
+            const btn = document.getElementById("pay-btn");
+            btn.innerText = `PAY ₹${price} & PLAY`;
+            btn.disabled = false;
+        }
+
+        // Fake Payment Logic
+        document.getElementById("pay-btn").onclick = () => {
+            if(confirm(`Confirm payment of ₹${gameState.price}?`)) {
+                showScreen("game-screen");
+                document.getElementById("active-player").innerText = gameState.player;
+            }
+        };
+
+        // AI Game Logic (Pollinations)
+        const actionBtn = document.getElementById("action-btn");
+        const aiFeed = document.getElementById("ai-feed");
+        const gameVisual = document.getElementById("game-visual");
+
+        actionBtn.onclick = async () => {
+            actionBtn.disabled = true;
+            actionBtn.innerText = "Generating...";
+            gameState.ball++;
+
+            const promptText = `Cricket commentary in Hindi. ${gameState.player} is ${gameState.role === 'Batter' ? 'batting' : 'bowling'}. Ball number ${gameState.ball}. Result is exciting. Short 2 lines.`;
+            const promptImg = `Cricket stadium, ${gameState.player} close up action shot, 4k realistic`;
+
+            try {
+                // Fetch Text & Image Parallel
+                const [txtRes, imgRes] = await Promise.all([
+                    fetch(`https://pollinations.ai/api/text?prompt=${encodeURIComponent(promptText)}`).then(r=>r.text()),
+                    fetch(`https://pollinations.ai/p/${encodeURIComponent(promptImg)}?width=400&height=250&seed=${Math.random()}`).then(r=>r.blob())
+                ]);
+
+                // Update UI
+                aiFeed.innerHTML += `<br><br>> <b>Ball ${gameState.ball}:</b> ${txtRes}`;
+                aiFeed.scrollTop = aiFeed.scrollHeight;
+                
+                gameVisual.src = URL.createObjectURL(imgRes);
+                gameVisual.style.display = "block";
+
+            } catch (e) {
+                console.error(e);
+            }
+
+            actionBtn.disabled = false;
+            actionBtn.innerText = "🏏 PLAY NEXT BALL";
+        };
+
+    </script>
 </body>
 </html>
-
-
