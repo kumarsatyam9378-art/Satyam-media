@@ -3,240 +3,288 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SATYAMVERSE | The Digital Empire</title>
+  <title>SATYAMVERSE | God Mode</title>
   
-  <!-- LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
-    /* --- THEME: GOD MODE (RED/BLACK) --- */
-    :root { --bg: #000000; --accent: #dc2626; --panel: #0a0a0a; }
+    /* --- THEME: ULTRA DARK GOD MODE --- */
+    :root { --bg: #000000; --panel: #0a0a0a; --accent: #ff0000; }
     body { background-color: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
     
     /* NO SCROLLBARS */
     * { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; }
 
-    /* --- GHOST PLAYER V5 (Ultimate Masking) --- */
-    /* 170% Zoom to ensure NO YouTube branding is visible even on large screens */
+    /* --- GHOST PLAYER V6 (Extreme Zoom) --- */
     .ghost-container {
       position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.05);
     }
     .ghost-frame {
       position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(1.70); 
+      transform: translate(-50%, -50%) scale(1.75); /* 175% Zoom - Zero Branding */
       width: 100%; height: 100%;
       pointer-events: auto;
     }
-    /* Invisible Shield (Blocks Title Clicks) */
     .click-shield {
       position: absolute; top: 0; left: 0; right: 0; height: 15%;
-      z-index: 10; cursor: default;
+      z-index: 10;
     }
-    
-    /* --- DOCS FRAME (OpenClaw Mask) --- */
-    .docs-frame { width: 100%; height: 100%; border: none; background: #fff; filter: invert(0.9) hue-rotate(180deg); } /* Dark Mode Hack for Docs */
 
     /* --- ANIMATIONS --- */
-    @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    .animate-beat { animation: heartbeat 2s infinite; }
+    @keyframes scan { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+    .scanlines {
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+      background-size: 100% 4px;
+      position: absolute; pointer-events: none; inset: 0; z-index: 50; opacity: 0.3;
+    }
   </style>
 </head>
 <body>
 
-<!-- ==================== 1. AUTH GATE ==================== -->
+<!-- ==================== 1. LOGIN GATE ==================== -->
 <div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center transition-all duration-700">
   <div class="relative z-10 text-center">
-    <div class="w-24 h-24 mx-auto bg-red-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_red] animate-beat">
-      <i data-lucide="crown" class="w-12 h-12 text-white"></i>
+    <div class="w-24 h-24 mx-auto bg-gradient-to-t from-red-900 to-black rounded-full border-2 border-red-600 flex items-center justify-center mb-6 shadow-[0_0_60px_red] animate-pulse">
+      <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
     </div>
-    <h1 class="text-6xl font-black mb-2 tracking-tighter">SATYAM<span class="text-red-600">VERSE</span></h1>
-    <p class="text-gray-500 text-xs tracking-[0.4em] uppercase mb-12">Private • Premium • Unlimited</p>
+    <h1 class="text-5xl font-black mb-2 tracking-tighter text-white">SATYAM<span class="text-red-600">VERSE</span></h1>
+    <p class="text-gray-500 text-xs tracking-[0.5em] uppercase mb-12">Universal Content Hub</p>
     
-    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto">
-      <i data-lucide="fingerprint" class="w-5 h-5"></i> ENTER SYSTEM
+    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto shadow-xl">
+      <i data-lucide="fingerprint" class="w-5 h-5"></i> ACCESS SYSTEM
     </button>
   </div>
 </div>
 
 <!-- ==================== 2. MAIN UNIVERSE ==================== -->
 <div id="universe" class="fixed inset-0 hidden flex flex-col bg-black">
-  
-  <!-- TOP HEADER (Search) -->
+  <div class="scanlines"></div>
+
+  <!-- HEADER -->
   <header class="h-16 bg-[#050505] border-b border-white/5 flex items-center px-4 gap-4 z-50">
     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-black border border-red-600/30 flex items-center justify-center">
       <span class="font-bold text-white text-lg">S</span>
     </div>
     
-    <!-- GOD SEARCH BAR -->
+    <!-- OMNI SEARCH -->
     <div class="flex-1 relative">
       <input type="text" id="omniInput" 
-        class="w-full bg-[#111] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-red-600 transition-all text-sm placeholder-gray-600"
-        placeholder="Search SatyamVerse (e.g. 'T-Series', 'Comedy', 'Action')..."
-        onkeydown="if(event.key === 'Enter') performGlobalSearch(this.value)">
+        class="w-full bg-[#111] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-red-600 transition-all text-sm placeholder-gray-600 font-medium"
+        placeholder="Search (e.g. 'Arijit Singh', 'Marvel', 'Coding')..."
+        onkeydown="if(event.key === 'Enter') performSearch(this.value)">
       <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-500 w-4 h-4"></i>
-    </div>
-
-    <!-- AI Indicator -->
-    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-red-900/20 rounded-full border border-red-900/30">
-      <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-      <span class="text-[10px] text-red-400 font-bold">LIVE FEED</span>
     </div>
   </header>
 
   <!-- CONTENT VIEWPORT -->
   <main class="flex-1 relative overflow-hidden">
     
-    <!-- === TAB 1: MY PLAYLISTS (Music & Movies) === -->
+    <!-- === TAB 1: HOME (All Categories) === -->
     <section id="tab-home" class="tab-content absolute inset-0 overflow-y-auto pb-24 p-4">
       
-      <!-- HERO SECTION: My Music -->
-      <div class="mb-8">
+      <!-- 🎬 SECTION 1: PREMIUM CINEMA (Rajshri Hits) -->
+      <div class="mb-10">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <i data-lucide="music" class="text-red-500"></i> Satyam Beats (My Songs)
+          <span class="w-1 h-6 bg-red-600 rounded-full"></span> 🎬 Premium Cinema (Full Movies)
         </h2>
-        <div class="aspect-video w-full md:w-2/3 lg:w-1/2 bg-[#111] rounded-2xl overflow-hidden shadow-2xl relative group">
-          <div class="ghost-container">
-            <!-- Your Songs Playlist -->
-            <iframe class="ghost-frame" 
-              src="https://www.youtube.com/embed?listType=playlist&list=PL4fGSI1pDJn4pTWyM3t61lOyZ6_4jcNOw&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
-              frameborder="0" allowfullscreen></iframe>
-            <div class="click-shield"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Vivah -->
+          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
+            <div class="aspect-video relative">
+              <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Vivah%20Full%20Movie%20Official%20Rajshri&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+              </div>
+            </div>
+            <div class="p-3">
+              <h3 class="font-bold text-sm">Vivah (Full Movie)</h3>
+              <p class="text-[10px] text-gray-500">Shahid Kapoor • Amrita Rao</p>
+            </div>
+          </div>
+          <!-- Hum Saath Saath Hain -->
+          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
+            <div class="aspect-video relative">
+              <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Hum%20Saath%20Saath%20Hain%20Full%20Movie&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+              </div>
+            </div>
+            <div class="p-3">
+              <h3 class="font-bold text-sm">Hum Saath-Saath Hain</h3>
+              <p class="text-[10px] text-gray-500">Classic Family Drama</p>
+            </div>
+          </div>
+          <!-- Hum Aapke Hain Koun -->
+          <div class="bg-[#0a0a0a] rounded-xl overflow-hidden group border border-white/5">
+            <div class="aspect-video relative">
+              <div class="ghost-container">
+                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Hum%20Aapke%20Hain%20Koun%20Full%20Movie&controls=1&modestbranding=1" frameborder="0" allowfullscreen></iframe>
+                <div class="click-shield"></div>
+              </div>
+            </div>
+            <div class="p-3">
+              <h3 class="font-bold text-sm">Hum Aapke Hain Koun</h3>
+              <p class="text-[10px] text-gray-500">Salman Khan • Madhuri Dixit</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- SECTION: Satyam Talkies (Your Movies) -->
-      <div class="mb-8">
+      <!-- 🎵 SECTION 2: GLOBAL BEATS (English) -->
+      <div class="mb-10">
         <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <i data-lucide="film" class="text-red-500"></i> Satyam Talkies (Full Movies)
+          <span class="w-1 h-6 bg-blue-600 rounded-full"></span> 🎵 English Hits 2026
         </h2>
-        
-        <!-- Horizontal Scroll for Multiple Playlists -->
         <div class="flex gap-4 overflow-x-auto pb-4">
-          <!-- Playlist 1 -->
-          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
-             <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLjb5kMzP2zok40fNltuemDqd-FlHLvXa9&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-             </div>
-             <div class="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] px-2 py-1 rounded font-bold">BLOCKBUSTER</div>
-          </div>
-          <!-- Playlist 2 -->
-          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
-             <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLum50h_rWpG5F-OAqTk96KSSTsLjA_vx1&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-             </div>
-             <div class="absolute bottom-2 left-2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded font-bold">ACTION</div>
-          </div>
-          <!-- Playlist 3 -->
-          <div class="min-w-[300px] md:min-w-[400px] aspect-video bg-[#111] rounded-xl overflow-hidden relative">
-             <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=playlist&list=PLafSq5UblCNWcweoEqCDqZ76FmADCuGSf&controls=1&modestbranding=1&rel=0" frameborder="0" allowfullscreen></iframe>
-                <div class="click-shield"></div>
-             </div>
-             <div class="absolute bottom-2 left-2 bg-green-600 text-white text-[10px] px-2 py-1 rounded font-bold">HITS</div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- === TAB 2: CHANNEL FEEDS (Ghost Mode) === -->
-    <section id="tab-channels" class="tab-content hidden absolute inset-0 overflow-y-auto pb-24 p-4">
-      
-      <!-- T-Series Ghost Feed -->
-      <div class="mb-8">
-        <h2 class="text-lg font-bold text-white mb-3">T-Series (Ad-Free View)</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden relative">
-              <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=T-Series%20New%20Song&controls=1&modestbranding=1" frameborder="0"></iframe>
-                <div class="click-shield"></div>
+           <!-- Card 1 -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Latest%20English%20Songs%202025%20Hits&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
               </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Latest English Hits</h3></div>
            </div>
-           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden relative">
-              <div class="ghost-container">
-                <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=T-Series%20Mixtape&controls=1&modestbranding=1" frameborder="0"></iframe>
-                <div class="click-shield"></div>
+           <!-- Card 2 -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Clean%20Classroom%20Pop%20Songs&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
               </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Clean Pop (Classroom)</h3></div>
+           </div>
+           <!-- Card 3 -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Christian%20Music%20Playlist%202026&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Christian Music 2026</h3></div>
            </div>
         </div>
       </div>
 
-      <!-- Shemaroo Comedy -->
-      <div class="mb-8">
-        <h2 class="text-lg font-bold text-white mb-3">Shemaroo Comedy</h2>
-        <div class="aspect-video w-full bg-[#111] rounded-xl overflow-hidden relative">
-          <div class="ghost-container">
-            <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Shemaroo%20Bollywood%20Comedy%20Scenes&controls=1&modestbranding=1" frameborder="0"></iframe>
-            <div class="click-shield"></div>
-          </div>
+      <!-- 🇮🇳 SECTION 3: DESI VIBES (Hindi) -->
+      <div class="mb-10">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="w-1 h-6 bg-orange-600 rounded-full"></span> 🇮🇳 Desi Vibes (Trending)
+        </h2>
+        <div class="flex gap-4 overflow-x-auto pb-4">
+           <!-- Top 100 -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Top%20100%20Songs%20India%20Charts&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Top 100 India Charts</h3></div>
+           </div>
+           <!-- Romantic -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=New%20Hindi%20Romantic%20Songs%202025&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Romantic Love Hits</h3></div>
+           </div>
+           <!-- Indie -->
+           <div class="min-w-[280px] bg-[#0a0a0a] rounded-xl border border-white/5 overflow-hidden">
+              <div class="aspect-video relative">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Indie%20India%20Best%20Songs&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <div class="p-3"><h3 class="font-bold text-xs">Indie India</h3></div>
+           </div>
         </div>
       </div>
 
-      <!-- Ultra & Eros -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-         <div>
-           <h2 class="text-sm font-bold text-gray-400 mb-2">Ultra Bollywood</h2>
-           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden">
-             <div class="ghost-container">
-               <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Ultra%20Bollywood%20Cuts&controls=1" frameborder="0"></iframe>
-               <div class="click-shield"></div>
-             </div>
+      <!-- 🧠 SECTION 4: KNOWLEDGE & FUN (Creators) -->
+      <div class="mb-10">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <span class="w-1 h-6 bg-purple-600 rounded-full"></span> 🧠 Knowledge & Fun
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           <!-- Kapil Sharma -->
+           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
+              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=The%20Great%20Indian%20Kapil%20Show%20Full%20Episode&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <h3 class="font-bold text-xs px-1">Kapil Sharma Show</h3>
            </div>
-         </div>
-         <div>
-           <h2 class="text-sm font-bold text-gray-400 mb-2">Eros Now Music</h2>
-           <div class="aspect-video bg-[#111] rounded-xl overflow-hidden">
-             <div class="ghost-container">
-               <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Eros%20Now%20Music%20Hits&controls=1" frameborder="0"></iframe>
-               <div class="click-shield"></div>
-             </div>
+           <!-- WsCube Tech -->
+           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
+              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=WsCube%20Tech%20Python%20Full%20Course&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <h3 class="font-bold text-xs px-1">WsCube Tech (Python)</h3>
            </div>
-         </div>
+           <!-- Video Editing -->
+           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
+              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Video%20Editing%20Full%20Course%20Premiere%20Pro&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <h3 class="font-bold text-xs px-1">Video Editing Course</h3>
+           </div>
+           <!-- Slayy Point -->
+           <div class="bg-[#0a0a0a] p-2 rounded-xl border border-white/5">
+              <div class="aspect-video relative overflow-hidden rounded-lg mb-2">
+                 <div class="ghost-container">
+                    <iframe class="ghost-frame" src="https://www.youtube.com/embed?listType=search&list=Slayy%20Point%20New%20Video&controls=1" frameborder="0"></iframe>
+                    <div class="click-shield"></div>
+                 </div>
+              </div>
+              <h3 class="font-bold text-xs px-1">Slayy Point (Fun)</h3>
+           </div>
+        </div>
       </div>
 
     </section>
 
-    <!-- === TAB 3: SECRET ARCHIVES (OpenClaw Docs) === -->
-    <section id="tab-docs" class="tab-content hidden absolute inset-0 bg-[#f0f0f0] pb-16">
-      <div class="h-10 bg-[#0a0a0a] flex items-center px-4 justify-between">
-        <span class="text-xs text-green-500 font-mono">SECURE://INTERNAL-DOCS/OPENCLAW</span>
-        <div class="flex gap-2">
-           <div class="w-2 h-2 rounded-full bg-red-500"></div>
-           <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
-           <div class="w-2 h-2 rounded-full bg-green-500"></div>
-        </div>
-      </div>
-      <!-- Disguised Docs -->
-      <iframe src="https://docs.openclaw.ai/start/getting-started?utm_source=sp_auto_dm&utm_referrer=sp_auto_dm" 
-              class="w-full h-full border-none"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-      </iframe>
-    </section>
-
-    <!-- === TAB 4: GLOBAL SEARCH (Dynamic) === -->
+    <!-- === TAB 2: SEARCH (Dynamic) === -->
     <section id="tab-search" class="tab-content hidden absolute inset-0 overflow-y-auto pb-24 p-4">
-      <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Results inject here -->
-      </div>
+      <div id="searchResults" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </section>
+
+    <!-- === TAB 3: SECRET DOCS (OpenClaw) === -->
+    <section id="tab-docs" class="tab-content hidden absolute inset-0 bg-[#0a0a0a] pb-16">
+       <div class="h-8 bg-[#111] flex items-center justify-between px-4 border-b border-white/5">
+          <span class="text-[10px] font-mono text-green-500">ENCRYPTED://DOCS/ARCHIVE</span>
+       </div>
+       <iframe src="https://docs.openclaw.ai/start/getting-started?utm_source=sp_auto_dm&utm_referrer=sp_auto_dm" 
+               class="w-full h-full border-none invert-[0.9] hue-rotate-180" 
+               sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+       </iframe>
     </section>
 
   </main>
 
-  <!-- BOTTOM NAVIGATION -->
+  <!-- BOTTOM NAV -->
   <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#0a0a0a] border-t border-white/5 flex justify-around items-center z-50">
     <button onclick="switchTab('home')" class="nav-btn text-white p-2 flex flex-col items-center gap-1">
       <i data-lucide="home" class="w-5 h-5"></i>
-      <span class="text-[10px]">My Zone</span>
-    </button>
-    <button onclick="switchTab('channels')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
-      <i data-lucide="tv" class="w-5 h-5"></i>
-      <span class="text-[10px]">Channels</span>
+      <span class="text-[10px]">Home</span>
     </button>
     <button onclick="switchTab('search')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
       <i data-lucide="search" class="w-5 h-5"></i>
@@ -244,13 +292,12 @@
     </button>
     <button onclick="switchTab('docs')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
       <i data-lucide="file-text" class="w-5 h-5"></i>
-      <span class="text-[10px]">Docs</span>
+      <span class="text-[10px]">Archives</span>
     </button>
   </nav>
 
 </div>
 
-<!-- ==================== LOGIC CORE ==================== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -266,10 +313,10 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // AUTH HANDLER
+  // AUTH
   document.getElementById('loginBtn').onclick = async () => {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
-    catch(e) { alert("Access Denied: " + e.message); }
+    catch(e) { alert(e.message); }
   };
 
   onAuthStateChanged(auth, (user) => {
@@ -279,7 +326,7 @@
     }
   });
 
-  // NAVIGATION
+  // NAV
   window.switchTab = (tabId) => {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -288,21 +335,21 @@
     event.currentTarget.classList.replace('text-gray-500', 'text-white');
   };
 
-  // GLOBAL SEARCH ENGINE
-  window.performGlobalSearch = (query) => {
+  // SEARCH ENGINE
+  window.performSearch = (query) => {
     if(!query) return;
     switchTab('search');
     const container = document.getElementById('searchResults');
-    container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">Scanning Satellite Uplinks...</div>`;
+    container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">Decrypting Content Nodes...</div>`;
 
     setTimeout(() => {
         container.innerHTML = "";
-        const suffixes = ["Video", "Live Stream", "Playlist", "Full Movie"];
+        const categories = ["Full Video", "Live", "Shorts", "Playlist", "Review"];
         
-        suffixes.forEach(suffix => {
-            const term = query + " " + suffix;
+        categories.forEach(cat => {
+            const term = query + " " + cat;
             const div = document.createElement('div');
-            div.className = "bg-[#111] rounded-2xl overflow-hidden shadow-lg border border-white/5";
+            div.className = "bg-[#111] rounded-xl overflow-hidden shadow-lg border border-white/5";
             div.innerHTML = `
                 <div class="aspect-video w-full bg-black relative group">
                     <div class="ghost-container">
@@ -313,14 +360,18 @@
                         <div class="click-shield"></div>
                     </div>
                 </div>
-                <div class="p-3">
-                    <h3 class="font-bold text-white text-sm">${query} - ${suffix}</h3>
-                    <p class="text-[10px] text-gray-500 mt-1">Global Source • Verified</p>
+                <div class="p-3 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-white text-sm">${query}</h3>
+                        <p class="text-[10px] text-gray-500">${cat}</p>
+                    </div>
+                    <button class="bg-red-600/20 text-red-500 p-2 rounded-full"><i data-lucide="play" class="w-4 h-4"></i></button>
                 </div>
             `;
             container.appendChild(div);
         });
-    }, 1000);
+        lucide.createIcons();
+    }, 800);
   };
 
   lucide.createIcons();
