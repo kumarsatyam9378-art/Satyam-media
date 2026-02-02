@@ -3,30 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free | Ultimate AI</title>
+    <title>Line Free | Ultimate Salon OS</title>
     
-    <!-- React & ReactDOM -->
+    <!-- Core Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Framer Motion -->
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
-    <!-- Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Firebase SDKs (Compat version for standalone HTML) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -35,9 +30,13 @@
                 extend: {
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                        mono: ['Space Mono', 'monospace'],
                         display: ['Outfit', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
+                        gold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+                        dark: { 800: '#1e293b', 900: '#0f172a' }
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
@@ -55,28 +54,29 @@
 
     <style>
         body { -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.6); }
         .dark .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); }
         .ticket-notch { width: 24px; height: 24px; background: #f8fafc; border-radius: 50%; position: absolute; bottom: 98px; z-index: 10; }
         .dark .ticket-notch { background: #0f172a; }
         .notch-l { left: -12px; } .notch-r { right: -12px; }
         
-        /* Music Visualizer Bars */
-        .bar { width: 3px; background: currentColor; border-radius: 99px; }
-        .bar:nth-child(1) { animation-delay: 0.1s; }
-        .bar:nth-child(2) { animation-delay: 0.3s; }
-        .bar:nth-child(3) { animation-delay: 0.5s; }
+        /* Scratch Card */
+        .scratch-container { position: relative; width: 300px; height: 160px; margin: 0 auto; user-select: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 20; cursor: crosshair; touch-action: none; }
+        .scratch-prize { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 font-sans antialiased selection:bg-indigo-500 selection:text-white">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
+        const { useState, useEffect, useContext, createContext, useMemo, useRef, useCallback } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        // --- FIREBASE CONFIGURATION ---
+        // --- FIREBASE INIT ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
@@ -87,92 +87,23 @@
             measurementId: "G-6Z6YQ8Z6CC"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // --- TRANSLATIONS ---
-        const TEXTS = {
-            en: {
-                welcome: "Welcome Back",
-                loginSub: "Skip the queue, look your best.",
-                loginGoogle: "Continue with Google",
-                mobileLabel: "Mobile Number",
-                roleTitle: "Choose Your Role",
-                roleSub: "How will you use the app?",
-                customer: "Customer",
-                customerDesc: "I want to book services",
-                barber: "Salon Owner",
-                barberDesc: "I want to manage my queue",
-                findSalon: "Find a Salon",
-                searchPlace: "Search salons, services...",
-                myTokens: "My Tokens",
-                noTokens: "No active tokens",
-                bookNow: "Book Now",
-                aiConsult: "AI Style Consultant",
-                aiSub: "Powered by Gemini AI",
-                aiInput: "Ask for style advice...",
-                barberDash: "Owner Dashboard",
-                queueControl: "Queue Control",
-                revenue: "Today's Revenue",
-                marketing: "AI Marketing",
-                shopStatus: "Shop Status",
-                callNext: "Call Next",
-                completed: "Completed",
-                selectStaff: "Select Specialist",
-                addToCart: "Add",
-                checkout: "Book Appointment",
-                loyalty: "Loyalty Points",
-                voiceSearch: "Listening...",
-                settings: "Settings",
-                appearance: "Appearance",
-                themeColor: "Theme Color",
-                fontStyle: "Font Style",
-                music: "Ambience Music",
-                logout: "Logout",
-                done: "Apply & Close"
-            },
-            hi: {
-                welcome: "Swagat Hai",
-                loginSub: "Line chodo, smart bano.",
-                loginGoogle: "Google se Login karein",
-                mobileLabel: "Mobile Number",
-                roleTitle: "Aap kaun hain?",
-                roleSub: "App kaise use karenge?",
-                customer: "Customer",
-                customerDesc: "Mujhe booking karni hai",
-                barber: "Salon Malik",
-                barberDesc: "Mujhe queue manage karni hai",
-                findSalon: "Salon Khojein",
-                searchPlace: "Salon ya service dhundein...",
-                myTokens: "Mere Tokens",
-                noTokens: "Koi active token nahi hai",
-                bookNow: "Abhi Book Karein",
-                aiConsult: "AI Stylist",
-                aiSub: "Gemini AI dwara powered",
-                aiInput: "Style advice maangein...",
-                barberDash: "Maalik Dashboard",
-                queueControl: "Queue Control",
-                revenue: "Aaj ki Kamai",
-                marketing: "Marketing Tool",
-                shopStatus: "Dukan Status",
-                callNext: "Agla Bulaayein",
-                completed: "Ho Gaya",
-                selectStaff: "Specialist Chunein",
-                addToCart: "Jodein",
-                checkout: "Book Karein",
-                loyalty: "Reward Points",
-                voiceSearch: "Sun raha hoon...",
-                settings: "Settings",
-                appearance: "Dikhawat",
-                themeColor: "Rang Chunein",
-                fontStyle: "Font Style",
-                music: "Music Bajayein",
-                logout: "Logout Karein",
-                done: "Apply aur Band Karein"
-            }
-        };
+        // --- MOCK DATA GENERATORS ---
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        
+        const MOCK_INVENTORY = [
+            { id: 'inv1', name: "L'Oreal Matrix Color 5N", sku: "LOR-5N", stock: 12, par: 5, category: "Color", unit: "Tube" },
+            { id: 'inv2', name: "Wella Developer 20Vol", sku: "WEL-20V", stock: 4, par: 6, category: "Developer", unit: "Bottle" },
+            { id: 'inv3', name: "Kerastase Shampoo", sku: "KER-SH", stock: 8, par: 10, category: "Retail", unit: "Bottle" },
+            { id: 'inv4', name: "Disposable Capes", sku: "DISP-CP", stock: 150, par: 50, category: "Supplies", unit: "Box" },
+        ];
+
+        const MOCK_CLIENTS = [
+            { id: 'c1', name: "Rahul Sharma", phone: "9876543210", visits: 12, loyalty: 450, lastVisit: "2023-10-25", notes: "Prefers scissor cut, allergic to ammonia.", formulas: [{date: "2023-09-10", mix: "40g 5N + 10g 4G + 50ml 20Vol"}] },
+            { id: 'c2', name: "Priya Singh", phone: "9988776655", visits: 8, loyalty: 200, lastVisit: "2023-11-01", notes: "Sensitive scalp.", formulas: [{date: "2023-11-01", mix: "Root Touchup: 30g 4N"}] },
+        ];
 
         // --- ICON COMPONENT ---
         const Icon = ({ name, size = 20, className = "", color }) => {
@@ -196,226 +127,195 @@
             return <span ref={iconRef} className="inline-flex items-center justify-center" />;
         };
 
-        // --- IMAGE ASSETS ---
-        const SALON_IMAGES = [
-            "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80",
-            "https://images.unsplash.com/photo-1521590832169-dca1f55b2d85?w=800&q=80",
-            "https://images.unsplash.com/photo-1503951914875-452162b7f30a?w=800&q=80",
-            "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&q=80",
-            "https://images.unsplash.com/photo-1595476103518-3c8ad043fbc8?w=800&q=80"
-        ];
-
-        const STAFF_IMAGES = [
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
-        ];
-
-        // --- CONTEXT ---
+        // --- APP CONTEXT ---
         const AppContext = createContext();
 
         const AppProvider = ({ children }) => {
-            const [user, setUser] = useState(JSON.parse(localStorage.getItem('sq_user_v3')) || null);
-            const [salons, setSalons] = useState([]);
-            const [myTokens, setMyTokens] = useState(JSON.parse(localStorage.getItem('sq_tokens_v3')) || []);
-            const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('sq_favs')) || []);
-            const [lang, setLang] = useState(localStorage.getItem('sq_lang') || 'en');
-            const [darkMode, setDarkMode] = useState(JSON.parse(localStorage.getItem('sq_dark')) || false);
-            const [theme, setTheme] = useState(localStorage.getItem('sq_theme') || 'indigo');
-            const [font, setFont] = useState(localStorage.getItem('sq_font') || 'sans');
+            const [user, setUser] = useState(JSON.parse(localStorage.getItem('lf_user')) || null);
+            const [inventory, setInventory] = useState(JSON.parse(localStorage.getItem('lf_inventory')) || MOCK_INVENTORY);
+            const [clients, setClients] = useState(JSON.parse(localStorage.getItem('lf_clients')) || MOCK_CLIENTS);
+            const [queue, setQueue] = useState([]);
+            const [cart, setCart] = useState([]);
+            const [darkMode, setDarkMode] = useState(false);
             const [notifications, setNotifications] = useState([]);
-            const [points, setPoints] = useState(150);
             const [musicPlaying, setMusicPlaying] = useState(false);
-            const [showSettings, setShowSettings] = useState(false);
             const audioRef = useRef(new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"));
 
             useEffect(() => {
-                if(darkMode) document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-                localStorage.setItem('sq_dark', JSON.stringify(darkMode));
+                localStorage.setItem('lf_user', JSON.stringify(user));
+                localStorage.setItem('lf_inventory', JSON.stringify(inventory));
+                localStorage.setItem('lf_clients', JSON.stringify(clients));
+            }, [user, inventory, clients]);
+
+            useEffect(() => {
+                document.documentElement.classList.toggle('dark', darkMode);
             }, [darkMode]);
 
             useEffect(() => {
-                localStorage.setItem('sq_theme', theme);
-                localStorage.setItem('sq_font', font);
-                localStorage.setItem('sq_lang', lang);
-                document.body.className = document.body.className.replace(/font-\w+/, `font-${font}`);
-            }, [theme, font, lang]);
-
-            useEffect(() => {
                 audioRef.current.loop = true;
-                audioRef.current.volume = 0.4;
-                if(musicPlaying) {
-                    audioRef.current.play().catch(e => console.log("Audio play failed (interaction needed)", e));
-                } else {
-                    audioRef.current.pause();
-                }
+                audioRef.current.volume = 0.5;
+                if(musicPlaying) audioRef.current.play().catch(e=>console.log(e)); else audioRef.current.pause();
             }, [musicPlaying]);
 
-            // Generate Data
-            useEffect(() => {
-                const brands = ["Looks", "Geetanjali", "Enrich", "Javed Habib", "Urban Cuts", "The Barber", "Velvet", "Aura"];
-                const cities = ["Mumbai", "Delhi", "Bangalore"];
-                let generated = [];
-                for (let i = 0; i < 30; i++) {
-                    generated.push({
-                        id: `s_${i}`,
-                        name: `${brands[Math.floor(Math.random() * brands.length)]} ${Math.floor(Math.random()*100)}`,
-                        location: `Sector ${Math.floor(Math.random()*20)}, ${cities[i%3]}`,
-                        image: SALON_IMAGES[i % SALON_IMAGES.length],
-                        rating: (3.5 + Math.random() * 1.5).toFixed(1),
-                        isOpen: Math.random() > 0.1,
-                        queueLength: Math.floor(Math.random() * 6),
-                        category: i % 2 === 0 ? "Men" : "Unisex",
-                        staff: [
-                            { id: 1, name: "Rahul", role: "Senior Stylist", img: STAFF_IMAGES[0] },
-                            { id: 2, name: "Sneha", role: "Colorist", img: STAFF_IMAGES[1] },
-                            { id: 3, name: "Vikram", role: "Barber", img: STAFF_IMAGES[2] }
-                        ],
-                        services: [
-                            { id: 1, name: "Haircut", price: 300, time: 30 },
-                            { id: 2, name: "Shave", price: 200, time: 20 },
-                            { id: 3, name: "Facial", price: 1500, time: 60 },
-                            { id: 4, name: "Head Massage", price: 400, time: 20 }
-                        ]
-                    });
-                }
-                setSalons(generated);
-            }, []);
+            const notify = (msg, type='info') => {
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, msg, type }]);
+                setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 3000);
+            };
 
-            const t = (key) => TEXTS[lang][key] || key;
+            const callAI = async (prompt) => {
+                try {
+                    const res = await fetch(`https://pollinations.ai/api/text?prompt=${encodeURIComponent(prompt)}`);
+                    return await res.text();
+                } catch { return "AI Unavailable"; }
+            };
 
             const googleLogin = async () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try {
                     const result = await auth.signInWithPopup(provider);
-                    const user = result.user;
                     return {
-                        name: user.displayName,
-                        email: user.email,
-                        photo: user.photoURL,
-                        uid: user.uid
+                        name: result.user.displayName,
+                        email: result.user.email,
+                        photo: result.user.photoURL,
+                        uid: result.user.uid
                     };
-                } catch (error) {
-                    console.error("Firebase Login Error:", error);
-                    alert("Login failed: " + error.message);
+                } catch (e) {
+                    notify(e.message, 'error');
                     return null;
                 }
             };
 
-            const saveUser = (userData) => {
-                setUser(userData);
-                localStorage.setItem('sq_user_v3', JSON.stringify(userData));
-            };
-
-            const logout = async () => {
-                try {
-                    await auth.signOut();
-                    setUser(null);
-                    setMusicPlaying(false);
-                    setShowSettings(false);
-                    localStorage.removeItem('sq_user_v3');
-                } catch (e) {
-                    console.error("Logout Error:", e);
-                }
-            };
-
-            const addToken = (salon, services, staff) => {
-                const totalCost = services.reduce((acc, s) => acc + s.price, 0);
-                const totalTime = services.reduce((acc, s) => acc + s.time, 0);
-                const token = {
-                    id: `t_${Date.now()}`,
-                    salonId: salon.id,
-                    salonName: salon.name,
-                    salonLocation: salon.location,
-                    salonImage: salon.image,
-                    serviceNames: services.map(s => s.name).join(", "),
-                    totalPrice: totalCost,
-                    staffName: staff ? staff.name : "Any Available",
-                    tokenNumber: salon.queueLength + 1,
-                    estimatedTime: `${totalTime + (salon.queueLength * 20)} min`,
-                    status: 'Active'
-                };
-                const updated = [token, ...myTokens];
-                setMyTokens(updated);
-                localStorage.setItem('sq_tokens_v3', JSON.stringify(updated));
-                
-                setPoints(prev => prev + Math.floor(totalCost / 10));
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-                addNotification(`Booking Confirmed! +${Math.floor(totalCost/10)} Points`);
-            };
-
-            const toggleFavorite = (salonId) => {
-                let updated;
-                if (favorites.includes(salonId)) updated = favorites.filter(id => id !== salonId);
-                else updated = [...favorites, salonId];
-                setFavorites(updated);
-                localStorage.setItem('sq_favs', JSON.stringify(updated));
-            };
-
-            const addNotification = (msg) => {
-                const id = Date.now();
-                setNotifications(prev => [...prev, { id, msg }]);
-                setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
-            };
-
-            const askGemini = async (prompt) => {
-                await new Promise(r => setTimeout(r, 2000));
-                return lang === 'hi' 
-                    ? `Aapke request "${prompt}" ke liye, main textured crop suggest karunga. Yeh summer ke liye best hai.` 
-                    : `Based on "${prompt}", I recommend a textured crop fade. It is perfect for summer.`;
+            const updateInventory = (id, delta) => {
+                setInventory(prev => prev.map(item => {
+                    if (item.id === id) {
+                        const newStock = Math.max(0, item.stock + delta);
+                        if(newStock <= item.par) notify(`Low stock alert: ${item.name}`, 'warning');
+                        return { ...item, stock: newStock };
+                    }
+                    return item;
+                }));
             };
 
             return (
                 <AppContext.Provider value={{ 
-                    user, saveUser, logout, salons, addToken, myTokens, setMyTokens, 
-                    favorites, toggleFavorite, lang, setLang, t, 
-                    notifications, addNotification, askGemini, googleLogin, 
-                    darkMode, setDarkMode, points, theme, setTheme, font, setFont,
-                    musicPlaying, setMusicPlaying, showSettings, setShowSettings
+                    user, setUser, googleLogin, 
+                    inventory, updateInventory, 
+                    clients, setClients, 
+                    queue, setQueue, 
+                    cart, setCart,
+                    darkMode, setDarkMode, 
+                    notify, notifications, 
+                    musicPlaying, setMusicPlaying, 
+                    callAI 
                 }}>
                     {children}
                 </AppContext.Provider>
             );
         };
 
-        // --- THEME UTILS ---
-        const getColorClass = (theme, type) => {
-            const colors = {
-                indigo: { bg: 'bg-indigo-600', text: 'text-indigo-600', border: 'border-indigo-600', ring: 'ring-indigo-200' },
-                emerald: { bg: 'bg-emerald-600', text: 'text-emerald-600', border: 'border-emerald-600', ring: 'ring-emerald-200' },
-                rose: { bg: 'bg-rose-600', text: 'text-rose-600', border: 'border-rose-600', ring: 'ring-rose-200' },
-                amber: { bg: 'bg-amber-600', text: 'text-amber-600', border: 'border-amber-600', ring: 'ring-amber-200' },
-                cyan: { bg: 'bg-cyan-600', text: 'text-cyan-600', border: 'border-cyan-600', ring: 'ring-cyan-200' }
-            };
-            return colors[theme][type] || colors['indigo'][type];
-        };
-
         // --- COMPONENTS ---
-        const Button = ({ children, onClick, className, variant="primary", loading, disabled }) => {
-            const { theme } = useContext(AppContext);
-            const themeBg = getColorClass(theme, 'bg');
-            const styles = {
-                primary: `${themeBg} text-white shadow-lg shadow-black/20 hover:opacity-90 active:scale-95`,
-                outline: "border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800",
-                google: "bg-white text-slate-800 border border-slate-200 shadow-sm",
-                ai: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+
+        const ScratchCard = ({ onWin }) => {
+            const canvasRef = useRef(null);
+            const [isRevealed, setIsRevealed] = useState(false);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#94a3b8'; // Slate 400
+                ctx.fillRect(0, 0, 300, 160);
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillStyle = '#f1f5f9';
+                ctx.textAlign = 'center';
+                ctx.fillText("SCRATCH ME!", 150, 90);
+            }, []);
+
+            const handleScratch = (e) => {
+                if(isRevealed) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Check percentage
+                const data = ctx.getImageData(0, 0, 300, 160).data;
+                let cleared = 0;
+                for(let i=3; i<data.length; i+=4) if(data[i]===0) cleared++;
+                if(cleared > (300*160*0.4)) {
+                    setIsRevealed(true);
+                    onWin();
+                }
             };
+
             return (
-                <button onClick={onClick} disabled={disabled || loading} className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center transition-all disabled:opacity-50 ${styles[variant]} ${className}`}>
-                    {loading ? <Icon name="loader-2" className="animate-spin mr-2" /> : children}
-                </button>
+                <div className="scratch-container">
+                    <div className="scratch-prize">
+                        <Icon name="gift" size={40} className="text-white mb-2" />
+                        <span className="text-2xl font-bold text-white">20% OFF!</span>
+                    </div>
+                    <canvas 
+                        ref={canvasRef} 
+                        width="300" height="160" 
+                        className={`scratch-canvas transition-opacity duration-700 ${isRevealed ? 'opacity-0 pointer-events-none' : ''}`}
+                        onMouseMove={(e) => e.buttons === 1 && handleScratch(e)}
+                        onTouchMove={handleScratch}
+                    />
+                </div>
             );
         };
 
-        const ToastContainer = () => {
+        const ARView = () => {
+            const videoRef = useRef(null);
+            const [active, setActive] = useState(false);
+            const [color, setColor] = useState(null);
+
+            const startCam = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    videoRef.current.srcObject = stream;
+                    setActive(true);
+                } catch(e) { alert("Camera denied"); }
+            };
+
+            return (
+                <div className="bg-black rounded-2xl overflow-hidden relative aspect-[3/4]">
+                    {!active && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                            <button onClick={startCam} className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center gap-2">
+                                <Icon name="camera" /> Start Try-On
+                            </button>
+                        </div>
+                    )}
+                    <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform -scale-x-100" />
+                    {active && color && (
+                        <div className="absolute inset-0 mix-blend-overlay opacity-60 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, ${color}, transparent 60%)` }}></div>
+                    )}
+                    {active && (
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 p-4">
+                            {['#ef4444', '#eab308', '#a855f7', '#3b82f6'].map(c => (
+                                <button key={c} onClick={()=>setColor(c)} style={{background: c}} className="w-10 h-10 rounded-full border-2 border-white shadow-lg"></button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Toast = () => {
             const { notifications } = useContext(AppContext);
             return (
-                <div className="fixed top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
+                <div className="fixed top-4 left-0 right-0 z-[100] flex flex-col items-center pointer-events-none gap-2">
                     <AnimatePresence>
                         {notifications.map(n => (
-                            <motion.div key={n.id} initial={{y:-50, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className="bg-slate-900 text-white px-4 py-3 rounded-full shadow-xl flex items-center gap-3 text-sm font-medium backdrop-blur-md bg-opacity-90 border border-slate-700">
-                                <Icon name="bell" size={16} className="text-primary-400" /> {n.msg}
+                            <motion.div key={n.id} initial={{y:-20, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className={`px-4 py-2 rounded-full shadow-lg text-white text-sm font-bold flex items-center gap-2 ${n.type==='error'?'bg-red-500':n.type==='warning'?'bg-amber-500':'bg-slate-800'}`}>
+                                <Icon name={n.type==='error'?'alert-circle':'check-circle'} size={16} /> {n.msg}
                             </motion.div>
                         ))}
                     </AnimatePresence>
@@ -423,73 +323,394 @@
             );
         };
 
-        const SettingsPanel = ({ onClose }) => {
-            const { theme, setTheme, font, setFont, musicPlaying, setMusicPlaying, t, logout } = useContext(AppContext);
-            
+        // --- BARBER MODULES ---
+
+        const InventoryPanel = () => {
+            const { inventory, updateInventory } = useContext(AppContext);
             return (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center">
-                    <motion.div initial={{y:100}} animate={{y:0}} className="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold dark:text-white">{t('settings')}</h2>
-                            <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><Icon name="x" size={20} /></button>
-                        </div>
-
-                        {/* Theme */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('themeColor')}</h3>
-                            <div className="flex gap-3">
-                                {['indigo', 'emerald', 'rose', 'amber', 'cyan'].map(c => (
-                                    <button key={c} onClick={()=>setTheme(c)} className={`w-12 h-12 rounded-full ${getColorClass(c, 'bg')} ${theme===c ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-slate-600' : ''} shadow-sm transition-all`}></button>
+                <div className="p-4 space-y-4">
+                    <h2 className="text-2xl font-bold dark:text-white">Inventory & Back-Bar</h2>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase font-bold">
+                                <tr>
+                                    <th className="p-4">Product</th>
+                                    <th className="p-4 text-center">Stock</th>
+                                    <th className="p-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {inventory.map(item => (
+                                    <tr key={item.id}>
+                                        <td className="p-4">
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{item.name}</p>
+                                            <p className="text-xs text-slate-500">{item.sku} • {item.category}</p>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <span className={`px-2 py-1 rounded text-xs font-bold ${item.stock <= item.par ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                                {item.stock} {item.unit}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <button onClick={()=>updateInventory(item.id, -1)} className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center hover:bg-red-100 text-slate-600 dark:text-slate-300">-</button>
+                                                <button onClick={()=>updateInventory(item.id, 1)} className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center hover:bg-green-100 text-slate-600 dark:text-slate-300">+</button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 ))}
-                            </div>
-                        </div>
-
-                        {/* Font */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('fontStyle')}</h3>
-                            <div className="grid grid-cols-3 gap-3">
-                                <button onClick={()=>setFont('sans')} className={`p-3 rounded-xl border ${font==='sans' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-sans`}>Modern</button>
-                                <button onClick={()=>setFont('serif')} className={`p-3 rounded-xl border ${font==='serif' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-serif`}>Classic</button>
-                                <button onClick={()=>setFont('mono')} className={`p-3 rounded-xl border ${font==='mono' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-mono text-xs`}>Tech</button>
-                            </div>
-                        </div>
-
-                        {/* Music */}
-                        <div className="mb-8">
-                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('music')}</h3>
-                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between border border-slate-100 dark:border-slate-700">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${musicPlaying ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
-                                        <Icon name={musicPlaying ? "music" : "volume-x"} />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold dark:text-white">Lo-Fi Beats</p>
-                                        <p className="text-xs text-slate-500">Relaxing Vibes</p>
-                                    </div>
-                                </div>
-                                <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`px-4 py-2 rounded-lg text-sm font-bold ${musicPlaying ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                    {musicPlaying ? 'Stop' : 'Play'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <button onClick={logout} className="py-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2">
-                                <Icon name="log-out" size={18} /> {t('logout')}
-                            </button>
-                            <button onClick={onClose} className="py-3.5 rounded-xl bg-slate-900 text-white font-bold">
-                                {t('done')}
-                            </button>
-                        </div>
-                    </motion.div>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             );
         };
 
-        // --- LOGIN FLOW ---
+        const POSSystem = () => {
+            const { notify } = useContext(AppContext);
+            const [amount, setAmount] = useState("");
+            const [note, setNote] = useState("");
+
+            const handlePay = (method) => {
+                if(!amount) return;
+                notify(`Payment of ₹${amount} recorded via ${method}`, 'success');
+                setAmount("");
+                setNote("");
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            };
+
+            const upiLink = `upi://pay?pa=salon@upi&pn=SalonOwner&am=${amount}&cu=INR`;
+
+            return (
+                <div className="p-4 max-w-md mx-auto">
+                    <h2 className="text-2xl font-bold dark:text-white mb-4">Quick POS</h2>
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700">
+                        <div className="mb-6">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Amount</label>
+                            <div className="relative mt-2">
+                                <span className="absolute left-4 top-3 text-2xl font-bold text-slate-400">₹</span>
+                                <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-2xl py-3 pl-10 text-3xl font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="0" />
+                            </div>
+                        </div>
+                        <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="Add note (e.g. Haircut + Gel)" className="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl p-3 mb-6 text-sm dark:text-white" />
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={()=>handlePay('Cash')} className="bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                                <Icon name="banknote" /> Cash
+                            </button>
+                            <a href={amount ? upiLink : '#'} onClick={()=>amount && handlePay('UPI')} className={`bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 ${!amount && 'opacity-50'}`}>
+                                <Icon name="qr-code" /> UPI
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const CRMDossier = () => {
+            const { clients } = useContext(AppContext);
+            const [selected, setSelected] = useState(null);
+
+            return (
+                <div className="p-4 h-full flex flex-col">
+                    {!selected ? (
+                        <>
+                            <h2 className="text-2xl font-bold dark:text-white mb-4">Client Dossiers</h2>
+                            <div className="space-y-3">
+                                {clients.map(c => (
+                                    <div key={c.id} onClick={()=>setSelected(c)} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm flex justify-between items-center cursor-pointer hover:border-primary-500 border border-transparent transition-colors">
+                                        <div>
+                                            <h3 className="font-bold text-lg dark:text-white">{c.name}</h3>
+                                            <p className="text-xs text-slate-500">{c.phone} • {c.visits} visits</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="bg-gold-100 text-gold-600 px-2 py-1 rounded-full text-xs font-bold">{c.loyalty} Pts</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="bg-white dark:bg-slate-800 h-full rounded-2xl p-5 shadow-lg relative">
+                            <button onClick={()=>setSelected(null)} className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700 rounded-full"><Icon name="x" size={20} /></button>
+                            <div className="text-center mb-6">
+                                <div className="w-20 h-20 bg-primary-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-primary-600">{selected.name[0]}</div>
+                                <h2 className="text-2xl font-bold dark:text-white">{selected.name}</h2>
+                                <p className="text-slate-500">{selected.phone}</p>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800">
+                                    <h4 className="text-xs font-bold text-red-500 uppercase mb-1">Medical / Allergy</h4>
+                                    <p className="text-sm font-medium text-red-700 dark:text-red-300">{selected.notes}</p>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-bold mb-3 flex items-center gap-2 dark:text-white"><Icon name="flask-conical" size={18} /> Formula History</h4>
+                                    {selected.formulas.map((f, i) => (
+                                        <div key={i} className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 mb-2">
+                                            <p className="text-xs text-slate-400 mb-1">{f.date}</p>
+                                            <p className="font-mono text-sm text-slate-700 dark:text-slate-300">{f.mix}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const BarberLayout = () => {
+            const { setUser, setMusicPlaying, musicPlaying, callAI, notify } = useContext(AppContext);
+            const [tab, setTab] = useState('queue');
+            const [aiInput, setAiInput] = useState('');
+            const [aiRes, setAiRes] = useState('');
+            const [loadingAI, setLoadingAI] = useState(false);
+
+            const handleMarketing = async () => {
+                if(!aiInput) return;
+                setLoadingAI(true);
+                const res = await callAI(`Write a short, exciting salon marketing SMS about: ${aiInput}`);
+                setAiRes(res);
+                setLoadingAI(false);
+            };
+
+            const logout = () => {
+                setUser(null);
+                localStorage.removeItem('lf_user');
+            };
+
+            return (
+                <div className="flex h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden">
+                    {/* Sidebar */}
+                    <div className="w-20 md:w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-2xl z-20">
+                        <div>
+                            <div className="flex items-center gap-3 mb-10 px-2">
+                                <Icon name="scissors" className="text-primary-400" size={28} />
+                                <span className="font-display font-bold text-xl hidden md:block">Line Free</span>
+                            </div>
+                            <nav className="space-y-2">
+                                {[
+                                    { id: 'queue', icon: 'list', label: 'Queue' },
+                                    { id: 'pos', icon: 'calculator', label: 'POS' },
+                                    { id: 'crm', icon: 'users', label: 'Clients' },
+                                    { id: 'inv', icon: 'package', label: 'Inventory' },
+                                    { id: 'ai', icon: 'sparkles', label: 'Marketing AI' },
+                                ].map(item => (
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => setTab(item.id)} 
+                                        className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${tab === item.id ? 'bg-primary-600 shadow-lg shadow-primary-500/30' : 'hover:bg-slate-800 text-slate-400'}`}
+                                    >
+                                        <Icon name={item.icon} />
+                                        <span className="hidden md:block font-medium">{item.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`w-full p-3 rounded-xl flex items-center gap-3 ${musicPlaying ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-400'}`}>
+                                <Icon name={musicPlaying ? 'volume-2' : 'volume-x'} />
+                                <span className="hidden md:block text-sm font-bold">{musicPlaying ? 'Playing Lo-Fi' : 'Music Off'}</span>
+                            </button>
+                            <button onClick={logout} className="w-full p-3 rounded-xl hover:bg-red-900/30 text-red-400 flex items-center gap-3">
+                                <Icon name="log-out" />
+                                <span className="hidden md:block">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 overflow-y-auto relative">
+                        <div className="p-6 md:p-10 max-w-5xl mx-auto">
+                            {tab === 'queue' && (
+                                <div>
+                                    <h1 className="text-3xl font-bold dark:text-white mb-6">Live Queue</h1>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
+                                            <div className="text-8xl font-display font-bold text-primary-600 mb-4">#05</div>
+                                            <h3 className="text-2xl font-bold dark:text-white">Rahul Sharma</h3>
+                                            <p className="text-slate-500 mb-8">Haircut + Beard Trim</p>
+                                            <button className="bg-primary-600 hover:bg-primary-700 text-white w-full py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 flex items-center justify-center gap-2">
+                                                <Icon name="check-circle" /> Complete & Call Next
+                                            </button>
+                                        </div>
+                                        <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-bold mb-4 dark:text-white">Up Next</h3>
+                                            <div className="space-y-3">
+                                                {[6,7,8].map(n => (
+                                                    <div key={n} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">#{n}</div>
+                                                            <div>
+                                                                <p className="font-bold dark:text-white">Guest User</p>
+                                                                <p className="text-xs text-slate-500">Waiting</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-400">~{15 * (n-5)}m</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {tab === 'pos' && <POSSystem />}
+                            {tab === 'crm' && <CRMDossier />}
+                            {tab === 'inv' && <InventoryPanel />}
+                            {tab === 'ai' && (
+                                <div className="max-w-xl mx-auto">
+                                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+                                        <div className="relative z-10">
+                                            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mb-6">
+                                                <Icon name="sparkles" size={32} />
+                                            </div>
+                                            <h2 className="text-3xl font-bold mb-2">AI Marketing Assistant</h2>
+                                            <p className="text-white/70 mb-8">Generate engaging social media captions or SMS offers in seconds.</p>
+                                            
+                                            <div className="bg-white/10 p-4 rounded-xl mb-4 backdrop-blur-sm border border-white/10">
+                                                <input 
+                                                    value={aiInput} 
+                                                    onChange={e=>setAiInput(e.target.value)} 
+                                                    placeholder="What do you want to promote? (e.g. Rainy day offer)" 
+                                                    className="w-full bg-transparent border-none text-white placeholder-white/40 focus:ring-0" 
+                                                />
+                                            </div>
+                                            <button onClick={handleMarketing} disabled={loadingAI} className="w-full bg-white text-indigo-700 py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition-colors">
+                                                {loadingAI ? "Thinking..." : "Generate Magic"}
+                                            </button>
+
+                                            {aiRes && (
+                                                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="mt-6 bg-black/30 p-4 rounded-xl border border-white/10">
+                                                    <p className="text-sm font-mono">{aiRes}</p>
+                                                    <button onClick={()=>{navigator.clipboard.writeText(aiRes); notify("Copied!")}} className="mt-3 text-xs flex items-center gap-2 text-white/60 hover:text-white"><Icon name="copy" size={14}/> Copy Text</button>
+                                                </motion.div>
+                                            )}
+                                        </div>
+                                        {/* Background Decor */}
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CUSTOMER LAYOUT ---
+        const CustomerLayout = () => {
+            const { user, setUser, setDarkMode, darkMode } = useContext(AppContext);
+            const [view, setView] = useState('home');
+            const [showScratch, setShowScratch] = useState(false);
+
+            const logout = () => {
+                setUser(null);
+                localStorage.removeItem('lf_user');
+            };
+
+            return (
+                <div className="pb-24 max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative transition-colors duration-300">
+                    <Toast />
+                    
+                    {/* Header */}
+                    <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-4 z-30 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                            <div>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Hello,</p>
+                                <h3 className="font-bold text-lg leading-none dark:text-white">{user.name.split(' ')[0]}</h3>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={()=>setDarkMode(!darkMode)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400"><Icon name={darkMode?"sun":"moon"} size={20}/></button>
+                            <button onClick={()=>setShowScratch(true)} className="p-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-full shadow-lg shadow-gold-500/40 animate-pulse"><Icon name="gift" size={20}/></button>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6">
+                        {view === 'home' && (
+                            <div className="space-y-8">
+                                {/* AR Promo */}
+                                <div className="bg-black rounded-3xl p-1 overflow-hidden relative shadow-xl">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-80"></div>
+                                    <div className="relative p-6 text-white text-center">
+                                        <h2 className="text-2xl font-bold mb-2">Try Before You Dye</h2>
+                                        <p className="text-sm opacity-80 mb-6">See how you look with a new hair color using AI.</p>
+                                        <button onClick={()=>setView('ar')} className="bg-white text-black px-6 py-3 rounded-full font-bold shadow-lg flex items-center justify-center gap-2 mx-auto hover:scale-105 transition-transform"><Icon name="camera" /> Open AR Mirror</button>
+                                    </div>
+                                </div>
+
+                                {/* Services Grid */}
+                                <div>
+                                    <h3 className="font-bold text-lg dark:text-white mb-4">Services</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {['Haircut', 'Shave', 'Facial', 'Massage'].map(s => (
+                                            <div key={s} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-2 cursor-pointer hover:border-primary-500 transition-colors">
+                                                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300">
+                                                    <Icon name={s==='Haircut'?'scissors':s==='Shave'?'user':s==='Facial'?'sparkles':'smile'} />
+                                                </div>
+                                                <span className="font-bold text-sm dark:text-white">{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'ar' && (
+                            <div className="space-y-4">
+                                <button onClick={()=>setView('home')} className="flex items-center gap-2 text-slate-500 hover:text-primary-600 mb-2"><Icon name="arrow-left" size={16}/> Back</button>
+                                <h2 className="text-2xl font-bold dark:text-white">Virtual Try-On</h2>
+                                <ARView />
+                                <p className="text-center text-xs text-slate-400">Powered by WebGL & Computer Vision</p>
+                            </div>
+                        )}
+                        
+                        {view === 'profile' && (
+                            <div className="text-center pt-10">
+                                <div className="w-24 h-24 rounded-full bg-slate-200 mx-auto mb-4 overflow-hidden"><img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover"/></div>
+                                <h2 className="text-2xl font-bold dark:text-white">{user.name}</h2>
+                                <p className="text-slate-500 mb-8">{user.email}</p>
+                                <button onClick={logout} className="bg-red-50 text-red-500 px-8 py-3 rounded-xl font-bold flex items-center gap-2 mx-auto"><Icon name="log-out" /> Logout</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Scratch Modal */}
+                    <AnimatePresence>
+                        {showScratch && (
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-2xl relative">
+                                    <button onClick={()=>setShowScratch(false)} className="absolute -top-4 -right-4 bg-white rounded-full p-2 text-black"><Icon name="x" /></button>
+                                    <h3 className="text-center font-bold text-xl mb-4 dark:text-white">Scratch & Win!</h3>
+                                    <ScratchCard onWin={() => confetti({ particleCount: 200, spread: 90 })} />
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Bottom Nav */}
+                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-20 flex justify-around items-center z-30 pb-4">
+                        {['home', 'search', 'calendar', 'profile'].map(t => (
+                            <button key={t} onClick={()=>setView(t)} className={`flex flex-col items-center gap-1 ${view===t ? 'text-primary-600' : 'text-slate-400'}`}>
+                                <Icon name={t==='home'?'home':t==='search'?'search':t==='calendar'?'calendar':'user'} size={24} className={view===t?'fill-current':''} />
+                                <span className="text-[10px] font-bold capitalize">{t}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- LOGIN COMPONENT ---
         const Login = () => {
-            const { saveUser, googleLogin, t, lang, setLang, darkMode, setDarkMode } = useContext(AppContext);
+            const { setUser, googleLogin, notify } = useContext(AppContext);
             const [step, setStep] = useState(1);
             const [loading, setLoading] = useState(false);
             const [tempUser, setTempUser] = useState(null);
@@ -509,71 +730,68 @@
 
             const handlePhone = (e) => {
                 e.preventDefault();
-                if(phone.length < 10) return alert("Enter valid number");
+                if(phone.length < 10) { notify("Invalid Phone Number", "error"); return; }
                 setStep(3);
             };
 
-            const completeLogin = (role) => {
+            const finish = (role) => {
                 setLoading(true);
-                setTimeout(() => saveUser({ ...tempUser, phone, role }), 800);
+                setTimeout(() => {
+                    setUser({ ...tempUser, phone, role });
+                    setLoading(false);
+                }, 800);
             };
 
             return (
                 <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1600&q=80" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                    
-                    <div className="absolute top-6 right-6 z-20 flex gap-2">
-                        <button onClick={() => setDarkMode(!darkMode)} className="bg-white/20 backdrop-blur text-white p-2 rounded-full border border-white/30">
-                            <Icon name={darkMode ? "sun" : "moon"} size={16} />
-                        </button>
-                        <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="bg-white/20 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-bold border border-white/30">
-                            {lang === 'en' ? 'हिंदी' : 'English'}
-                        </button>
-                    </div>
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1600&q=80')] bg-cover bg-center opacity-40"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
 
-                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl text-white shadow-2xl">
+                    <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl text-white">
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/50">
-                                <Icon name="scissors" size={32} color="white" />
+                            <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/50">
+                                <Icon name="scissors" size={32} />
                             </div>
                             <h1 className="text-3xl font-display font-bold">Line Free</h1>
-                            <p className="text-white/60">{t('loginSub')}</p>
+                            <p className="text-white/60 text-sm">The future of salon booking.</p>
                         </div>
 
                         {step === 1 && (
-                            <div className="space-y-4">
-                                <Button variant="google" onClick={handleGoogle} loading={loading}>
-                                    <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                                    {t('loginGoogle')}
-                                </Button>
-                            </div>
+                            <button onClick={handleGoogle} disabled={loading} className="w-full bg-white text-slate-900 py-3.5 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors">
+                                {loading ? <Icon name="loader-2" className="animate-spin" /> : (
+                                    <>
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                                        Continue with Google
+                                    </>
+                                )}
+                            </button>
                         )}
 
                         {step === 2 && (
                             <form onSubmit={handlePhone} className="space-y-4">
-                                <div className="flex items-center gap-3 mb-4 bg-white/10 p-3 rounded-xl">
+                                <div className="bg-white/10 p-4 rounded-xl flex items-center gap-3">
                                     <img src={tempUser.photo} className="w-10 h-10 rounded-full" />
                                     <div><p className="font-bold text-sm">{tempUser.name}</p><p className="text-xs text-white/60">{tempUser.email}</p></div>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold uppercase tracking-wider text-indigo-300">{t('mobileLabel')}</label>
-                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="98765 43210" className="w-full bg-white/5 border border-white/20 rounded-xl py-3 pl-4 text-white mt-2 focus:outline-none focus:border-indigo-500" autoFocus />
+                                    <label className="text-xs font-bold uppercase text-primary-300 tracking-wider">Mobile Number</label>
+                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl mt-2 py-3 px-4 text-white focus:outline-none focus:border-primary-500" placeholder="98765 43210" autoFocus />
                                 </div>
-                                <Button className="bg-indigo-600 hover:bg-indigo-500">Next <Icon name="arrow-right" className="ml-2" size={18} /></Button>
+                                <button type="submit" className="w-full bg-primary-600 hover:bg-primary-500 text-white py-3.5 rounded-xl font-bold">Continue</button>
                             </form>
                         )}
 
                         {step === 3 && (
-                            <div className="space-y-4">
-                                <h3 className="text-center font-bold text-lg">{t('roleTitle')}</h3>
-                                <div onClick={() => completeLogin('customer')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
-                                    <div className="bg-emerald-500/20 p-3 rounded-full text-emerald-400"><Icon name="user" /></div>
-                                    <div><h4 className="font-bold">{t('customer')}</h4><p className="text-xs text-white/50">{t('customerDesc')}</p></div>
-                                </div>
-                                <div onClick={() => completeLogin('barber')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
-                                    <div className="bg-amber-500/20 p-3 rounded-full text-amber-400"><Icon name="scissors" /></div>
-                                    <div><h4 className="font-bold">{t('barber')}</h4><p className="text-xs text-white/50">{t('barberDesc')}</p></div>
-                                </div>
+                            <div className="space-y-3">
+                                <p className="text-center text-sm text-white/60 mb-4">How will you use Line Free?</p>
+                                <button onClick={()=>finish('customer')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
+                                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform"><Icon name="user" /></div>
+                                    <div><h4 className="font-bold text-lg">Customer</h4><p className="text-xs text-white/50">Book appointments</p></div>
+                                </button>
+                                <button onClick={()=>finish('barber')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
+                                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform"><Icon name="scissors" /></div>
+                                    <div><h4 className="font-bold text-lg">Salon Owner</h4><p className="text-xs text-white/50">Manage business</p></div>
+                                </button>
                             </div>
                         )}
                     </motion.div>
@@ -581,347 +799,11 @@
             );
         };
 
-        // --- BARBER DASHBOARD ---
-        const BarberDash = () => {
-            const { t, askGemini, theme, musicPlaying } = useContext(AppContext);
-            const themeText = getColorClass(theme, 'text');
-            const [queue, setQueue] = useState([
-                { id: 1, name: "Rahul", service: "Haircut", token: 5, status: "serving" },
-                { id: 2, name: "Amit", service: "Shave", token: 6, status: "waiting" },
-                { id: 3, name: "Sneha", service: "Spa", token: 7, status: "waiting" }
-            ]);
-            const [marketingGoal, setGoal] = useState("");
-            const [marketingRes, setRes] = useState("");
-            const [loadingAI, setLoadingAI] = useState(false);
-
-            const callNext = () => {
-                const next = queue.find(q => q.status === 'waiting');
-                if(next) {
-                    setQueue(queue.map(q => {
-                        if(q.status === 'serving') return {...q, status: 'completed'};
-                        if(q.id === next.id) return {...q, status: 'serving'};
-                        return q;
-                    }));
-                }
-            };
-
-            const generateMarketing = async () => {
-                if(!marketingGoal) return;
-                setLoadingAI(true);
-                const res = await askGemini(`Write a short marketing SMS for a salon about: ${marketingGoal}`);
-                setRes(res);
-                setLoadingAI(false);
-            };
-
-            const current = queue.find(q => q.status === 'serving');
-
-            return (
-                <div className="pb-24 p-5 bg-slate-50 dark:bg-slate-900 min-h-screen">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold font-display dark:text-white">{t('barberDash')}</h1>
-                        {musicPlaying && <div className="flex gap-1 h-4 items-end text-slate-400"><div className="bar h-full animate-music"></div><div className="bar h-[60%] animate-music"></div><div className="bar h-[80%] animate-music"></div></div>}
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-6">
-                        <div className="flex justify-between items-end mb-4">
-                            <div><p className="text-xs text-slate-400 font-bold uppercase">{t('revenue')}</p><p className="text-3xl font-bold text-slate-800 dark:text-white">₹4,200</p></div>
-                            <span className="text-green-500 text-xs font-bold bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full flex items-center"><Icon name="trending-up" size={12} className="mr-1" /> +15%</span>
-                        </div>
-                        <div className="flex items-end gap-2 h-24">
-                            {[40, 65, 30, 85, 50, 90, 60].map((h,i) => (
-                                <div key={i} className={`flex-1 rounded-t-lg opacity-80 ${getColorClass(theme, 'bg')}`} style={{height: `${h}%`}}></div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border-t-4 border-slate-200 dark:border-slate-600 text-center mb-6 relative overflow-hidden">
-                        <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(theme, 'bg')}`}></div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
-                        {current ? (
-                            <motion.div key={current.id} initial={{scale:0.9}} animate={{scale:1}}>
-                                <h2 className={`text-6xl font-display font-bold ${themeText}`}>#{current.token}</h2>
-                                <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">{current.name}</p>
-                                <p className="text-sm text-slate-500">{current.service}</p>
-                                <Button onClick={callNext} className="mt-6">{t('completed')} & {t('callNext')}</Button>
-                            </motion.div>
-                        ) : (
-                            <div className="py-8"><p className="text-slate-400">Queue Empty</p></div>
-                        )}
-                    </div>
-
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-5 text-white shadow-xl">
-                        <div className="flex items-center gap-2 mb-3"><Icon name="sparkles" size={18} /> <h3 className="font-bold">{t('marketing')}</h3></div>
-                        <input value={marketingGoal} onChange={e=>setGoal(e.target.value)} placeholder="e.g. Diwali Dhamaka Offer" className="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-sm text-white placeholder-white/50 focus:outline-none mb-3" />
-                        {marketingRes && <div className="bg-black/20 p-3 rounded-lg text-xs mb-3 italic">"{marketingRes}"</div>}
-                        <button onClick={generateMarketing} className="w-full bg-white text-indigo-700 py-2 rounded-lg font-bold text-sm shadow-md">{loadingAI ? "Writing..." : "Generate SMS"}</button>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- CUSTOMER DASHBOARD ---
-        const CustomerDash = () => {
-            const { user, salons, addToken, myTokens, t, favorites, toggleFavorite, setMyTokens, askGemini, points, theme, musicPlaying, setShowSettings } = useContext(AppContext);
-            const [view, setView] = useState("home");
-            const [selectedSalon, setSelectedSalon] = useState(null);
-            const [cart, setCart] = useState([]);
-            const [selectedStaff, setSelectedStaff] = useState(null);
-            const [aiPrompt, setAiPrompt] = useState("");
-            const [aiRes, setAiRes] = useState("");
-            const [loading, setLoading] = useState(false);
-            const [voiceListening, setVoiceListening] = useState(false);
-
-            const themeText = getColorClass(theme, 'text');
-            const themeBorder = getColorClass(theme, 'border');
-
-            const addToCart = (service) => {
-                if(cart.find(s => s.id === service.id)) setCart(cart.filter(s => s.id !== service.id));
-                else setCart([...cart, service]);
-            };
-
-            const book = () => {
-                setLoading(true);
-                setTimeout(() => {
-                    addToken(selectedSalon, cart, selectedStaff);
-                    setLoading(false);
-                    setCart([]);
-                    setSelectedStaff(null);
-                    setView('tokens');
-                }, 1500);
-            };
-
-            const cancel = (id) => {
-                if(confirm("Cancel booking?")) setMyTokens(myTokens.filter(t => t.id !== id));
-            };
-
-            const handleAI = async () => {
-                if(!aiPrompt) return;
-                setLoading(true);
-                const res = await askGemini(aiPrompt);
-                setAiRes(res);
-                setLoading(false);
-            };
-
-            const handleVoice = () => {
-                setVoiceListening(true);
-                setTimeout(() => {
-                    setVoiceListening(false);
-                    alert("Voice Search Simulated: 'Best hair salon'");
-                }, 2000);
-            };
-
-            const SalonDetail = () => (
-                <div className="bg-white dark:bg-slate-900 min-h-screen pb-28">
-                    <div className="relative h-64">
-                        <img src={selectedSalon.image} className="w-full h-full object-cover" />
-                        <button onClick={() => setView('home')} className="absolute top-4 left-4 bg-white/20 backdrop-blur w-10 h-10 rounded-full flex items-center justify-center text-white"><Icon name="arrow-left" /></button>
-                        <button onClick={() => toggleFavorite(selectedSalon.id)} className="absolute top-4 right-4 bg-white/20 backdrop-blur w-10 h-10 rounded-full flex items-center justify-center text-white">
-                            <Icon name="heart" className={favorites.includes(selectedSalon.id) ? `fill-red-500 text-red-500` : ""} />
-                        </button>
-                        <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-5 text-white">
-                            <h2 className="text-3xl font-display font-bold">{selectedSalon.name}</h2>
-                            <p className="text-white/80 text-sm flex gap-2 items-center"><Icon name="map-pin" size={14} /> {selectedSalon.location} • <Icon name="star" size={14} className="fill-gold-500 text-gold-500" /> {selectedSalon.rating}</p>
-                        </div>
-                    </div>
-                    <div className="p-5">
-                        <div className="flex gap-4 mb-6">
-                            <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
-                                <p className="text-xs text-slate-400 font-bold uppercase">Queue</p>
-                                <p className="text-xl font-bold text-slate-800 dark:text-white">{selectedSalon.queueLength} People</p>
-                            </div>
-                            <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
-                                <p className="text-xs text-slate-400 font-bold uppercase">Wait</p>
-                                <p className={`text-xl font-bold ${themeText}`}>~{selectedSalon.queueLength * 15} min</p>
-                            </div>
-                        </div>
-
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">{t('selectStaff')}</h3>
-                        <div className="flex gap-4 overflow-x-auto hide-scroll pb-2 mb-6">
-                            {selectedSalon.staff.map(staff => (
-                                <div key={staff.id} onClick={() => setSelectedStaff(staff)} className={`flex flex-col items-center min-w-[70px] cursor-pointer ${selectedStaff?.id === staff.id ? 'opacity-100' : 'opacity-60'}`}>
-                                    <div className={`w-14 h-14 rounded-full overflow-hidden border-2 mb-2 ${selectedStaff?.id === staff.id ? themeBorder + ' ring-2 ring-offset-1' : 'border-slate-200'}`}>
-                                        <img src={staff.img} className="w-full h-full object-cover" />
-                                    </div>
-                                    <span className="text-xs font-bold text-center dark:text-slate-200">{staff.name}</span>
-                                    <span className="text-[10px] text-slate-500">{staff.role}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Services</h3>
-                        <div className="space-y-3">
-                            {selectedSalon.services.map(s => {
-                                const inCart = cart.find(i => i.id === s.id);
-                                return (
-                                    <div key={s.id} onClick={() => addToCart(s)} className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${inCart ? `${themeBorder} bg-slate-50 dark:bg-slate-800 border-2` : 'border-slate-100 dark:border-slate-700'}`}>
-                                        <div><p className="font-bold dark:text-slate-200">{s.name}</p><p className="text-xs text-slate-500">{s.time} mins</p></div>
-                                        <div className="flex items-center gap-3">
-                                            <p className={`font-bold ${themeText}`}>₹{s.price}</p>
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${inCart ? `${getColorClass(theme, 'bg')} border-transparent text-white` : 'border-slate-300'}`}>
-                                                {inCart && <Icon name="check" size={14} />}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="fixed bottom-0 w-full max-w-md left-0 right-0 mx-auto p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 safe-bottom">
-                        <Button onClick={book} disabled={cart.length === 0} loading={loading}>
-                            {cart.length > 0 ? `${t('checkout')} (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}` : t('addToCart')}
-                        </Button>
-                    </div>
-                </div>
-            );
-
-            const TokenCard = ({ token }) => (
-                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden mb-6 relative border border-slate-100 dark:border-slate-700">
-                    <div className="bg-slate-900 p-6 text-white relative">
-                        <div className="flex justify-between items-start">
-                            <div><h3 className="font-bold text-lg">{token.salonName}</h3><p className="text-xs opacity-70">{token.salonLocation}</p></div>
-                            <div className="bg-white/10 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">{token.status}</div>
-                        </div>
-                    </div>
-                    <div className="p-6 relative">
-                        <div className="ticket-notch notch-l shadow-inner"></div>
-                        <div className="ticket-notch notch-r shadow-inner"></div>
-                        <div className="border-b-2 border-dashed border-slate-100 dark:border-slate-700 pb-6 mb-6 flex justify-between items-center">
-                            <div className="text-center"><p className="text-xs text-slate-400 uppercase font-bold">Token</p><p className={`text-5xl font-display font-bold ${themeText}`}>#{token.tokenNumber}</p></div>
-                            <div className="text-right"><p className="text-xs text-slate-400 uppercase font-bold">Est. Time</p><p className="text-2xl font-bold text-slate-800 dark:text-slate-200">{token.estimatedTime}</p></div>
-                        </div>
-                        <div className="mb-4">
-                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Services</p>
-                            <p className="font-medium text-sm text-slate-700 dark:text-slate-300">{token.serviceNames}</p>
-                        </div>
-                        <div className="flex justify-between items-center pt-2">
-                            <div className="flex items-center gap-2">
-                                <img src={STAFF_IMAGES[0]} className="w-8 h-8 rounded-full border border-slate-200" />
-                                <div><p className="text-xs text-slate-400">Stylist</p><p className="text-sm font-bold dark:text-slate-200">{token.staffName}</p></div>
-                            </div>
-                            <Button variant="outline" className="w-auto px-4 py-2 h-auto text-xs text-red-500 border-red-100 hover:bg-red-50" onClick={()=>cancel(token.id)}>Cancel</Button>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            if(view === 'salon' && selectedSalon) return <SalonDetail />;
-
-            return (
-                <div className="pb-20 max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative transition-colors duration-300">
-                    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-20 px-5 pt-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <div className="flex justify-between items-center mb-4">
-                            <div><h1 className="text-xl font-display font-bold text-slate-900 dark:text-white">{t('findSalon')}</h1><p className="text-xs text-slate-500 flex items-center"><Icon name="map-pin" size={12} className={`mr-1 ${themeText}`} /> Mumbai, India</p></div>
-                            <div className="flex items-center gap-3">
-                                {musicPlaying && <div className="flex gap-1 h-3 items-end text-slate-400"><div className="bar h-full animate-music"></div><div className="bar h-[60%] animate-music"></div><div className="bar h-[80%] animate-music"></div></div>}
-                                <div className="bg-gold-100 text-gold-600 px-2 py-1 rounded-full text-xs font-bold flex items-center"><Icon name="award" size={12} className="mr-1" /> {points}</div>
-                                <div onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden cursor-pointer"><img src={user.photo} className="w-full h-full object-cover" /></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="p-5">
-                        {view === 'home' && (
-                            <div className="space-y-6">
-                                <div className="relative">
-                                    <Icon name="search" className="absolute left-3 top-3 text-slate-400" size={18} />
-                                    <input placeholder={t('searchPlace')} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-primary-500 dark:text-white" />
-                                    <button onClick={handleVoice} className={`absolute right-3 top-2.5 ${voiceListening ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}><Icon name="mic" size={18} /></button>
-                                </div>
-                                
-                                <div className="flex gap-3 overflow-x-auto hide-scroll">
-                                    {['Hair', 'Beard', 'Spa', 'Face'].map(c => <span key={c} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm">{c}</span>)}
-                                </div>
-
-                                <h2 className="font-bold text-lg dark:text-white">Featured</h2>
-                                <div className="flex gap-4 overflow-x-auto hide-scroll -mx-5 px-5 pb-4">
-                                    {salons.slice(0,5).map(s => (
-                                        <div key={s.id} onClick={() => { setSelectedSalon(s); setView('salon'); }} className="min-w-[260px] h-40 rounded-2xl relative overflow-hidden shadow-md group cursor-pointer">
-                                            <img src={s.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col justify-end text-white">
-                                                <h3 className="font-bold">{s.name}</h3>
-                                                <div className="flex justify-between text-xs opacity-90"><span>{s.location}</span><span className="flex items-center"><Icon name="star" size={10} className="fill-gold-500 text-gold-500 mr-1" /> {s.rating}</span></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <h2 className="font-bold text-lg dark:text-white">Nearby</h2>
-                                <div className="space-y-4">
-                                    {salons.slice(5).map(s => (
-                                        <div key={s.id} onClick={() => { setSelectedSalon(s); setView('salon'); }} className="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-100 dark:border-slate-700 flex gap-4 shadow-sm cursor-pointer active:scale-98 transition-transform">
-                                            <div className="w-20 h-20 bg-slate-200 rounded-xl overflow-hidden"><img src={s.image} className="w-full h-full object-cover" /></div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-slate-800 dark:text-slate-200">{s.name}</h4>
-                                                <p className="text-xs text-slate-500 mb-2">{s.location}</p>
-                                                <div className="flex gap-2 text-[10px] font-bold">
-                                                    <span className="bg-green-50 text-green-600 px-2 py-1 rounded">Wait: {s.queueLength * 15}m</span>
-                                                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded">{s.queueLength} in Q</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'tokens' && (
-                            <div>
-                                <h2 className="font-display font-bold text-2xl mb-4 dark:text-white">{t('myTokens')}</h2>
-                                {myTokens.length === 0 ? <div className="text-center py-20 opacity-50"><Icon name="ticket" size={48} className="mx-auto mb-2 text-slate-400" /><p className="dark:text-slate-400">{t('noTokens')}</p></div> : myTokens.map(t => <TokenCard key={t.id} token={t} />)}
-                            </div>
-                        )}
-
-                        {view === 'ai' && (
-                            <div className="min-h-[70vh] flex flex-col">
-                                <h2 className="font-display font-bold text-2xl mb-1 flex items-center gap-2 dark:text-white"><Icon name="sparkles" className="text-indigo-500" /> {t('aiConsult')}</h2>
-                                <p className="text-xs text-slate-500 mb-6">{t('aiSub')}</p>
-                                <div className="flex-1 bg-white dark:bg-slate-800 rounded-2xl border border-indigo-100 dark:border-indigo-900 p-4 shadow-sm mb-4 overflow-y-auto">
-                                    {aiRes ? <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{aiRes}</p> : <div className="text-center text-slate-400 text-xs mt-10">Ask me anything about styling!</div>}
-                                </div>
-                                <div className="flex gap-2">
-                                    <input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder={t('aiInput')} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 dark:text-white" />
-                                    <button onClick={handleAI} disabled={loading} className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50"><Icon name="send" size={18} /></button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Bottom Nav */}
-                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-16 flex justify-around items-center z-30 pb-safe left-0 right-0 mx-auto">
-                        {['home', 'tokens', 'ai', 'user'].map(v => (
-                            <button key={v} onClick={() => setView(v)} className={`flex flex-col items-center ${view === v ? themeText : 'text-slate-400'}`}>
-                                <Icon name={v === 'ai' ? 'sparkles' : v === 'user' ? 'user' : v === 'tokens' ? 'ticket' : 'home'} size={22} className={view === v ? 'fill-current' : ''} />
-                                {v === 'tokens' && myTokens.length > 0 && <span className="absolute mt-1 ml-4 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
+        // --- ROOT ---
         const App = () => {
-            const { user, logout, showSettings, setShowSettings } = useContext(AppContext);
-            
+            const { user } = useContext(AppContext);
             if (!user) return <Login />;
-            
-            return (
-                <div className="relative">
-                    <ToastContainer />
-                    {user.role === 'barber' ? (
-                        <>
-                            <BarberDash />
-                            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
-                            <button onClick={() => setShowSettings(true)} className="fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50"><Icon name="settings" size={20} /></button>
-                        </>
-                    ) : (
-                        <>
-                            <CustomerDash />
-                            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
-                        </>
-                    )}
-                </div>
-            );
+            return user.role === 'barber' ? <BarberLayout /> : <CustomerLayout />;
         };
 
         const Root = () => ( <AppProvider> <App /> </AppProvider> );
