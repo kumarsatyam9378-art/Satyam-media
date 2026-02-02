@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free | Ultimate Salon OS</title>
+    <title>Line Free | The Future of Salon Booking</title>
     
+    <!-- React & Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -13,12 +14,13 @@
     <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+    <!-- Firebase SDKs (Compat for HTML file usage) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -28,16 +30,15 @@
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                         display: ['Outfit', 'sans-serif'],
-                        mono: ['Space Mono', 'monospace'],
+                        mono: ['Space Grotesk', 'monospace'],
                     },
                     colors: {
-                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
-                        gold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-                        dark: { 800: '#1e293b', 900: '#0f172a' }
+                        brand: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 900: '#134e4a' },
+                        dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' }
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 3s infinite',
+                        'pulse-slow': 'pulse 4s infinite',
                         'music': 'music 1s ease-in-out infinite alternate',
                     },
                     keyframes: {
@@ -50,30 +51,25 @@
     </script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.6); }
-        .dark .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); }
+        body { -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
         .ticket-notch { width: 24px; height: 24px; background: #f8fafc; border-radius: 50%; position: absolute; bottom: 98px; z-index: 10; }
-        .dark .ticket-notch { background: #0f172a; }
+        .dark .ticket-notch { background: #020617; }
         .notch-l { left: -12px; } .notch-r { right: -12px; }
         
-        /* Scratch Card */
-        .scratch-container { position: relative; width: 300px; height: 160px; margin: 0 auto; user-select: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 20; cursor: crosshair; touch-action: none; }
-        .scratch-prize { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
+        .scratch-container { position: relative; width: 100%; height: 160px; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 20; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-50 font-sans antialiased selection:bg-brand-500 selection:text-white transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useContext, createContext, useMemo, useRef, useCallback } = React;
+        const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        // --- FIREBASE INIT ---
+        // --- FIREBASE SETUP ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
@@ -87,124 +83,142 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // --- MOCK DATA GENERATORS ---
+        // --- UTILS & DATA GENERATION ---
         const generateId = () => Math.random().toString(36).substr(2, 9);
         
+        const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune", "Patna", "Lucknow", "Jaipur"];
+        const PREFIXES = ["Royal", "Elite", "Urban", "Desi", "Glamour", "Velvet", "Aura", "Pure", "LineFree"];
+        const SUFFIXES = ["Studio", "Salon", "Cuts", "Makeover", "Hub", "Lounge", "Barbershop", "Spa"];
+        
+        // Pollinations AI Helper
+        const pollImage = (prompt) => `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=800&height=600&seed=${Math.floor(Math.random()*100)}`;
+        
+        const generateSalons = (count = 50) => {
+            return Array.from({ length: count }, (_, i) => ({
+                id: `s_${i}`,
+                name: `${PREFIXES[i % PREFIXES.length]} ${SUFFIXES[i % SUFFIXES.length]} ${Math.floor(Math.random()*99)}`,
+                location: `${CITIES[i % CITIES.length]}`,
+                rating: (3.5 + Math.random() * 1.5).toFixed(1),
+                reviews: Math.floor(Math.random() * 500) + 10,
+                isOpen: Math.random() > 0.2,
+                image: pollImage(`luxury salon interior design ${i}`),
+                queueLength: Math.floor(Math.random() * 8),
+                category: i % 3 === 0 ? "Men" : (i % 3 === 1 ? "Women" : "Unisex"),
+                services: [
+                    { id: 'srv1', name: 'Haircut', price: 300 + Math.floor(Math.random()*200), duration: 30 },
+                    { id: 'srv2', name: 'Shave', price: 150 + Math.floor(Math.random()*100), duration: 20 },
+                    { id: 'srv3', name: 'Facial', price: 1200 + Math.floor(Math.random()*500), duration: 45 },
+                    { id: 'srv4', name: 'Hair Color', price: 2000 + Math.floor(Math.random()*1000), duration: 90 }
+                ],
+                staff: [
+                    { id: 'st1', name: 'Rahul', role: 'Top Stylist', img: `https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul${i}` },
+                    { id: 'st2', name: 'Simran', role: 'Colorist', img: `https://api.dicebear.com/7.x/avataaars/svg?seed=Simran${i}` }
+                ]
+            }));
+        };
+
         const MOCK_INVENTORY = [
-            { id: 'inv1', name: "L'Oreal Matrix Color 5N", sku: "LOR-5N", stock: 12, par: 5, category: "Color", unit: "Tube" },
-            { id: 'inv2', name: "Wella Developer 20Vol", sku: "WEL-20V", stock: 4, par: 6, category: "Developer", unit: "Bottle" },
-            { id: 'inv3', name: "Kerastase Shampoo", sku: "KER-SH", stock: 8, par: 10, category: "Retail", unit: "Bottle" },
-            { id: 'inv4', name: "Disposable Capes", sku: "DISP-CP", stock: 150, par: 50, category: "Supplies", unit: "Box" },
+            { id: 'inv1', name: "L'Oreal Matrix 5N", sku: "LOR-5N", stock: 8, par: 5, category: "Color" },
+            { id: 'inv2', name: "Wella 20Vol Dev", sku: "WEL-20V", stock: 3, par: 6, category: "Developer" },
+            { id: 'inv3', name: "Gillette Foam", sku: "GIL-FM", stock: 20, par: 10, category: "Shave" },
+            { id: 'inv4', name: "Disposable Towel", sku: "DSP-TW", stock: 150, par: 50, category: "Supplies" }
         ];
 
         const MOCK_CLIENTS = [
-            { id: 'c1', name: "Rahul Sharma", phone: "9876543210", visits: 12, loyalty: 450, lastVisit: "2023-10-25", notes: "Prefers scissor cut, allergic to ammonia.", formulas: [{date: "2023-09-10", mix: "40g 5N + 10g 4G + 50ml 20Vol"}] },
-            { id: 'c2', name: "Priya Singh", phone: "9988776655", visits: 8, loyalty: 200, lastVisit: "2023-11-01", notes: "Sensitive scalp.", formulas: [{date: "2023-11-01", mix: "Root Touchup: 30g 4N"}] },
+            { id: 'c1', name: "Vikram Malhotra", phone: "9876543210", visits: 14, loyalty: 520, lastVisit: "2023-11-01", notes: "Allergic to Latex", history: ["Haircut", "Beard Trim"] },
+            { id: 'c2', name: "Anjali Gupta", phone: "9988776655", visits: 5, loyalty: 150, lastVisit: "2023-10-20", notes: "Likes tea with sugar", history: ["Facial", "Manicure"] }
         ];
 
-        // --- ICON COMPONENT ---
-        const Icon = ({ name, size = 20, className = "", color }) => {
-            const iconRef = useRef(null);
-            useEffect(() => {
-                if (iconRef.current && window.lucide) {
-                    const iconName = name.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-                    const { icons, createElement } = window.lucide;
-                    const lucideIcon = icons[iconName.charAt(0).toUpperCase() + iconName.slice(1)];
-                    if (lucideIcon) {
-                        const svgElement = createElement(lucideIcon);
-                        svgElement.setAttribute('width', size);
-                        svgElement.setAttribute('height', size);
-                        if(className) svgElement.setAttribute('class', className);
-                        if(color) svgElement.setAttribute('stroke', color);
-                        iconRef.current.innerHTML = '';
-                        iconRef.current.appendChild(svgElement);
-                    }
-                }
-            }, [name, size, className, color]);
-            return <span ref={iconRef} className="inline-flex items-center justify-center" />;
-        };
-
-        // --- APP CONTEXT ---
+        // --- CONTEXT ---
         const AppContext = createContext();
 
         const AppProvider = ({ children }) => {
             const [user, setUser] = useState(JSON.parse(localStorage.getItem('lf_user')) || null);
-            const [inventory, setInventory] = useState(JSON.parse(localStorage.getItem('lf_inventory')) || MOCK_INVENTORY);
-            const [clients, setClients] = useState(JSON.parse(localStorage.getItem('lf_clients')) || MOCK_CLIENTS);
-            const [queue, setQueue] = useState([]);
-            const [cart, setCart] = useState([]);
-            const [darkMode, setDarkMode] = useState(false);
+            const [salons, setSalons] = useState(generateSalons(50));
+            const [myTokens, setMyTokens] = useState(JSON.parse(localStorage.getItem('lf_tokens')) || []);
+            const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('lf_favs')) || []);
+            const [darkMode, setDarkMode] = useState(JSON.parse(localStorage.getItem('lf_dark')) || false);
+            const [inventory, setInventory] = useState(MOCK_INVENTORY);
+            const [clients, setClients] = useState(MOCK_CLIENTS);
             const [notifications, setNotifications] = useState([]);
             const [musicPlaying, setMusicPlaying] = useState(false);
+            const [points, setPoints] = useState(120);
+            
             const audioRef = useRef(new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"));
 
             useEffect(() => {
-                localStorage.setItem('lf_user', JSON.stringify(user));
-                localStorage.setItem('lf_inventory', JSON.stringify(inventory));
-                localStorage.setItem('lf_clients', JSON.stringify(clients));
-            }, [user, inventory, clients]);
+                document.documentElement.classList.toggle('dark', darkMode);
+                localStorage.setItem('lf_dark', JSON.stringify(darkMode));
+            }, [darkMode]);
 
             useEffect(() => {
-                document.documentElement.classList.toggle('dark', darkMode);
-            }, [darkMode]);
+                if(user) localStorage.setItem('lf_user', JSON.stringify(user));
+                else localStorage.removeItem('lf_user');
+            }, [user]);
+
+            useEffect(() => {
+                localStorage.setItem('lf_tokens', JSON.stringify(myTokens));
+                localStorage.setItem('lf_favs', JSON.stringify(favorites));
+            }, [myTokens, favorites]);
 
             useEffect(() => {
                 audioRef.current.loop = true;
                 audioRef.current.volume = 0.5;
-                if(musicPlaying) audioRef.current.play().catch(e=>console.log(e)); else audioRef.current.pause();
+                if(musicPlaying) audioRef.current.play().catch(() => {});
+                else audioRef.current.pause();
             }, [musicPlaying]);
 
-            const notify = (msg, type='info') => {
+            const notify = (msg, type = 'info') => {
                 const id = Date.now();
                 setNotifications(prev => [...prev, { id, msg, type }]);
-                setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 3000);
-            };
-
-            const callAI = async (prompt) => {
-                try {
-                    const res = await fetch(`https://pollinations.ai/api/text?prompt=${encodeURIComponent(prompt)}`);
-                    return await res.text();
-                } catch { return "AI Unavailable"; }
+                setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
             };
 
             const googleLogin = async () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try {
-                    const result = await auth.signInWithPopup(provider);
+                    const res = await auth.signInWithPopup(provider);
                     return {
-                        name: result.user.displayName,
-                        email: result.user.email,
-                        photo: result.user.photoURL,
-                        uid: result.user.uid
+                        name: res.user.displayName,
+                        email: res.user.email,
+                        photo: res.user.photoURL,
+                        uid: res.user.uid
                     };
                 } catch (e) {
-                    notify(e.message, 'error');
+                    notify(e.message, "error");
                     return null;
                 }
             };
 
-            const updateInventory = (id, delta) => {
-                setInventory(prev => prev.map(item => {
-                    if (item.id === id) {
-                        const newStock = Math.max(0, item.stock + delta);
-                        if(newStock <= item.par) notify(`Low stock alert: ${item.name}`, 'warning');
-                        return { ...item, stock: newStock };
-                    }
-                    return item;
-                }));
+            const logout = async () => {
+                await auth.signOut();
+                setUser(null);
+                setMusicPlaying(false);
+            };
+
+            // Pollinations AI Wrapper
+            const askAI = async (prompt) => {
+                try {
+                    // Using text.pollinations.ai endpoint
+                    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
+                    if (!res.ok) throw new Error("AI Busy");
+                    return await res.text();
+                } catch (e) {
+                    return "AI is currently offline. Please try again.";
+                }
             };
 
             return (
-                <AppContext.Provider value={{ 
-                    user, setUser, googleLogin, 
-                    inventory, updateInventory, 
-                    clients, setClients, 
-                    queue, setQueue, 
-                    cart, setCart,
-                    darkMode, setDarkMode, 
-                    notify, notifications, 
-                    musicPlaying, setMusicPlaying, 
-                    callAI 
+                <AppContext.Provider value={{
+                    user, setUser, logout, googleLogin,
+                    salons, myTokens, setMyTokens,
+                    favorites, setFavorites,
+                    darkMode, setDarkMode,
+                    inventory, setInventory,
+                    clients, setClients,
+                    notify, notifications,
+                    musicPlaying, setMusicPlaying,
+                    askAI, points, setPoints
                 }}>
                     {children}
                 </AppContext.Provider>
@@ -213,106 +227,33 @@
 
         // --- COMPONENTS ---
 
-        const ScratchCard = ({ onWin }) => {
-            const canvasRef = useRef(null);
-            const [isRevealed, setIsRevealed] = useState(false);
-
+        const Icon = ({ name, size = 20, className }) => {
+            const ref = useRef(null);
             useEffect(() => {
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#94a3b8'; // Slate 400
-                ctx.fillRect(0, 0, 300, 160);
-                ctx.font = 'bold 24px sans-serif';
-                ctx.fillStyle = '#f1f5f9';
-                ctx.textAlign = 'center';
-                ctx.fillText("SCRATCH ME!", 150, 90);
-            }, []);
-
-            const handleScratch = (e) => {
-                if(isRevealed) return;
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                const rect = canvas.getBoundingClientRect();
-                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 20, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Check percentage
-                const data = ctx.getImageData(0, 0, 300, 160).data;
-                let cleared = 0;
-                for(let i=3; i<data.length; i+=4) if(data[i]===0) cleared++;
-                if(cleared > (300*160*0.4)) {
-                    setIsRevealed(true);
-                    onWin();
+                if (window.lucide && ref.current) {
+                    const iconName = name.replace(/-([a-z])/g, g => g[1].toUpperCase());
+                    const LucideIcon = window.lucide.icons[iconName.charAt(0).toUpperCase() + iconName.slice(1)];
+                    if (LucideIcon) {
+                        const svg = window.lucide.createElement(LucideIcon);
+                        svg.setAttribute('width', size);
+                        svg.setAttribute('height', size);
+                        if (className) svg.setAttribute('class', className);
+                        ref.current.innerHTML = '';
+                        ref.current.appendChild(svg);
+                    }
                 }
-            };
-
-            return (
-                <div className="scratch-container">
-                    <div className="scratch-prize">
-                        <Icon name="gift" size={40} className="text-white mb-2" />
-                        <span className="text-2xl font-bold text-white">20% OFF!</span>
-                    </div>
-                    <canvas 
-                        ref={canvasRef} 
-                        width="300" height="160" 
-                        className={`scratch-canvas transition-opacity duration-700 ${isRevealed ? 'opacity-0 pointer-events-none' : ''}`}
-                        onMouseMove={(e) => e.buttons === 1 && handleScratch(e)}
-                        onTouchMove={handleScratch}
-                    />
-                </div>
-            );
+            }, [name, size, className]);
+            return <span ref={ref} className="inline-flex items-center justify-center"></span>;
         };
 
-        const ARView = () => {
-            const videoRef = useRef(null);
-            const [active, setActive] = useState(false);
-            const [color, setColor] = useState(null);
-
-            const startCam = async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    videoRef.current.srcObject = stream;
-                    setActive(true);
-                } catch(e) { alert("Camera denied"); }
-            };
-
-            return (
-                <div className="bg-black rounded-2xl overflow-hidden relative aspect-[3/4]">
-                    {!active && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                            <button onClick={startCam} className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center gap-2">
-                                <Icon name="camera" /> Start Try-On
-                            </button>
-                        </div>
-                    )}
-                    <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform -scale-x-100" />
-                    {active && color && (
-                        <div className="absolute inset-0 mix-blend-overlay opacity-60 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 30%, ${color}, transparent 60%)` }}></div>
-                    )}
-                    {active && (
-                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 p-4">
-                            {['#ef4444', '#eab308', '#a855f7', '#3b82f6'].map(c => (
-                                <button key={c} onClick={()=>setColor(c)} style={{background: c}} className="w-10 h-10 rounded-full border-2 border-white shadow-lg"></button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const Toast = () => {
+        const ToastContainer = () => {
             const { notifications } = useContext(AppContext);
             return (
-                <div className="fixed top-4 left-0 right-0 z-[100] flex flex-col items-center pointer-events-none gap-2">
+                <div className="fixed top-4 left-0 right-0 z-[60] flex flex-col items-center gap-2 pointer-events-none">
                     <AnimatePresence>
                         {notifications.map(n => (
-                            <motion.div key={n.id} initial={{y:-20, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className={`px-4 py-2 rounded-full shadow-lg text-white text-sm font-bold flex items-center gap-2 ${n.type==='error'?'bg-red-500':n.type==='warning'?'bg-amber-500':'bg-slate-800'}`}>
-                                <Icon name={n.type==='error'?'alert-circle':'check-circle'} size={16} /> {n.msg}
+                            <motion.div key={n.id} initial={{y:-20, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className={`px-4 py-2 rounded-full shadow-lg text-white text-sm font-bold flex items-center gap-2 backdrop-blur-md ${n.type==='error'?'bg-red-500/90':n.type==='success'?'bg-green-500/90':'bg-slate-800/90'}`}>
+                                <Icon name={n.type==='error'?'alert-circle':n.type==='success'?'check-circle':'bell'} size={16} /> {n.msg}
                             </motion.div>
                         ))}
                     </AnimatePresence>
@@ -320,383 +261,453 @@
             );
         };
 
-        // --- BARBER MODULES ---
-
-        const InventoryPanel = () => {
-            const { inventory, updateInventory } = useContext(AppContext);
+        const Button = ({ children, onClick, variant="primary", className="", loading }) => {
+            const base = "w-full py-3.5 rounded-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-50";
+            const variants = {
+                primary: "bg-brand-600 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-700",
+                secondary: "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700",
+                danger: "bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-200 dark:border-red-800",
+                ai: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+            };
             return (
-                <div className="p-4 space-y-4">
-                    <h2 className="text-2xl font-bold dark:text-white">Inventory & Back-Bar</h2>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase font-bold">
-                                <tr>
-                                    <th className="p-4">Product</th>
-                                    <th className="p-4 text-center">Stock</th>
-                                    <th className="p-4 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {inventory.map(item => (
-                                    <tr key={item.id}>
-                                        <td className="p-4">
-                                            <p className="font-bold text-slate-800 dark:text-slate-200">{item.name}</p>
-                                            <p className="text-xs text-slate-500">{item.sku} • {item.category}</p>
-                                        </td>
-                                        <td className="p-4 text-center">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold ${item.stock <= item.par ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                                {item.stock} {item.unit}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button onClick={()=>updateInventory(item.id, -1)} className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center hover:bg-red-100 text-slate-600 dark:text-slate-300">-</button>
-                                                <button onClick={()=>updateInventory(item.id, 1)} className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center hover:bg-green-100 text-slate-600 dark:text-slate-300">+</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                <button onClick={onClick} disabled={loading} className={`${base} ${variants[variant]} ${className}`}>
+                    {loading ? <Icon name="loader-2" className="animate-spin" /> : children}
+                </button>
+            );
+        };
+
+        // --- BARBER FEATURES ---
+
+        const InventorySystem = () => {
+            const { inventory, setInventory, notify } = useContext(AppContext);
+            const updateStock = (id, delta) => {
+                setInventory(prev => prev.map(i => {
+                    if(i.id === id) {
+                        const newStock = Math.max(0, i.stock + delta);
+                        if(newStock <= i.par) notify(`Low Stock: ${i.name}`, 'warning');
+                        return {...i, stock: newStock};
+                    }
+                    return i;
+                }));
+            };
+            return (
+                <div className="space-y-4 p-4">
+                    <h2 className="text-2xl font-display font-bold dark:text-white">Inventory & Back-Bar</h2>
+                    <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                        {inventory.map((item, idx) => (
+                            <div key={item.id} className={`p-4 flex justify-between items-center ${idx!==inventory.length-1?'border-b border-slate-100 dark:border-slate-800':''}`}>
+                                <div>
+                                    <h4 className="font-bold dark:text-white">{item.name}</h4>
+                                    <p className="text-xs text-slate-500">{item.sku} • Par: {item.par}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={`text-xs font-bold px-2 py-1 rounded ${item.stock <= item.par ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{item.stock} left</span>
+                                    <div className="flex gap-1">
+                                        <button onClick={()=>updateStock(item.id, -1)} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white hover:bg-slate-200">-</button>
+                                        <button onClick={()=>updateStock(item.id, 1)} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white hover:bg-slate-200">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             );
         };
 
-        const POSSystem = () => {
+        const POS = () => {
             const { notify } = useContext(AppContext);
-            const [amount, setAmount] = useState("");
-            const [note, setNote] = useState("");
-
-            const handlePay = (method) => {
-                if(!amount) return;
-                notify(`Payment of ₹${amount} recorded via ${method}`, 'success');
-                setAmount("");
-                setNote("");
+            const [total, setTotal] = useState('');
+            
+            const handleTxn = () => {
+                if(!total) return;
+                notify(`Transaction of ₹${total} Successful!`, 'success');
+                setTotal('');
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             };
 
-            const upiLink = `upi://pay?pa=salon@upi&pn=SalonOwner&am=${amount}&cu=INR`;
-
             return (
-                <div className="p-4 max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold dark:text-white mb-4">Quick POS</h2>
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700">
-                        <div className="mb-6">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Amount</label>
-                            <div className="relative mt-2">
-                                <span className="absolute left-4 top-3 text-2xl font-bold text-slate-400">₹</span>
-                                <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-2xl py-3 pl-10 text-3xl font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="0" />
-                            </div>
+                <div className="p-4 space-y-6">
+                    <h2 className="text-2xl font-display font-bold dark:text-white">Point of Sale</h2>
+                    <div className="bg-white dark:bg-dark-800 p-6 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Amount</label>
+                        <div className="flex items-center mt-2 mb-6">
+                            <span className="text-3xl font-bold text-slate-400 mr-2">₹</span>
+                            <input type="number" value={total} onChange={e=>setTotal(e.target.value)} className="w-full bg-transparent text-4xl font-bold dark:text-white focus:outline-none placeholder-slate-200" placeholder="0" />
                         </div>
-                        <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="Add note (e.g. Haircut + Gel)" className="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl p-3 mb-6 text-sm dark:text-white" />
-                        
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={()=>handlePay('Cash')} className="bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                                <Icon name="banknote" /> Cash
-                            </button>
-                            <a href={amount ? upiLink : '#'} onClick={()=>amount && handlePay('UPI')} className={`bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 ${!amount && 'opacity-50'}`}>
-                                <Icon name="qr-code" /> UPI
-                            </a>
+                            <Button onClick={handleTxn} variant="secondary">Cash</Button>
+                            <Button onClick={handleTxn}>UPI / Online</Button>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        const CRMDossier = () => {
-            const { clients } = useContext(AppContext);
-            const [selected, setSelected] = useState(null);
-
-            return (
-                <div className="p-4 h-full flex flex-col">
-                    {!selected ? (
-                        <>
-                            <h2 className="text-2xl font-bold dark:text-white mb-4">Client Dossiers</h2>
-                            <div className="space-y-3">
-                                {clients.map(c => (
-                                    <div key={c.id} onClick={()=>setSelected(c)} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm flex justify-between items-center cursor-pointer hover:border-primary-500 border border-transparent transition-colors">
-                                        <div>
-                                            <h3 className="font-bold text-lg dark:text-white">{c.name}</h3>
-                                            <p className="text-xs text-slate-500">{c.phone} • {c.visits} visits</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="bg-gold-100 text-gold-600 px-2 py-1 rounded-full text-xs font-bold">{c.loyalty} Pts</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="bg-white dark:bg-slate-800 h-full rounded-2xl p-5 shadow-lg relative">
-                            <button onClick={()=>setSelected(null)} className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700 rounded-full"><Icon name="x" size={20} /></button>
-                            <div className="text-center mb-6">
-                                <div className="w-20 h-20 bg-primary-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-primary-600">{selected.name[0]}</div>
-                                <h2 className="text-2xl font-bold dark:text-white">{selected.name}</h2>
-                                <p className="text-slate-500">{selected.phone}</p>
-                            </div>
-                            
-                            <div className="space-y-6">
-                                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800">
-                                    <h4 className="text-xs font-bold text-red-500 uppercase mb-1">Medical / Allergy</h4>
-                                    <p className="text-sm font-medium text-red-700 dark:text-red-300">{selected.notes}</p>
-                                </div>
-
-                                <div>
-                                    <h4 className="font-bold mb-3 flex items-center gap-2 dark:text-white"><Icon name="flask-conical" size={18} /> Formula History</h4>
-                                    {selected.formulas.map((f, i) => (
-                                        <div key={i} className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 mb-2">
-                                            <p className="text-xs text-slate-400 mb-1">{f.date}</p>
-                                            <p className="font-mono text-sm text-slate-700 dark:text-slate-300">{f.mix}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const BarberLayout = () => {
-            const { setUser, setMusicPlaying, musicPlaying, callAI, notify } = useContext(AppContext);
-            const [tab, setTab] = useState('queue');
+        const BarberDash = () => {
+            const { user, logout, setMusicPlaying, musicPlaying, askAI } = useContext(AppContext);
+            const [view, setView] = useState('dashboard');
+            const [queue, setQueue] = useState([{id:1, name:'Amit', srv:'Haircut', token:5}, {id:2, name:'Raj', srv:'Shave', token:6}]);
             const [aiInput, setAiInput] = useState('');
             const [aiRes, setAiRes] = useState('');
             const [loadingAI, setLoadingAI] = useState(false);
 
-            const handleMarketing = async () => {
+            const next = () => {
+                setQueue(prev => prev.slice(1));
+            };
+
+            const generateAd = async () => {
                 if(!aiInput) return;
                 setLoadingAI(true);
-                const res = await callAI(`Write a short, exciting salon marketing SMS about: ${aiInput}`);
+                const res = await askAI(`Write a short, catchy sms offer for a salon about: ${aiInput}. Include emojis.`);
                 setAiRes(res);
                 setLoadingAI(false);
             };
 
-            const logout = () => {
-                setUser(null);
-                localStorage.removeItem('lf_user');
-            };
-
             return (
-                <div className="flex h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden">
+                <div className="min-h-screen bg-slate-50 dark:bg-dark-950 flex flex-col md:flex-row">
                     {/* Sidebar */}
-                    <div className="w-20 md:w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-2xl z-20">
+                    <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col justify-between z-20">
                         <div>
-                            <div className="flex items-center gap-3 mb-10 px-2">
-                                <Icon name="scissors" className="text-primary-400" size={28} />
-                                <span className="font-display font-bold text-xl hidden md:block">Line Free</span>
-                            </div>
+                            <div className="flex items-center gap-2 mb-10"><Icon name="scissors" className="text-brand-500" /> <span className="font-display font-bold text-xl">Line Free</span></div>
                             <nav className="space-y-2">
-                                {[
-                                    { id: 'queue', icon: 'list', label: 'Queue' },
-                                    { id: 'pos', icon: 'calculator', label: 'POS' },
-                                    { id: 'crm', icon: 'users', label: 'Clients' },
-                                    { id: 'inv', icon: 'package', label: 'Inventory' },
-                                    { id: 'ai', icon: 'sparkles', label: 'Marketing AI' },
-                                ].map(item => (
-                                    <button 
-                                        key={item.id} 
-                                        onClick={() => setTab(item.id)} 
-                                        className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${tab === item.id ? 'bg-primary-600 shadow-lg shadow-primary-500/30' : 'hover:bg-slate-800 text-slate-400'}`}
-                                    >
-                                        <Icon name={item.icon} />
-                                        <span className="hidden md:block font-medium">{item.label}</span>
+                                {['dashboard', 'inventory', 'clients', 'pos', 'marketing'].map(v => (
+                                    <button key={v} onClick={()=>setView(v)} className={`w-full text-left p-3 rounded-xl flex items-center gap-3 capitalize ${view===v ? 'bg-brand-600' : 'hover:bg-slate-800 text-slate-400'}`}>
+                                        <Icon name={v==='dashboard'?'layout-grid':v==='inventory'?'package':v==='clients'?'users':v==='pos'?'credit-card':'sparkles'} size={18} /> {v}
                                     </button>
                                 ))}
                             </nav>
                         </div>
-                        
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`w-full p-3 rounded-xl flex items-center gap-3 ${musicPlaying ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-400'}`}>
-                                <Icon name={musicPlaying ? 'volume-2' : 'volume-x'} />
-                                <span className="hidden md:block text-sm font-bold">{musicPlaying ? 'Playing Lo-Fi' : 'Music Off'}</span>
+                                <Icon name={musicPlaying?'volume-2':'volume-x'} /> <span className="text-sm font-bold">Lo-Fi Radio</span>
                             </button>
-                            <button onClick={logout} className="w-full p-3 rounded-xl hover:bg-red-900/30 text-red-400 flex items-center gap-3">
-                                <Icon name="log-out" />
-                                <span className="hidden md:block">Logout</span>
-                            </button>
+                            <button onClick={logout} className="w-full p-3 rounded-xl flex items-center gap-3 hover:bg-red-900/20 text-red-400"><Icon name="log-out" /> Logout</button>
                         </div>
                     </div>
 
-                    {/* Main Content Area */}
-                    <div className="flex-1 overflow-y-auto relative">
-                        <div className="p-6 md:p-10 max-w-5xl mx-auto">
-                            {tab === 'queue' && (
-                                <div>
-                                    <h1 className="text-3xl font-bold dark:text-white mb-6">Live Queue</h1>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
-                                            <div className="text-8xl font-display font-bold text-primary-600 mb-4">#05</div>
-                                            <h3 className="text-2xl font-bold dark:text-white">Rahul Sharma</h3>
-                                            <p className="text-slate-500 mb-8">Haircut + Beard Trim</p>
-                                            <button className="bg-primary-600 hover:bg-primary-700 text-white w-full py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 flex items-center justify-center gap-2">
-                                                <Icon name="check-circle" /> Complete & Call Next
-                                            </button>
-                                        </div>
-                                        <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                            <h3 className="font-bold mb-4 dark:text-white">Up Next</h3>
-                                            <div className="space-y-3">
-                                                {[6,7,8].map(n => (
-                                                    <div key={n} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">#{n}</div>
-                                                            <div>
-                                                                <p className="font-bold dark:text-white">Guest User</p>
-                                                                <p className="text-xs text-slate-500">Waiting</p>
-                                                            </div>
-                                                        </div>
-                                                        <span className="text-xs font-bold text-slate-400">~{15 * (n-5)}m</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                    {/* Main Content */}
+                    <div className="flex-1 overflow-y-auto relative h-screen">
+                        {view === 'dashboard' && (
+                            <div className="p-6">
+                                <h1 className="text-3xl font-display font-bold dark:text-white mb-6">Dashboard</h1>
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs font-bold text-slate-400 uppercase">Today's Revenue</p>
+                                        <p className="text-3xl font-bold text-green-600 mt-1">₹8,450</p>
+                                    </div>
+                                    <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs font-bold text-slate-400 uppercase">Active Clients</p>
+                                        <p className="text-3xl font-bold text-blue-600 mt-1">{queue.length}</p>
                                     </div>
                                 </div>
-                            )}
-
-                            {tab === 'pos' && <POSSystem />}
-                            {tab === 'crm' && <CRMDossier />}
-                            {tab === 'inv' && <InventoryPanel />}
-                            {tab === 'ai' && (
-                                <div className="max-w-xl mx-auto">
-                                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-                                        <div className="relative z-10">
-                                            <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mb-6">
-                                                <Icon name="sparkles" size={32} />
-                                            </div>
-                                            <h2 className="text-3xl font-bold mb-2">AI Marketing Assistant</h2>
-                                            <p className="text-white/70 mb-8">Generate engaging social media captions or SMS offers in seconds.</p>
-                                            
-                                            <div className="bg-white/10 p-4 rounded-xl mb-4 backdrop-blur-sm border border-white/10">
-                                                <input 
-                                                    value={aiInput} 
-                                                    onChange={e=>setAiInput(e.target.value)} 
-                                                    placeholder="What do you want to promote? (e.g. Rainy day offer)" 
-                                                    className="w-full bg-transparent border-none text-white placeholder-white/40 focus:ring-0" 
-                                                />
-                                            </div>
-                                            <button onClick={handleMarketing} disabled={loadingAI} className="w-full bg-white text-indigo-700 py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition-colors">
-                                                {loadingAI ? "Thinking..." : "Generate Magic"}
-                                            </button>
-
-                                            {aiRes && (
-                                                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="mt-6 bg-black/30 p-4 rounded-xl border border-white/10">
-                                                    <p className="text-sm font-mono">{aiRes}</p>
-                                                    <button onClick={()=>{navigator.clipboard.writeText(aiRes); notify("Copied!")}} className="mt-3 text-xs flex items-center gap-2 text-white/60 hover:text-white"><Icon name="copy" size={14}/> Copy Text</button>
-                                                </motion.div>
-                                            )}
-                                        </div>
-                                        {/* Background Decor */}
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                                    </div>
+                                
+                                <div className="bg-white dark:bg-dark-800 p-8 rounded-3xl shadow-lg border-t-4 border-brand-500 text-center mb-6">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
+                                    {queue.length > 0 ? (
+                                        <motion.div key={queue[0].id} initial={{scale:0.9}} animate={{scale:1}}>
+                                            <h2 className="text-6xl font-bold text-slate-800 dark:text-white">#{queue[0].token}</h2>
+                                            <p className="text-xl font-bold text-brand-600 mt-2">{queue[0].name}</p>
+                                            <p className="text-sm text-slate-500">{queue[0].srv}</p>
+                                            <Button onClick={next} className="mt-6">Complete & Next</Button>
+                                        </motion.div>
+                                    ) : (
+                                        <div className="py-8 text-slate-400">Queue is empty</div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+
+                        {view === 'inventory' && <InventorySystem />}
+                        {view === 'pos' && <POS />}
+                        
+                        {view === 'clients' && (
+                            <div className="p-4 space-y-4">
+                                <h2 className="text-2xl font-bold dark:text-white">Client Dossiers</h2>
+                                {useContext(AppContext).clients.map(c => (
+                                    <div key={c.id} className="bg-white dark:bg-dark-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <div className="flex justify-between">
+                                            <h3 className="font-bold dark:text-white">{c.name}</h3>
+                                            <span className="text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded-full">{c.loyalty} Pts</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">{c.phone} • Last Visit: {c.lastVisit}</p>
+                                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg text-xs font-medium text-red-600 dark:text-red-400">
+                                            ⚠️ {c.notes}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'marketing' && (
+                            <div className="p-6">
+                                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <h2 className="text-2xl font-bold mb-2 flex items-center gap-2"><Icon name="sparkles" /> AI Marketing</h2>
+                                        <p className="opacity-80 mb-6 text-sm">Generate copy for SMS/Instagram instantly.</p>
+                                        <input value={aiInput} onChange={e=>setAiInput(e.target.value)} className="w-full bg-white/20 border border-white/20 rounded-xl p-3 text-white placeholder-white/50 focus:outline-none focus:bg-white/30" placeholder="e.g. 50% off for students this weekend" />
+                                        <button onClick={generateAd} disabled={loadingAI} className="mt-4 w-full bg-white text-indigo-700 py-3 rounded-xl font-bold shadow-lg disabled:opacity-50">
+                                            {loadingAI ? 'Generating...' : 'Create Magic'}
+                                        </button>
+                                        {aiRes && <div className="mt-6 bg-black/30 p-4 rounded-xl font-mono text-sm border border-white/10">{aiRes}</div>}
+                                    </div>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
         };
 
-        // --- CUSTOMER LAYOUT ---
-        const CustomerLayout = () => {
-            const { user, setUser, setDarkMode, darkMode } = useContext(AppContext);
-            const [view, setView] = useState('home');
-            const [showScratch, setShowScratch] = useState(false);
+        // --- CUSTOMER FEATURES ---
 
-            const logout = () => {
-                setUser(null);
-                localStorage.removeItem('lf_user');
-            };
+        const ScratchModal = ({ onClose }) => {
+            return (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-dark-800 p-6 rounded-3xl w-full max-w-sm relative">
+                        <button onClick={onClose} className="absolute -top-4 -right-4 bg-white rounded-full p-2 text-black"><Icon name="x" /></button>
+                        <h3 className="text-center font-bold text-xl mb-4 dark:text-white">Scratch & Win!</h3>
+                        <div className="scratch-container bg-slate-200">
+                            {/* Canvas logic would go here, simplistic for now */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-brand-500 text-white font-bold text-2xl">
+                                20% OFF
+                            </div>
+                            <div className="absolute inset-0 bg-slate-400 flex items-center justify-center text-slate-100 font-bold text-lg cursor-pointer hover:opacity-0 transition-opacity duration-700">
+                                SCRATCH HERE
+                            </div>
+                        </div>
+                        <p className="text-center text-xs text-slate-400 mt-4">Reveal your prize to add it to your wallet.</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const ARMirror = ({ onClose }) => {
+            const videoRef = useRef(null);
+            
+            useEffect(() => {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                    if(videoRef.current) videoRef.current.srcObject = stream;
+                }).catch(e => alert("Camera permission denied"));
+                return () => {
+                    if(videoRef.current && videoRef.current.srcObject) {
+                        videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+                    }
+                }
+            }, []);
 
             return (
-                <div className="pb-24 max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative transition-colors duration-300">
-                    <Toast />
-                    
-                    {/* Header */}
-                    <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-4 z-30 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
-                            <div>
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Hello,</p>
-                                <h3 className="font-bold text-lg leading-none dark:text-white">{user.name.split(' ')[0]}</h3>
+                <div className="fixed inset-0 z-50 bg-black flex flex-col">
+                    <div className="relative flex-1 bg-black">
+                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform -scale-x-100"></video>
+                        <div className="absolute inset-0 pointer-events-none" style={{background: 'radial-gradient(circle at 50% 30%, rgba(236, 72, 153, 0.3), transparent 50%)', mixBlendMode: 'overlay'}}></div>
+                        <button onClick={onClose} className="absolute top-4 left-4 bg-black/50 text-white p-3 rounded-full backdrop-blur"><Icon name="arrow-left" /></button>
+                    </div>
+                    <div className="h-32 bg-black flex items-center justify-center gap-4 overflow-x-auto p-4">
+                        {['#ef4444', '#eab308', '#a855f7', '#3b82f6'].map(c => (
+                            <button key={c} className="w-12 h-12 rounded-full border-2 border-white" style={{backgroundColor: c}}></button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const CustomerDash = () => {
+            const { user, salons, addToken, myTokens, setMyTokens, favorites, setFavorites, points, logout, musicPlaying, setMusicPlaying, darkMode, setDarkMode } = useContext(AppContext);
+            const [view, setView] = useState('home');
+            const [selectedSalon, setSelectedSalon] = useState(null);
+            const [cart, setCart] = useState([]);
+            const [showScratch, setShowScratch] = useState(false);
+            const [showAR, setShowAR] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [searchTerm, setSearch] = useState("");
+
+            const toggleFav = (id) => setFavorites(prev => prev.includes(id) ? prev.filter(f=>f!==id) : [...prev, id]);
+
+            const book = () => {
+                setLoading(true);
+                setTimeout(() => {
+                    addToken(selectedSalon, cart);
+                    setLoading(false);
+                    setCart([]);
+                    setView('tokens');
+                }, 1500);
+            };
+
+            if (showAR) return <ARMirror onClose={()=>setShowAR(false)} />;
+
+            if (selectedSalon && view === 'salon') {
+                return (
+                    <div className="bg-white dark:bg-dark-900 min-h-screen pb-24">
+                        <div className="relative h-64">
+                            <img src={selectedSalon.image} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                            <button onClick={()=>setView('home')} className="absolute top-4 left-4 bg-white/20 backdrop-blur p-2 rounded-full text-white"><Icon name="arrow-left"/></button>
+                            <button onClick={()=>toggleFav(selectedSalon.id)} className="absolute top-4 right-4 bg-white/20 backdrop-blur p-2 rounded-full text-white">
+                                <Icon name="heart" className={favorites.includes(selectedSalon.id)?'fill-red-500 text-red-500':''} />
+                            </button>
+                            <div className="absolute bottom-4 left-4 right-4 text-white">
+                                <h2 className="text-3xl font-display font-bold">{selectedSalon.name}</h2>
+                                <p className="opacity-90 text-sm flex items-center gap-2"><Icon name="map-pin" size={14}/> {selectedSalon.location} • <Icon name="star" size={14} className="fill-gold-500 text-gold-500"/> {selectedSalon.rating}</p>
                             </div>
+                        </div>
+                        <div className="p-5">
+                            <div className="flex gap-3 mb-6">
+                                <div className="flex-1 bg-slate-50 dark:bg-dark-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
+                                    <p className="text-xs text-slate-400 font-bold uppercase">Queue</p>
+                                    <p className="text-xl font-bold dark:text-white">{selectedSalon.queueLength} Ppl</p>
+                                </div>
+                                <div className="flex-1 bg-slate-50 dark:bg-dark-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
+                                    <p className="text-xs text-slate-400 font-bold uppercase">Wait</p>
+                                    <p className="text-xl font-bold text-brand-600">~{selectedSalon.queueLength * 15} min</p>
+                                </div>
+                            </div>
+                            
+                            <h3 className="font-bold text-lg mb-3 dark:text-white">Services</h3>
+                            <div className="space-y-3">
+                                {selectedSalon.services.map(s => {
+                                    const inCart = cart.find(x => x.id === s.id);
+                                    return (
+                                        <div key={s.id} onClick={()=>{inCart?setCart(cart.filter(x=>x.id!==s.id)):setCart([...cart,s])}} className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${inCart ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-slate-800'}`}>
+                                            <div><p className="font-bold dark:text-white">{s.name}</p><p className="text-xs text-slate-500">{s.duration} min</p></div>
+                                            <div className="flex items-center gap-3">
+                                                <p className="font-bold text-brand-600">₹{s.price}</p>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${inCart ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-300'}`}>{inCart && <Icon name="check" size={12}/>}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className="fixed bottom-0 w-full p-4 bg-white dark:bg-dark-900 border-t border-slate-100 dark:border-slate-800 z-20">
+                            <Button onClick={book} disabled={cart.length===0} loading={loading}>
+                                {cart.length>0 ? `Book (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}` : 'Select Services'}
+                            </Button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-slate-50 dark:bg-dark-950 min-h-screen pb-24 transition-colors duration-300">
+                    {/* Header */}
+                    <div className="sticky top-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-md px-5 py-4 z-30 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-9 h-9 rounded-full border border-slate-200" />
+                            <div><p className="text-xs font-bold text-slate-400">HELLO</p><h3 className="font-bold leading-none dark:text-white">{user.name.split(' ')[0]}</h3></div>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={()=>setDarkMode(!darkMode)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-600 dark:text-slate-400"><Icon name={darkMode?"sun":"moon"} size={20}/></button>
-                            <button onClick={()=>setShowScratch(true)} className="p-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-full shadow-lg shadow-gold-500/40 animate-pulse"><Icon name="gift" size={20}/></button>
+                            <button onClick={()=>setDarkMode(!darkMode)} className="w-9 h-9 rounded-full bg-slate-100 dark:bg-dark-800 flex items-center justify-center text-slate-600 dark:text-slate-400"><Icon name={darkMode?'sun':'moon'} size={18}/></button>
+                            <button onClick={()=>setShowScratch(true)} className="w-9 h-9 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 flex items-center justify-center text-white shadow-lg shadow-gold-500/30 animate-pulse"><Icon name="gift" size={18}/></button>
                         </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-6">
+                    <div className="p-5">
                         {view === 'home' && (
-                            <div className="space-y-8">
-                                {/* AR Promo */}
-                                <div className="bg-black rounded-3xl p-1 overflow-hidden relative shadow-xl">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-80"></div>
-                                    <div className="relative p-6 text-white text-center">
-                                        <h2 className="text-2xl font-bold mb-2">Try Before You Dye</h2>
-                                        <p className="text-sm opacity-80 mb-6">See how you look with a new hair color using AI.</p>
-                                        <button onClick={()=>setView('ar')} className="bg-white text-black px-6 py-3 rounded-full font-bold shadow-lg flex items-center justify-center gap-2 mx-auto hover:scale-105 transition-transform"><Icon name="camera" /> Open AR Mirror</button>
+                            <div className="space-y-6">
+                                {/* Search */}
+                                <div className="relative">
+                                    <Icon name="search" className="absolute left-3 top-3 text-slate-400" size={18} />
+                                    <input value={searchTerm} onChange={e=>setSearch(e.target.value)} placeholder="Search salons, services..." className="w-full bg-white dark:bg-dark-800 border-none rounded-xl py-3 pl-10 text-sm shadow-sm focus:ring-2 focus:ring-brand-500 dark:text-white" />
+                                </div>
+
+                                {/* AR Banner */}
+                                <div className="bg-black rounded-2xl overflow-hidden relative h-40 shadow-xl flex items-center cursor-pointer group" onClick={()=>setShowAR(true)}>
+                                    <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="relative z-10 p-6">
+                                        <span className="bg-brand-500 text-white text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block">NEW AI FEATURE</span>
+                                        <h2 className="text-2xl font-bold text-white mb-1">Virtual Try-On</h2>
+                                        <p className="text-white/80 text-xs">Test hair colors before you book.</p>
                                     </div>
                                 </div>
 
-                                {/* Services Grid */}
-                                <div>
-                                    <h3 className="font-bold text-lg dark:text-white mb-4">Services</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {['Haircut', 'Shave', 'Facial', 'Massage'].map(s => (
-                                            <div key={s} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-2 cursor-pointer hover:border-primary-500 transition-colors">
-                                                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300">
-                                                    <Icon name={s==='Haircut'?'scissors':s==='Shave'?'user':s==='Facial'?'sparkles':'smile'} />
+                                {/* Salons */}
+                                <h3 className="font-bold text-lg dark:text-white">Featured Salons</h3>
+                                <div className="space-y-4">
+                                    {salons.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 20).map(s => (
+                                        <div key={s.id} onClick={()=>{setSelectedSalon(s); setView('salon')}} className="bg-white dark:bg-dark-800 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex gap-4 cursor-pointer hover:border-brand-500 transition-colors">
+                                            <div className="w-24 h-24 rounded-xl bg-slate-200 overflow-hidden shrink-0"><img src={s.image} className="w-full h-full object-cover" loading="lazy" /></div>
+                                            <div className="flex-1 py-1">
+                                                <div className="flex justify-between items-start">
+                                                    <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{s.name}</h4>
+                                                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-500">{s.rating} ★</span>
                                                 </div>
-                                                <span className="font-bold text-sm dark:text-white">{s}</span>
+                                                <p className="text-xs text-slate-500 mt-1 mb-3">{s.location}</p>
+                                                <div className="flex gap-2">
+                                                    <span className="text-[10px] font-bold bg-green-50 text-green-600 px-2 py-1 rounded">Wait: ~{s.queueLength * 15}m</span>
+                                                </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        {view === 'ar' && (
-                            <div className="space-y-4">
-                                <button onClick={()=>setView('home')} className="flex items-center gap-2 text-slate-500 hover:text-primary-600 mb-2"><Icon name="arrow-left" size={16}/> Back</button>
-                                <h2 className="text-2xl font-bold dark:text-white">Virtual Try-On</h2>
-                                <ARView />
-                                <p className="text-center text-xs text-slate-400">Powered by WebGL & Computer Vision</p>
+                        {view === 'tokens' && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold font-display dark:text-white">My Tokens</h2>
+                                {myTokens.length === 0 ? (
+                                    <div className="text-center py-20 opacity-50 dark:text-white"><Icon name="ticket" size={48} className="mx-auto mb-2"/><p>No active tokens</p></div>
+                                ) : (
+                                    myTokens.map(t => (
+                                        <div key={t.id} className="bg-white dark:bg-dark-800 rounded-3xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 relative">
+                                            <div className="bg-dark-900 p-6 text-white relative">
+                                                <h3 className="font-bold text-lg">{t.salonName}</h3>
+                                                <p className="text-xs opacity-70">{t.salonLocation}</p>
+                                            </div>
+                                            <div className="p-6 relative">
+                                                <div className="ticket-notch notch-l shadow-inner dark:bg-dark-950"></div>
+                                                <div className="ticket-notch notch-r shadow-inner dark:bg-dark-950"></div>
+                                                <div className="border-b-2 border-dashed border-slate-200 dark:border-slate-700 pb-6 mb-6 flex justify-between items-center">
+                                                    <div className="text-center"><p className="text-xs text-slate-400 font-bold uppercase">Token</p><p className="text-5xl font-display font-bold text-brand-600">#{t.tokenNumber}</p></div>
+                                                    <div className="text-right"><p className="text-xs text-slate-400 font-bold uppercase">Est. Time</p><p className="text-2xl font-bold text-slate-800 dark:text-white">{t.estimatedTime}</p></div>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <div><p className="font-bold text-sm dark:text-white">{t.serviceNames}</p><p className="text-xs text-slate-500">₹{t.totalPrice}</p></div>
+                                                    <button onClick={()=>{if(confirm('Cancel?')) setMyTokens(myTokens.filter(x=>x.id!==t.id))}} className="text-xs text-red-500 font-bold border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-50">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         )}
-                        
+
                         {view === 'profile' && (
-                            <div className="text-center pt-10">
-                                <div className="w-24 h-24 rounded-full bg-slate-200 mx-auto mb-4 overflow-hidden"><img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover"/></div>
+                            <div className="pt-10 text-center">
+                                <div className="w-24 h-24 rounded-full bg-slate-200 mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg"><img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover"/></div>
                                 <h2 className="text-2xl font-bold dark:text-white">{user.name}</h2>
                                 <p className="text-slate-500 mb-8">{user.email}</p>
-                                <button onClick={logout} className="bg-red-50 text-red-500 px-8 py-3 rounded-xl font-bold flex items-center gap-2 mx-auto"><Icon name="log-out" /> Logout</button>
+                                
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs text-slate-400 font-bold uppercase">Points</p>
+                                        <p className="text-2xl font-bold text-gold-500">{points}</p>
+                                    </div>
+                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs text-slate-400 font-bold uppercase">Bookings</p>
+                                        <p className="text-2xl font-bold text-brand-600">{myTokens.length}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`w-full p-4 rounded-xl flex items-center justify-between ${musicPlaying ? 'bg-green-100 text-green-700' : 'bg-white dark:bg-dark-800 dark:text-white'}`}>
+                                        <span className="flex items-center gap-3 font-bold"><Icon name="music" /> Ambience Music</span>
+                                        <span className="text-xs font-bold uppercase">{musicPlaying ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                    <button onClick={logout} className="w-full p-4 rounded-xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 hover:bg-red-100"><Icon name="log-out"/> Logout</button>
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Scratch Modal */}
-                    <AnimatePresence>
-                        {showScratch && (
-                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-2xl relative">
-                                    <button onClick={()=>setShowScratch(false)} className="absolute -top-4 -right-4 bg-white rounded-full p-2 text-black"><Icon name="x" /></button>
-                                    <h3 className="text-center font-bold text-xl mb-4 dark:text-white">Scratch & Win!</h3>
-                                    <ScratchCard onWin={() => confetti({ particleCount: 200, spread: 90 })} />
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {showScratch && <ScratchModal onClose={()=>setShowScratch(false)} />}
 
                     {/* Bottom Nav */}
-                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-20 flex justify-around items-center z-30 pb-4">
-                        {['home', 'search', 'calendar', 'profile'].map(t => (
-                            <button key={t} onClick={()=>setView(t)} className={`flex flex-col items-center gap-1 ${view===t ? 'text-primary-600' : 'text-slate-400'}`}>
-                                <Icon name={t==='home'?'home':t==='search'?'search':t==='calendar'?'calendar':'user'} size={24} className={view===t?'fill-current':''} />
+                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-dark-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-20 flex justify-around items-center z-30 pb-4 left-0 right-0 mx-auto">
+                        {['home', 'tokens', 'profile'].map(t => (
+                            <button key={t} onClick={()=>setView(t)} className={`flex flex-col items-center gap-1 ${view===t ? 'text-brand-600' : 'text-slate-400'}`}>
+                                <Icon name={t==='home'?'home':t==='tokens'?'ticket':'user'} size={24} className={view===t?'fill-current':''} />
                                 <span className="text-[10px] font-bold capitalize">{t}</span>
                             </button>
                         ))}
@@ -705,56 +716,48 @@
             );
         };
 
-        // --- LOGIN COMPONENT ---
+        // --- AUTH FLOW ---
         const Login = () => {
             const { setUser, googleLogin, notify } = useContext(AppContext);
             const [step, setStep] = useState(1);
             const [loading, setLoading] = useState(false);
-            const [tempUser, setTempUser] = useState(null);
-            const [phone, setPhone] = useState("");
+            const [temp, setTemp] = useState(null);
+            const [phone, setPhone] = useState('');
 
             const handleGoogle = async () => {
                 setLoading(true);
                 const data = await googleLogin();
                 if(data) {
-                    setTempUser(data);
-                    setLoading(false);
+                    setTemp(data);
                     setStep(2);
-                } else {
-                    setLoading(false);
                 }
+                setLoading(false);
             };
 
-            const handlePhone = (e) => {
-                e.preventDefault();
-                if(phone.length < 10) { notify("Invalid Phone Number", "error"); return; }
-                setStep(3);
-            };
-
-            const finish = (role) => {
+            const finalize = (role) => {
                 setLoading(true);
                 setTimeout(() => {
-                    setUser({ ...tempUser, phone, role });
+                    setUser({ ...temp, phone, role });
                     setLoading(false);
                 }, 800);
             };
 
             return (
-                <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1600&q=80')] bg-cover bg-center opacity-40"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
+                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1600&q=80')] bg-cover bg-center opacity-30"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-900/90 to-transparent"></div>
 
-                    <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl text-white">
-                        <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/50">
+                    <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-white">
+                        <div className="text-center mb-10">
+                            <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/50">
                                 <Icon name="scissors" size={32} />
                             </div>
-                            <h1 className="text-3xl font-display font-bold">Line Free</h1>
-                            <p className="text-white/60 text-sm">The future of salon booking.</p>
+                            <h1 className="text-4xl font-display font-bold">Line Free</h1>
+                            <p className="text-white/60 mt-2">Skip the wait. Style instantly.</p>
                         </div>
 
                         {step === 1 && (
-                            <button onClick={handleGoogle} disabled={loading} className="w-full bg-white text-slate-900 py-3.5 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors">
+                            <button onClick={handleGoogle} disabled={loading} className="w-full bg-white text-slate-900 py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors">
                                 {loading ? <Icon name="loader-2" className="animate-spin" /> : (
                                     <>
                                         <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
@@ -765,32 +768,33 @@
                         )}
 
                         {step === 2 && (
-                            <form onSubmit={handlePhone} className="space-y-4">
+                            <form onSubmit={(e)=>{e.preventDefault(); if(phone.length<10)return; setStep(3)}} className="space-y-4">
                                 <div className="bg-white/10 p-4 rounded-xl flex items-center gap-3">
-                                    <img src={tempUser.photo} className="w-10 h-10 rounded-full" />
-                                    <div><p className="font-bold text-sm">{tempUser.name}</p><p className="text-xs text-white/60">{tempUser.email}</p></div>
+                                    <img src={temp.photo} className="w-10 h-10 rounded-full" />
+                                    <div><p className="font-bold text-sm">{temp.name}</p><p className="text-xs text-white/60">{temp.email}</p></div>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold uppercase text-primary-300 tracking-wider">Mobile Number</label>
-                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl mt-2 py-3 px-4 text-white focus:outline-none focus:border-primary-500" placeholder="98765 43210" autoFocus />
+                                    <label className="text-xs font-bold uppercase text-brand-300 tracking-wider">Mobile Number</label>
+                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl mt-2 py-3 px-4 text-white focus:outline-none focus:border-brand-500" placeholder="98765 43210" autoFocus />
                                 </div>
-                                <button type="submit" className="w-full bg-primary-600 hover:bg-primary-500 text-white py-3.5 rounded-xl font-bold">Continue</button>
+                                <Button onClick={()=>{}}>Next <Icon name="arrow-right" size={16} className="ml-2"/></Button>
                             </form>
                         )}
 
                         {step === 3 && (
                             <div className="space-y-3">
-                                <p className="text-center text-sm text-white/60 mb-4">How will you use Line Free?</p>
-                                <button onClick={()=>finish('customer')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
-                                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform"><Icon name="user" /></div>
-                                    <div><h4 className="font-bold text-lg">Customer</h4><p className="text-xs text-white/50">Book appointments</p></div>
+                                <p className="text-center text-sm text-white/60 mb-4">Choose your role</p>
+                                <button onClick={()=>finalize('customer')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform"><Icon name="user" /></div>
+                                    <div><h4 className="font-bold text-lg">Customer</h4><p className="text-xs text-white/50">Book & Explore</p></div>
                                 </button>
-                                <button onClick={()=>finish('barber')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
+                                <button onClick={()=>finalize('barber')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
                                     <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform"><Icon name="scissors" /></div>
-                                    <div><h4 className="font-bold text-lg">Salon Owner</h4><p className="text-xs text-white/50">Manage business</p></div>
+                                    <div><h4 className="font-bold text-lg">Salon Owner</h4><p className="text-xs text-white/50">Manage Business</p></div>
                                 </button>
                             </div>
                         )}
+                        {loading && <div className="absolute inset-0 bg-dark-950/80 flex items-center justify-center rounded-3xl"><Icon name="loader-2" className="animate-spin text-white" size={32} /></div>}
                     </motion.div>
                 </div>
             );
@@ -800,7 +804,7 @@
         const App = () => {
             const { user } = useContext(AppContext);
             if (!user) return <Login />;
-            return user.role === 'barber' ? <BarberLayout /> : <CustomerLayout />;
+            return user.role === 'barber' ? <BarberDash /> : <CustomerDash />;
         };
 
         const Root = () => ( <AppProvider> <App /> </AppProvider> );
@@ -808,3 +812,5 @@
     </script>
 </body>
 </html>
+
+
