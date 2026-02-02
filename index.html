@@ -3,46 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROOH | God Mode</title>
+  <title>ROOH | Vid-Stream Universe</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
-    :root { --bg: #000000; --accent: #ff0000; }
+    /* --- CORE THEME --- */
+    :root { --bg: #050505; --accent: #e11d48; } /* Red Accent for VidMate feel */
     body { background-color: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
     
-    /* HIDE SCROLLBARS BUT ALLOW SCROLL */
+    /* SCROLLBAR HIDING */
     * { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; }
 
-    /* --- CINEMA FIXES --- */
+    /* --- CINEMA FRAME --- */
     .cinema-frame {
-      width: 100vw;
-      height: 100vh; /* Full Height */
-      border: none;
-      background: #000;
+      width: 100vw; height: 100vh; border: none; background: #000;
     }
 
-    /* --- GHOST PLAYER (Shorts Fix) --- */
+    /* --- GHOST PLAYER (ZOOM HACK) --- */
+    /* YouTube ka logo chhupane ke liye 165% zoom */
     .ghost-wrapper {
-      position: relative; width: 100%; height: 100%; overflow: hidden; background: black;
+      position: relative; width: 100%; height: 100%; overflow: hidden; background: black; border-radius: 12px;
     }
     .ghost-frame {
       position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(1.65); /* Zordaar Zoom to hide UI */
+      transform: translate(-50%, -50%) scale(1.65); 
       width: 100%; height: 100%;
       pointer-events: auto;
     }
+    /* Title Hide karne ke liye Overlay */
     .click-shield {
-      position: absolute; top: 0; left: 0; right: 0; height: 100px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      position: absolute; top: 0; left: 0; right: 0; height: 60px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
       z-index: 10; pointer-events: none;
     }
 
-    /* --- SNAP SCROLL --- */
-    .snap-scroll { scroll-snap-type: y mandatory; overflow-y: scroll; height: 100%; }
-    .snap-item { scroll-snap-align: start; height: 100%; width: 100%; position: relative; }
+    /* --- TAB ANIMATIONS --- */
+    .tab-content { transition: opacity 0.3s ease; }
   </style>
 </head>
 <body>
@@ -50,90 +49,106 @@
 <!-- ==================== 1. LOGIN GATE ==================== -->
 <div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
   <div class="text-center">
-    <div class="w-20 h-20 mx-auto bg-red-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_red] animate-pulse">
-      <i data-lucide="power" class="w-10 h-10 text-white"></i>
+    <div class="w-24 h-24 mx-auto bg-gradient-to-br from-red-600 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(225,29,72,0.6)] animate-pulse">
+      <i data-lucide="play-circle" class="w-12 h-12 text-white"></i>
     </div>
-    <h1 class="text-4xl font-bold mb-2 tracking-widest">GOD MODE</h1>
-    <p class="text-gray-500 text-xs mb-8 uppercase">Redirects Blocked • Ads Neutralized</p>
-    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-8 rounded-full hover:scale-105 transition-transform">
-      CONNECT
+    <h1 class="text-5xl font-bold mb-2 tracking-tighter">ROOH</h1>
+    <p class="text-gray-400 text-xs mb-10 tracking-[0.3em] uppercase">Universal Video Engine</p>
+    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform shadow-xl">
+      ENTER SYSTEM
     </button>
   </div>
 </div>
 
 <!-- ==================== 2. MAIN INTERFACE ==================== -->
-<div id="universe" class="fixed inset-0 hidden flex flex-col bg-black">
+<div id="universe" class="fixed inset-0 hidden flex flex-col bg-[#050505]">
   
-  <!-- BOTTOM NAV (Mobile First) -->
-  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#111] border-t border-gray-800 flex justify-around items-center z-50">
-    <button onclick="switchTab('search')" class="nav-btn text-white p-2"><i data-lucide="search" class="w-6 h-6"></i></button>
-    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 p-2"><i data-lucide="smartphone" class="w-6 h-6"></i></button>
-    <button onclick="switchTab('cinema')" class="nav-btn text-red-500 p-2"><i data-lucide="film" class="w-6 h-6"></i></button>
-    <button onclick="switchTab('sources')" class="nav-btn text-gray-500 p-2"><i data-lucide="database" class="w-6 h-6"></i></button>
+  <!-- BOTTOM NAVIGATION (App Like) -->
+  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#111] border-t border-white/5 flex justify-around items-center z-50">
+    <button onclick="switchTab('vidstream')" class="nav-btn text-white p-2 flex flex-col items-center gap-1">
+      <i data-lucide="youtube" class="w-5 h-5"></i>
+      <span class="text-[10px]">Videos</span>
+    </button>
+    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="smartphone" class="w-5 h-5"></i>
+      <span class="text-[10px]">Shorts</span>
+    </button>
+    <button onclick="switchTab('cinema')" class="nav-btn text-red-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="film" class="w-5 h-5"></i>
+      <span class="text-[10px]">Cinema</span>
+    </button>
+    <button onclick="switchTab('search')" class="nav-btn text-gray-500 p-2 flex flex-col items-center gap-1">
+      <i data-lucide="globe" class="w-5 h-5"></i>
+      <span class="text-[10px]">Web</span>
+    </button>
   </nav>
 
-  <!-- === TAB 1: REAL SEARCH (Wikipedia + OpenLibrary + Archive) === -->
-  <section id="tab-search" class="tab-content absolute inset-0 pb-16 overflow-y-auto bg-black">
-    <div class="sticky top-0 z-40 bg-black/90 backdrop-blur border-b border-gray-800 p-4">
+  <!-- === TAB 1: VID-STREAM (The VidMate Killer) === -->
+  <section id="tab-vidstream" class="tab-content absolute inset-0 pb-16 overflow-y-auto bg-black">
+    <!-- Search Header -->
+    <div class="sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-white/10 p-4">
       <div class="relative">
-        <input type="text" id="omniSearch" 
-          class="w-full bg-[#222] text-white border-none rounded-2xl py-3 pl-10 pr-12 focus:ring-2 focus:ring-red-500 transition-all"
-          placeholder="Search Reality (e.g. Matrix, Space, Physics)..."
-          onkeydown="if(event.key === 'Enter') executeRealSearch(this.value)">
-        <i data-lucide="globe" class="absolute left-3 top-3.5 text-gray-500 w-5 h-5"></i>
-        <button onclick="executeRealSearch(document.getElementById('omniSearch').value)" class="absolute right-2 top-2 p-1.5 bg-red-600 rounded-xl">
+        <input type="text" id="vidInput" 
+          class="w-full bg-[#222] text-white border-none rounded-2xl py-3 pl-10 pr-12 focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-500"
+          placeholder="Search any video (e.g. Song, Movie, Tech)..."
+          onkeydown="if(event.key === 'Enter') searchVideos(this.value)">
+        <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
+        <button onclick="searchVideos(document.getElementById('vidInput').value)" class="absolute right-2 top-2 p-1.5 bg-red-600 rounded-xl">
           <i data-lucide="arrow-right" class="text-white w-4 h-4"></i>
         </button>
       </div>
     </div>
 
-    <div id="searchResults" class="p-4 space-y-4 min-h-screen">
+    <!-- Video Grid -->
+    <div id="videoFeed" class="p-4 space-y-6 min-h-screen">
       <!-- Default State -->
-      <div class="flex flex-col items-center justify-center h-[50vh] opacity-50">
-        <i data-lucide="server" class="w-16 h-16 mb-4 text-gray-700"></i>
-        <p class="text-xs text-gray-500 uppercase">Connecting to 3 Public APIs...</p>
+      <div class="text-center py-20 opacity-60">
+        <i data-lucide="tv" class="w-16 h-16 mx-auto mb-4 text-gray-700"></i>
+        <h2 class="text-xl font-bold text-gray-300">Infinite Video Stream</h2>
+        <p class="text-xs text-gray-500 mt-2">Access Global YouTube Database. No Ads. No Logos.</p>
+        
+        <!-- Trending Tags -->
+        <div class="flex flex-wrap gap-2 justify-center mt-6">
+           <span onclick="searchVideos('Lofi Hip Hop')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Lofi</span>
+           <span onclick="searchVideos('New Movie Trailer')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Trailers</span>
+           <span onclick="searchVideos('Coding Setup')" class="px-3 py-1 bg-[#222] rounded-full text-xs text-gray-300 border border-white/5 cursor-pointer">Tech</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- === TAB 2: GHOST SHORTS (Fixed Playback) === -->
+  <!-- === TAB 2: GHOST SHORTS (Infinite Scroll) === -->
   <section id="tab-shorts" class="tab-content hidden absolute inset-0 bg-black pb-16">
-    <div id="shortsFeed" class="snap-scroll w-full h-full">
+    <div id="shortsFeed" class="w-full h-full" style="scroll-snap-type: y mandatory; overflow-y: scroll;">
       <!-- JS Injected -->
     </div>
   </section>
 
-  <!-- === TAB 3: CINEMA (FIXED - No Header, Ad Blocked) === -->
+  <!-- === TAB 3: CINEMA (MyFlixerz) === -->
   <section id="tab-cinema" class="tab-content hidden absolute inset-0 bg-black z-40">
-    <!-- NO HEADER HERE. PURE FRAME. -->
-    
-    <!-- 
-      SANDBOX EXPLANATION:
-      - allow-scripts: Website JS chalega (Video player needs this).
-      - allow-same-origin: Website apne assets load kar payegi.
-      - allow-forms: Search bar kaam karega.
-      - MISSING 'allow-popups': Ye wo cheez hai jo ADS ko naye tab me khulne se rokegi. 
-    -->
+    <!-- SANDBOXED IFRAME: No Popups, No Redirects -->
     <iframe 
-      src="https://wvv-fmovies.com/all-movies/" 
+      src="https://myflixerz.to" 
       class="cinema-frame"
       sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
       allowfullscreen>
     </iframe>
     
-    <!-- Fallback if site fails -->
-    <div id="cinemaFallback" class="absolute inset-0 flex flex-col items-center justify-center bg-black z-[-1] p-8 text-center">
-      <h2 class="text-red-500 font-bold mb-2">Access Restricted by Source</h2>
-      <p class="text-gray-500 text-sm mb-4">The movie site blocks embedded players. Click below to force open.</p>
-      <a href="https://wvv-fmovies.com/all-movies/" target="_blank" class="bg-red-600 text-white px-6 py-2 rounded-full">Force Open Cinema</a>
+    <!-- FALLBACK BUTTON (Agar site block kare) -->
+    <div class="absolute bottom-20 right-4 z-50">
+       <a href="https://myflixerz.to" target="_blank" class="bg-red-600/90 backdrop-blur text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg flex items-center gap-2">
+         <i data-lucide="external-link" class="w-3 h-3"></i> Force Open
+       </a>
     </div>
   </section>
 
-  <!-- === TAB 4: SOURCES (Your Mega List) === -->
-  <section id="tab-sources" class="tab-content hidden absolute inset-0 pb-16 overflow-y-auto bg-[#050505] p-4">
-    <h2 class="text-2xl font-bold mb-6 text-white px-2">The Deep Index</h2>
-    <div class="grid grid-cols-1 gap-4" id="sourceGrid">
-      <!-- Populated via JS -->
+  <!-- === TAB 4: WEB SEARCH (Deep Web) === -->
+  <section id="tab-search" class="tab-content hidden absolute inset-0 pb-16 overflow-y-auto bg-[#050505]">
+    <div class="p-4">
+      <h2 class="text-2xl font-bold mb-6 text-white">Deep Sources</h2>
+      <div id="webSources" class="space-y-3">
+        <!-- Injected via JS -->
+      </div>
     </div>
   </section>
 
@@ -157,24 +172,20 @@
   const auth = getAuth(app);
 
   // --- DATA SOURCES ---
-  const sourceLinks = [
-    { name: "Archive.org", url: "https://archive.org", desc: "Wayback Machine & Dead Web", color: "border-yellow-500" },
-    { name: "Common Crawl", url: "https://commoncrawl.org", desc: "Petabytes of Web Data", color: "border-blue-500" },
-    { name: "Sci-Hub", url: "https://sci-hub.se", desc: "Unlock All Research", color: "border-red-500" },
-    { name: "LibGen", url: "https://libgen.is", desc: "Free Books & Papers", color: "border-green-500" },
-    { name: "GitHub List", url: "https://github.com/topics/awesome", desc: "Dev Resources", color: "border-gray-500" },
-    { name: "DuckDuckGo", url: "https://duckduckgo.com", desc: "Private Search", color: "border-orange-500" },
-    { name: "Radio Garden", url: "http://radio.garden", desc: "Global Live Radio", color: "border-green-400" },
-    { name: "Invidious", url: "https://invidious.io", desc: "YouTube Frontend", color: "border-purple-500" }
+  const webLinks = [
+    { name: "Google Mirror", url: "https://google.com", color: "border-blue-500" },
+    { name: "Wayback Machine", url: "https://archive.org", color: "border-gray-500" },
+    { name: "Common Crawl", url: "https://commoncrawl.org", color: "border-green-500" },
+    { name: "DuckDuckGo", url: "https://duckduckgo.com", color: "border-orange-500" }
   ];
 
-  const validShorts = [
-    "jfKfPfyJRdk", "5qap5aO4i9A", "uNKdXj9h_a4", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk", // Lofi
-    "p770Xv5tq64", "t4g2h4s", "ScMzIvxBSi4", "wbSwFU6tY1c", // Random
-    "f77SKdyn-1Y", "CDa9M8J_tG0", "S3X-z_7h_w", "n61ULEU7CO0" // Nature/Rain
+  const shortsList = [
+    "jfKfPfyJRdk", "5qap5aO4i9A", "uNKdXj9h_a4", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk",
+    "p770Xv5tq64", "t4g2h4s", "ScMzIvxBSi4", "wbSwFU6tY1c", 
+    "f77SKdyn-1Y", "CDa9M8J_tG0", "S3X-z_7h_w", "n61ULEU7CO0"
   ];
 
-  // --- UI CONTROLS ---
+  // --- UI HANDLERS ---
   document.getElementById('loginBtn').onclick = async () => {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
     catch(e) { alert("Auth Failed: " + e.message); }
@@ -185,7 +196,7 @@
       document.getElementById('authGate').style.display = 'none';
       document.getElementById('universe').classList.remove('hidden');
       initShorts();
-      initSources();
+      initWeb();
     }
   });
 
@@ -197,120 +208,100 @@
     event.currentTarget.classList.replace('text-gray-500', 'text-white');
   };
 
-  // --- REAL SEARCH ENGINE (Multi-API) ---
-  window.executeRealSearch = async (query) => {
+  // --- 🎥 SMART VIDEO ENGINE (VidMate Logic) ---
+  // Ye function kya karta hai:
+  // 1. Wikipedia API se related keywords nikalta hai (e.g. Search "Arijit" -> Gets "Arijit Songs", "Bollywood", "Love Songs")
+  // 2. Har keyword ke liye ek YouTube Embed generate karta hai.
+  // 3. Result: Ek "Playlist" jaisa feel aata hai bina API key ke.
+  window.searchVideos = async (query) => {
     if(!query) return;
-    const container = document.getElementById('searchResults');
-    container.innerHTML = `<div class="p-8 text-center"><div class="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin inline-block"></div><p class="text-gray-500 mt-2 text-xs">Accessing Global Nodes...</p></div>`;
-
-    let html = "";
+    const container = document.getElementById('videoFeed');
+    container.innerHTML = `<div class="p-10 text-center text-gray-500"><div class="inline-block w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div> Scanning YouTube Nodes...</div>`;
 
     try {
-      // 1. Wikipedia API (For General Knowledge)
-      const wikiRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-      const wikiData = await wikiRes.json();
-      
-      // 2. OpenLibrary API (For Books)
-      const bookRes = await fetch(`https://openlibrary.org/search.json?q=${query}&limit=3`);
-      const bookData = await bookRes.json();
+        // Step 1: Get Related Terms via Wiki
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
+        const data = await res.json();
+        const terms = data.query.search.map(t => t.title).slice(0, 8); // Top 8 related terms
+        
+        // Add exact query at start
+        terms.unshift(query);
+        
+        container.innerHTML = "";
 
-      // RENDER: Wiki Results (Google Style)
-      if(wikiData.query && wikiData.query.search) {
-        wikiData.query.search.forEach(item => {
-           const fakeUrl = `www.${item.title.replace(/\s+/g,'').toLowerCase()}.org`;
-           html += `
-             <div class="bg-[#111] p-4 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
-               <div class="flex items-center gap-2 mb-1">
-                 <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-400">W</div>
-                 <div class="flex flex-col">
-                   <span class="text-[10px] text-gray-400">${fakeUrl}</span>
-                   <span class="text-xs text-white font-bold">${item.title}</span>
-                 </div>
-               </div>
-               <a href="https://en.m.wikipedia.org/wiki/${item.title}" target="_blank" class="text-blue-400 text-lg hover:underline block mb-1">
-                 ${item.title} - Encyclopedia Entry
-               </a>
-               <p class="text-sm text-gray-400 leading-snug">
-                 ${item.snippet.replace(/<[^>]*>?/gm, '')}... Verified Knowledge Source.
-               </p>
-             </div>
-           `;
+        // Step 2: Generate Ghost Players for each term
+        terms.forEach((term, i) => {
+            const card = document.createElement('div');
+            card.className = "bg-[#111] rounded-2xl overflow-hidden border border-white/5";
+            
+            // "Ghost Mode" Iframe - listType=search plays the top video for that term
+            card.innerHTML = `
+                <div class="aspect-video w-full bg-black relative overflow-hidden group">
+                    <div class="ghost-wrapper">
+                        <iframe 
+                            class="ghost-frame opacity-80 group-hover:opacity-100 transition-opacity" 
+                            src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(term + " video")}&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3" 
+                            frameborder="0" 
+                            allow="encrypted-media"
+                            allowfullscreen>
+                        </iframe>
+                        <div class="click-shield"></div> <!-- Hides Title Bar -->
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-white truncate">${term}</h3>
+                    <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        <span class="bg-red-600/10 text-red-500 px-2 py-0.5 rounded border border-red-600/20">YouTube Source</span>
+                        <span>• Best Match</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
         });
-      }
 
-      // RENDER: Book Results
-      if(bookData.docs && bookData.docs.length > 0) {
-        html += `<h3 class="text-xl font-bold text-white mt-8 mb-4 px-2">Library Archives</h3>`;
-        bookData.docs.forEach(book => {
-          html += `
-             <div class="flex gap-4 bg-[#111] p-4 rounded-xl border border-white/5 mb-2">
-               <div class="w-16 h-24 bg-gray-800 rounded flex-shrink-0 overflow-hidden">
-                 ${book.cover_i ? `<img src="https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-xs text-gray-600">No Cover</div>'}
-               </div>
-               <div>
-                 <h4 class="text-white font-bold">${book.title}</h4>
-                 <p class="text-sm text-gray-400">${book.author_name ? book.author_name[0] : 'Unknown Author'}</p>
-                 <a href="https://openlibrary.org${book.key}" target="_blank" class="text-xs text-green-500 mt-2 inline-block border border-green-500/30 px-2 py-1 rounded">Read Free</a>
-               </div>
-             </div>
-          `;
-        });
-      }
-
-    } catch(e) {
-      html += `<div class="text-red-500">Connection Error: ${e.message}</div>`;
+    } catch (e) {
+        container.innerHTML = `<p class="text-red-500 text-center">Connection Failed. Try again.</p>`;
     }
-
-    container.innerHTML = html;
   };
 
-  // --- SOURCES TAB ---
-  function initSources() {
-    const grid = document.getElementById('sourceGrid');
-    grid.innerHTML = sourceLinks.map(link => `
-      <a href="${link.url}" target="_blank" class="block bg-[#111] p-6 rounded-2xl border-l-4 ${link.color} hover:bg-[#1a1a1a] transition-colors">
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-white">${link.name}</h3>
-          <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
-        </div>
-        <p class="text-sm text-gray-500 mt-1">${link.desc}</p>
-      </a>
-    `).join('');
-    lucide.createIcons();
-  }
-
-  // --- FIXED SHORTS ENGINE ---
+  // --- 📱 SHORTS ENGINE ---
   function initShorts() {
     const container = document.getElementById('shortsFeed');
-    // Creating 50 infinite slots reusing the valid ID list
-    for(let i=0; i<50; i++) {
-      const vid = validShorts[i % validShorts.length];
-      const div = document.createElement('div');
-      div.className = "snap-item bg-black flex items-center justify-center overflow-hidden";
-      div.innerHTML = `
-        <div class="ghost-wrapper">
-          <div class="click-shield"></div>
-          <iframe 
-            class="ghost-frame" 
-            src="https://www.youtube.com/embed/${vid}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vid}&rel=0&showinfo=0&iv_load_policy=3&fs=0" 
-            frameborder="0" 
-            allow="encrypted-media">
-          </iframe>
-          
-          <!-- FAKE UI OVERLAY -->
-          <div class="absolute right-4 bottom-24 flex flex-col gap-6 z-20">
-             <div class="w-12 h-12 bg-gray-800/50 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="heart" class="w-6 h-6 text-white"></i></div>
-             <div class="w-12 h-12 bg-gray-800/50 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="share" class="w-6 h-6 text-white"></i></div>
-          </div>
-          <div class="absolute bottom-6 left-4 z-20 pointer-events-none">
-             <p class="text-white font-bold drop-shadow-md">@RoohArchive</p>
-             <p class="text-xs text-gray-300 drop-shadow-md">Infinite Content Stream #${i+1}</p>
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
+    for(let i=0; i<30; i++) {
+        const vid = shortsList[i % shortsList.length];
+        const slide = document.createElement('div');
+        slide.style.scrollSnapAlign = 'start';
+        slide.className = "w-full h-full relative bg-black flex items-center justify-center overflow-hidden";
+        slide.innerHTML = `
+           <div class="ghost-wrapper">
+             <iframe class="ghost-frame" 
+               src="https://www.youtube.com/embed/${vid}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vid}&rel=0&showinfo=0&iv_load_policy=3" 
+               frameborder="0" allow="encrypted-media">
+             </iframe>
+             <div class="click-shield"></div>
+           </div>
+           <!-- Fake Interaction UI -->
+           <div class="absolute right-4 bottom-24 flex flex-col gap-6 z-20">
+              <button class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="heart" class="text-white w-6 h-6"></i></button>
+              <button class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="share" class="text-white w-6 h-6"></i></button>
+           </div>
+        `;
+        container.appendChild(slide);
     }
-    lucide.createIcons();
+  }
+
+  // --- 🌐 WEB SOURCES ---
+  function initWeb() {
+      const grid = document.getElementById('webSources');
+      grid.innerHTML = webLinks.map(l => `
+          <a href="${l.url}" target="_blank" class="block p-4 bg-[#111] rounded-xl border-l-4 ${l.color} hover:bg-[#1a1a1a]">
+              <div class="flex justify-between items-center">
+                  <span class="font-bold text-white">${l.name}</span>
+                  <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
+              </div>
+          </a>
+      `).join('');
+      lucide.createIcons();
   }
 
   lucide.createIcons();
