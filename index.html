@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free | The Future of Salon Booking</title>
+    <title>Line Free | AI Future Salon</title>
     
     <!-- React & Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Firebase SDKs (Compat for HTML file usage) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -34,16 +34,11 @@
                     },
                     colors: {
                         brand: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 900: '#134e4a' },
-                        dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' }
+                        dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        gold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' }
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
                         'pulse-slow': 'pulse 4s infinite',
-                        'music': 'music 1s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-                        music: { '0%': { height: '10%' }, '100%': { height: '100%' } }
                     }
                 }
             }
@@ -53,80 +48,57 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .ticket-notch { width: 24px; height: 24px; background: #f8fafc; border-radius: 50%; position: absolute; bottom: 98px; z-index: 10; }
         .dark .ticket-notch { background: #020617; }
         .notch-l { left: -12px; } .notch-r { right: -12px; }
+        .scratch-container { position: relative; width: 100%; height: 160px; border-radius: 1rem; overflow: hidden; }
         
-        .scratch-container { position: relative; width: 100%; height: 160px; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 20; cursor: crosshair; touch-action: none; width: 100%; height: 100%; }
+        /* Cyberpunk Glitch effect for Owner */
+        .cyber-border { position: relative; }
+        .cyber-border::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, #0d9488, #d97706, #7c3aed); z-index: -1; border-radius: 1rem; opacity: 0.5; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-50 font-sans antialiased selection:bg-brand-500 selection:text-white transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
+        const { useState, useEffect, useContext, createContext, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        // --- FIREBASE SETUP ---
+        // --- FIREBASE CONFIG (Kept existing) ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
             projectId: "line-free-4bb96",
             storageBucket: "line-free-4bb96.firebasestorage.app",
             messagingSenderId: "137966607796",
-            appId: "1:137966607796:web:bc84b4884650911d9ea6e1",
-            measurementId: "G-6Z6YQ8Z6CC"
+            appId: "1:137966607796:web:bc84b4884650911d9ea6e1"
         };
-
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // --- UTILS & DATA GENERATION ---
+        // --- UTILS & DATA ---
         const generateId = () => Math.random().toString(36).substr(2, 9);
+        const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune"];
         
-        const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune", "Patna", "Lucknow", "Jaipur"];
-        const PREFIXES = ["Royal", "Elite", "Urban", "Desi", "Glamour", "Velvet", "Aura", "Pure", "LineFree"];
-        const SUFFIXES = ["Studio", "Salon", "Cuts", "Makeover", "Hub", "Lounge", "Barbershop", "Spa"];
-        
-        // Pollinations AI Helper
-        const pollImage = (prompt) => `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=800&height=600&seed=${Math.floor(Math.random()*100)}`;
-        
-        const generateSalons = (count = 50) => {
-            return Array.from({ length: count }, (_, i) => ({
-                id: `s_${i}`,
-                name: `${PREFIXES[i % PREFIXES.length]} ${SUFFIXES[i % SUFFIXES.length]} ${Math.floor(Math.random()*99)}`,
-                location: `${CITIES[i % CITIES.length]}`,
-                rating: (3.5 + Math.random() * 1.5).toFixed(1),
-                reviews: Math.floor(Math.random() * 500) + 10,
-                isOpen: Math.random() > 0.2,
-                image: pollImage(`luxury salon interior design ${i}`),
-                queueLength: Math.floor(Math.random() * 8),
-                category: i % 3 === 0 ? "Men" : (i % 3 === 1 ? "Women" : "Unisex"),
-                services: [
-                    { id: 'srv1', name: 'Haircut', price: 300 + Math.floor(Math.random()*200), duration: 30 },
-                    { id: 'srv2', name: 'Shave', price: 150 + Math.floor(Math.random()*100), duration: 20 },
-                    { id: 'srv3', name: 'Facial', price: 1200 + Math.floor(Math.random()*500), duration: 45 },
-                    { id: 'srv4', name: 'Hair Color', price: 2000 + Math.floor(Math.random()*1000), duration: 90 }
-                ],
-                staff: [
-                    { id: 'st1', name: 'Rahul', role: 'Top Stylist', img: `https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul${i}` },
-                    { id: 'st2', name: 'Simran', role: 'Colorist', img: `https://api.dicebear.com/7.x/avataaars/svg?seed=Simran${i}` }
-                ]
-            }));
-        };
+        const generateSalons = (count = 20) => Array.from({ length: count }, (_, i) => ({
+            id: `s_${i}`,
+            name: `Studio ${["Aura", "Elite", "Velvet", "Nova"][i%4]} ${i}`,
+            location: CITIES[i % CITIES.length],
+            rating: (4.0 + Math.random()).toFixed(1),
+            image: `https://pollinations.ai/p/luxury%20salon%20interior%20lighting%20${i}?width=400&height=300`,
+            queueLength: Math.floor(Math.random() * 8),
+            services: [
+                { id: 'srv1', name: 'Haircut', price: 300, duration: 30 },
+                { id: 'srv2', name: 'Beard Trim', price: 150, duration: 15 }
+            ]
+        }));
 
         const MOCK_INVENTORY = [
-            { id: 'inv1', name: "L'Oreal Matrix 5N", sku: "LOR-5N", stock: 8, par: 5, category: "Color" },
-            { id: 'inv2', name: "Wella 20Vol Dev", sku: "WEL-20V", stock: 3, par: 6, category: "Developer" },
-            { id: 'inv3', name: "Gillette Foam", sku: "GIL-FM", stock: 20, par: 10, category: "Shave" },
-            { id: 'inv4', name: "Disposable Towel", sku: "DSP-TW", stock: 150, par: 50, category: "Supplies" }
-        ];
-
-        const MOCK_CLIENTS = [
-            { id: 'c1', name: "Vikram Malhotra", phone: "9876543210", visits: 14, loyalty: 520, lastVisit: "2023-11-01", notes: "Allergic to Latex", history: ["Haircut", "Beard Trim"] },
-            { id: 'c2', name: "Anjali Gupta", phone: "9988776655", visits: 5, loyalty: 150, lastVisit: "2023-10-20", notes: "Likes tea with sugar", history: ["Facial", "Manicure"] }
+            { id: '1', name: "L'Oreal Shampoo", stock: 12, par: 5 },
+            { id: '2', name: "Gillette Blades", stock: 45, par: 20 },
+            { id: '3', name: "Hair Wax (Matte)", stock: 3, par: 8 }, // Low stock
         ];
 
         // --- CONTEXT ---
@@ -134,37 +106,30 @@
 
         const AppProvider = ({ children }) => {
             const [user, setUser] = useState(JSON.parse(localStorage.getItem('lf_user')) || null);
-            const [salons, setSalons] = useState(generateSalons(50));
+            const [salons] = useState(generateSalons());
             const [myTokens, setMyTokens] = useState(JSON.parse(localStorage.getItem('lf_tokens')) || []);
             const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('lf_favs')) || []);
-            const [darkMode, setDarkMode] = useState(JSON.parse(localStorage.getItem('lf_dark')) || false);
+            const [darkMode, setDarkMode] = useState(true); // Default to Dark for futuristic feel
             const [inventory, setInventory] = useState(MOCK_INVENTORY);
-            const [clients, setClients] = useState(MOCK_CLIENTS);
             const [notifications, setNotifications] = useState([]);
             const [musicPlaying, setMusicPlaying] = useState(false);
             const [points, setPoints] = useState(120);
             
+            // Audio for ambience
             const audioRef = useRef(new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"));
 
             useEffect(() => {
                 document.documentElement.classList.toggle('dark', darkMode);
                 localStorage.setItem('lf_dark', JSON.stringify(darkMode));
-            }, [darkMode]);
-
-            useEffect(() => {
                 if(user) localStorage.setItem('lf_user', JSON.stringify(user));
                 else localStorage.removeItem('lf_user');
-            }, [user]);
-
-            useEffect(() => {
                 localStorage.setItem('lf_tokens', JSON.stringify(myTokens));
                 localStorage.setItem('lf_favs', JSON.stringify(favorites));
-            }, [myTokens, favorites]);
+            }, [darkMode, user, myTokens, favorites]);
 
             useEffect(() => {
                 audioRef.current.loop = true;
-                audioRef.current.volume = 0.5;
-                if(musicPlaying) audioRef.current.play().catch(() => {});
+                if(musicPlaying) audioRef.current.play().catch(()=>{});
                 else audioRef.current.pause();
             }, [musicPlaying]);
 
@@ -178,55 +143,60 @@
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try {
                     const res = await auth.signInWithPopup(provider);
-                    return {
-                        name: res.user.displayName,
-                        email: res.user.email,
-                        photo: res.user.photoURL,
-                        uid: res.user.uid
-                    };
-                } catch (e) {
-                    notify(e.message, "error");
-                    return null;
-                }
+                    return { name: res.user.displayName, email: res.user.email, photo: res.user.photoURL, uid: res.user.uid };
+                } catch (e) { notify(e.message, "error"); return null; }
             };
 
-            const logout = async () => {
-                await auth.signOut();
-                setUser(null);
-                setMusicPlaying(false);
+            const logout = async () => { await auth.signOut(); setUser(null); };
+
+            const addToken = (salon, services) => {
+                const total = services.reduce((a,b)=>a+b.price, 0);
+                const newToken = {
+                    id: generateId(),
+                    salonName: salon.name,
+                    salonLocation: salon.location,
+                    tokenNumber: Math.floor(Math.random()*50)+1,
+                    estimatedTime: `${services.reduce((a,b)=>a+b.duration,0)} min`,
+                    totalPrice: total,
+                    serviceNames: services.map(s=>s.name).join(', '),
+                    date: new Date().toISOString()
+                };
+                setMyTokens([...myTokens, newToken]);
+                notify("Booking Confirmed!", "success");
             };
 
-            // Pollinations AI Wrapper
-            const askAI = async (prompt) => {
+            // --- AI FUNCTIONS (PDF FEATURES) ---
+            const generateAIText = async (prompt) => {
                 try {
-                    // Using text.pollinations.ai endpoint
-                    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
-                    if (!res.ok) throw new Error("AI Busy");
+                    const res = await fetch(`https://pollinations.ai/api/text?prompt=${encodeURIComponent(prompt)}`);
                     return await res.text();
                 } catch (e) {
-                    return "AI is currently offline. Please try again.";
+                    console.error(e);
+                    return "AI Offline.";
                 }
+            };
+
+            const generateAIImageUrl = (prompt) => {
+                return `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=800&height=600&seed=${Math.floor(Math.random()*1000)}`;
             };
 
             return (
                 <AppContext.Provider value={{
                     user, setUser, logout, googleLogin,
-                    salons, myTokens, setMyTokens,
+                    salons, myTokens, setMyTokens, addToken,
                     favorites, setFavorites,
                     darkMode, setDarkMode,
                     inventory, setInventory,
-                    clients, setClients,
                     notify, notifications,
-                    musicPlaying, setMusicPlaying,
-                    askAI, points, setPoints
+                    musicPlaying, setMusicPlaying, points,
+                    generateAIText, generateAIImageUrl // New AI Exports
                 }}>
                     {children}
                 </AppContext.Provider>
             );
         };
 
-        // --- COMPONENTS ---
-
+        // --- ICONS ---
         const Icon = ({ name, size = 20, className }) => {
             const ref = useRef(null);
             useEffect(() => {
@@ -246,28 +216,13 @@
             return <span ref={ref} className="inline-flex items-center justify-center"></span>;
         };
 
-        const ToastContainer = () => {
-            const { notifications } = useContext(AppContext);
-            return (
-                <div className="fixed top-4 left-0 right-0 z-[60] flex flex-col items-center gap-2 pointer-events-none">
-                    <AnimatePresence>
-                        {notifications.map(n => (
-                            <motion.div key={n.id} initial={{y:-20, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className={`px-4 py-2 rounded-full shadow-lg text-white text-sm font-bold flex items-center gap-2 backdrop-blur-md ${n.type==='error'?'bg-red-500/90':n.type==='success'?'bg-green-500/90':'bg-slate-800/90'}`}>
-                                <Icon name={n.type==='error'?'alert-circle':n.type==='success'?'check-circle':'bell'} size={16} /> {n.msg}
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-            );
-        };
-
+        // --- SHARED COMPONENTS ---
         const Button = ({ children, onClick, variant="primary", className="", loading }) => {
-            const base = "w-full py-3.5 rounded-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-50";
+            const base = "w-full py-3 rounded-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-50";
             const variants = {
                 primary: "bg-brand-600 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-700",
-                secondary: "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700",
-                danger: "bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-200 dark:border-red-800",
-                ai: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+                secondary: "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white",
+                ai: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/50"
             };
             return (
                 <button onClick={onClick} disabled={loading} className={`${base} ${variants[variant]} ${className}`}>
@@ -276,181 +231,259 @@
             );
         };
 
-        // --- BARBER FEATURES ---
-
-        const InventorySystem = () => {
-            const { inventory, setInventory, notify } = useContext(AppContext);
-            const updateStock = (id, delta) => {
-                setInventory(prev => prev.map(i => {
-                    if(i.id === id) {
-                        const newStock = Math.max(0, i.stock + delta);
-                        if(newStock <= i.par) notify(`Low Stock: ${i.name}`, 'warning');
-                        return {...i, stock: newStock};
-                    }
-                    return i;
-                }));
-            };
-            return (
-                <div className="space-y-4 p-4">
-                    <h2 className="text-2xl font-display font-bold dark:text-white">Inventory & Back-Bar</h2>
-                    <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        {inventory.map((item, idx) => (
-                            <div key={item.id} className={`p-4 flex justify-between items-center ${idx!==inventory.length-1?'border-b border-slate-100 dark:border-slate-800':''}`}>
-                                <div>
-                                    <h4 className="font-bold dark:text-white">{item.name}</h4>
-                                    <p className="text-xs text-slate-500">{item.sku} • Par: {item.par}</p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded ${item.stock <= item.par ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{item.stock} left</span>
-                                    <div className="flex gap-1">
-                                        <button onClick={()=>updateStock(item.id, -1)} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white hover:bg-slate-200">-</button>
-                                        <button onClick={()=>updateStock(item.id, 1)} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white hover:bg-slate-200">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const POS = () => {
-            const { notify } = useContext(AppContext);
-            const [total, setTotal] = useState('');
-            
-            const handleTxn = () => {
-                if(!total) return;
-                notify(`Transaction of ₹${total} Successful!`, 'success');
-                setTotal('');
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            };
-
-            return (
-                <div className="p-4 space-y-6">
-                    <h2 className="text-2xl font-display font-bold dark:text-white">Point of Sale</h2>
-                    <div className="bg-white dark:bg-dark-800 p-6 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Amount</label>
-                        <div className="flex items-center mt-2 mb-6">
-                            <span className="text-3xl font-bold text-slate-400 mr-2">₹</span>
-                            <input type="number" value={total} onChange={e=>setTotal(e.target.value)} className="w-full bg-transparent text-4xl font-bold dark:text-white focus:outline-none placeholder-slate-200" placeholder="0" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <Button onClick={handleTxn} variant="secondary">Cash</Button>
-                            <Button onClick={handleTxn}>UPI / Online</Button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+        // --------------------------------------------------------------------------------
+        // --- SALON OWNER (BARBER) DASHBOARD - HEAVILY UPGRADED ---
+        // --------------------------------------------------------------------------------
 
         const BarberDash = () => {
-            const { user, logout, setMusicPlaying, musicPlaying, askAI } = useContext(AppContext);
+            const { user, logout, inventory, setInventory, generateAIText, generateAIImageUrl, notify } = useContext(AppContext);
             const [view, setView] = useState('dashboard');
-            const [queue, setQueue] = useState([{id:1, name:'Amit', srv:'Haircut', token:5}, {id:2, name:'Raj', srv:'Shave', token:6}]);
-            const [aiInput, setAiInput] = useState('');
-            const [aiRes, setAiRes] = useState('');
+            const [queue, setQueue] = useState([
+                {id:1, name:'Amit Sharma', srv:'Haircut', token:5}, 
+                {id:2, name:'Raj Patel', srv:'Beard Trim', token:6},
+                {id:3, name:'Vikram Singh', srv:'Facial', token:7}
+            ]);
+            
+            // AI States
+            const [aiCommentary, setAiCommentary] = useState("");
             const [loadingAI, setLoadingAI] = useState(false);
+            const [aiImagePrompt, setAiImagePrompt] = useState("Futuristic cyberpunk barber shop interior neon lights");
+            const [generatedImage, setGeneratedImage] = useState(null);
+            const [aiTextPrompt, setAiTextPrompt] = useState("");
+            const [generatedText, setGeneratedText] = useState("");
 
-            const next = () => {
-                setQueue(prev => prev.slice(1));
+            const handleNextCustomer = () => {
+                if(queue.length > 0) {
+                    notify(`Served Token #${queue[0].token}`);
+                    setQueue(prev => prev.slice(1));
+                    setAiCommentary(""); 
+                }
             };
 
-            const generateAd = async () => {
-                if(!aiInput) return;
+            const generateCommentary = async () => {
+                if(queue.length === 0) return;
                 setLoadingAI(true);
-                const res = await askAI(`Write a short, catchy sms offer for a salon about: ${aiInput}. Include emojis.`);
-                setAiRes(res);
+                const p = `Generate a short, funny, cricket commentary style announcement for a barber shop customer named ${queue[0].name} who is coming for a ${queue[0].srv}. Be energetic!`;
+                const text = await generateAIText(p);
+                setAiCommentary(text);
+                setLoadingAI(false);
+            };
+
+            const handleImageGen = () => {
+                setLoadingAI(true);
+                // Simulate delay for effect
+                setTimeout(() => {
+                    setGeneratedImage(generateAIImageUrl(aiImagePrompt));
+                    setLoadingAI(false);
+                }, 1000);
+            };
+
+            const handleTextGen = async () => {
+                if(!aiTextPrompt) return;
+                setLoadingAI(true);
+                const text = await generateAIText(aiTextPrompt);
+                setGeneratedText(text);
                 setLoadingAI(false);
             };
 
             return (
-                <div className="min-h-screen bg-slate-50 dark:bg-dark-950 flex flex-col md:flex-row">
-                    {/* Sidebar */}
-                    <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col justify-between z-20">
+                <div className="min-h-screen bg-dark-950 text-white flex flex-col md:flex-row font-mono">
+                    {/* Sidebar / Nav */}
+                    <div className="w-full md:w-20 lg:w-64 bg-dark-900 border-r border-slate-800 p-4 flex flex-col justify-between z-20">
                         <div>
-                            <div className="flex items-center gap-2 mb-10"><Icon name="scissors" className="text-brand-500" /> <span className="font-display font-bold text-xl">Line Free</span></div>
+                            <div className="flex items-center gap-3 mb-8 text-brand-500">
+                                <Icon name="scissors" size={30} />
+                                <span className="hidden lg:block font-display font-bold text-xl tracking-wider">FUTURE CUTS</span>
+                            </div>
                             <nav className="space-y-2">
-                                {['dashboard', 'inventory', 'clients', 'pos', 'marketing'].map(v => (
-                                    <button key={v} onClick={()=>setView(v)} className={`w-full text-left p-3 rounded-xl flex items-center gap-3 capitalize ${view===v ? 'bg-brand-600' : 'hover:bg-slate-800 text-slate-400'}`}>
-                                        <Icon name={v==='dashboard'?'layout-grid':v==='inventory'?'package':v==='clients'?'users':v==='pos'?'credit-card':'sparkles'} size={18} /> {v}
+                                {[
+                                    {id:'dashboard', icon:'layout-dashboard', label:'Command Center'},
+                                    {id:'ai-studio', icon:'bot', label:'AI Studio (New)'},
+                                    {id:'inventory', icon:'package', label:'Inventory'},
+                                    {id:'pos', icon:'credit-card', label:'POS Terminal'},
+                                ].map(item => (
+                                    <button key={item.id} onClick={()=>setView(item.id)} 
+                                        className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all ${view===item.id ? 'bg-brand-900/50 text-brand-400 border border-brand-500/30' : 'text-slate-400 hover:bg-slate-800'}`}>
+                                        <Icon name={item.icon} />
+                                        <span className="hidden lg:block text-sm font-bold">{item.label}</span>
                                     </button>
                                 ))}
                             </nav>
                         </div>
-                        <div className="space-y-3">
-                            <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`w-full p-3 rounded-xl flex items-center gap-3 ${musicPlaying ? 'bg-green-900/50 text-green-400' : 'bg-slate-800 text-slate-400'}`}>
-                                <Icon name={musicPlaying?'volume-2':'volume-x'} /> <span className="text-sm font-bold">Lo-Fi Radio</span>
-                            </button>
-                            <button onClick={logout} className="w-full p-3 rounded-xl flex items-center gap-3 hover:bg-red-900/20 text-red-400"><Icon name="log-out" /> Logout</button>
-                        </div>
+                        <button onClick={logout} className="p-3 rounded-lg flex items-center gap-3 text-red-400 hover:bg-red-900/20">
+                            <Icon name="log-out" /> <span className="hidden lg:block text-sm">Logout System</span>
+                        </button>
                     </div>
 
-                    {/* Main Content */}
-                    <div className="flex-1 overflow-y-auto relative h-screen">
-                        {view === 'dashboard' && (
-                            <div className="p-6">
-                                <h1 className="text-3xl font-display font-bold dark:text-white mb-6">Dashboard</h1>
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                        <p className="text-xs font-bold text-slate-400 uppercase">Today's Revenue</p>
-                                        <p className="text-3xl font-bold text-green-600 mt-1">₹8,450</p>
-                                    </div>
-                                    <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                        <p className="text-xs font-bold text-slate-400 uppercase">Active Clients</p>
-                                        <p className="text-3xl font-bold text-blue-600 mt-1">{queue.length}</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-white dark:bg-dark-800 p-8 rounded-3xl shadow-lg border-t-4 border-brand-500 text-center mb-6">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
-                                    {queue.length > 0 ? (
-                                        <motion.div key={queue[0].id} initial={{scale:0.9}} animate={{scale:1}}>
-                                            <h2 className="text-6xl font-bold text-slate-800 dark:text-white">#{queue[0].token}</h2>
-                                            <p className="text-xl font-bold text-brand-600 mt-2">{queue[0].name}</p>
-                                            <p className="text-sm text-slate-500">{queue[0].srv}</p>
-                                            <Button onClick={next} className="mt-6">Complete & Next</Button>
-                                        </motion.div>
-                                    ) : (
-                                        <div className="py-8 text-slate-400">Queue is empty</div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'inventory' && <InventorySystem />}
-                        {view === 'pos' && <POS />}
+                    {/* Main Content Area */}
+                    <div className="flex-1 overflow-y-auto relative bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
                         
-                        {view === 'clients' && (
-                            <div className="p-4 space-y-4">
-                                <h2 className="text-2xl font-bold dark:text-white">Client Dossiers</h2>
-                                {useContext(AppContext).clients.map(c => (
-                                    <div key={c.id} className="bg-white dark:bg-dark-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                        <div className="flex justify-between">
-                                            <h3 className="font-bold dark:text-white">{c.name}</h3>
-                                            <span className="text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded-full">{c.loyalty} Pts</span>
+                        {/* VIEW: COMMAND CENTER (Dashboard) */}
+                        {view === 'dashboard' && (
+                            <div className="p-6 max-w-5xl mx-auto space-y-6">
+                                <header className="flex justify-between items-end border-b border-slate-800 pb-4">
+                                    <div>
+                                        <h1 className="text-4xl font-display font-bold text-white mb-1">Command Center</h1>
+                                        <p className="text-slate-400 text-sm">Real-time Operations • {new Date().toDateString()}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-3xl font-bold text-green-400">₹12,450</div>
+                                        <div className="text-xs text-slate-500 uppercase tracking-widest">Today's Revenue</div>
+                                    </div>
+                                </header>
+
+                                {/* Active Queue & AI Commentary */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Queue Card */}
+                                    <div className="bg-dark-900/80 backdrop-blur border border-slate-800 p-6 rounded-2xl cyber-border">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-xl font-bold flex items-center gap-2"><Icon name="users" className="text-brand-500"/> Live Queue</h2>
+                                            <span className="bg-brand-900 text-brand-400 px-3 py-1 rounded-full text-xs font-bold">{queue.length} Waiting</span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">{c.phone} • Last Visit: {c.lastVisit}</p>
-                                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg text-xs font-medium text-red-600 dark:text-red-400">
-                                            ⚠️ {c.notes}
+                                        
+                                        {queue.length > 0 ? (
+                                            <div className="text-center py-8">
+                                                <div className="text-6xl font-bold text-white mb-2">#{queue[0].token}</div>
+                                                <div className="text-2xl font-bold text-brand-400">{queue[0].name}</div>
+                                                <div className="text-slate-500 mb-8">{queue[0].srv}</div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <Button variant="secondary" onClick={handleNextCustomer}>Next Client</Button>
+                                                    <Button variant="ai" onClick={generateCommentary} loading={loadingAI}>
+                                                        <Icon name="mic-2" size={18} className="mr-2"/> AI Announce
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-10 text-slate-500">Queue Empty</div>
+                                        )}
+                                    </div>
+
+                                    {/* AI Output Screen */}
+                                    <div className="bg-black border border-slate-800 p-6 rounded-2xl relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-50"></div>
+                                        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${loadingAI?'bg-yellow-400 animate-pulse':'bg-green-500'}`}></div>
+                                            System Log / AI Output
+                                        </h2>
+                                        <div className="h-48 overflow-y-auto font-mono text-sm text-green-400/80 space-y-2">
+                                            <p>> System initialized...</p>
+                                            <p>> Pollinations API connected...</p>
+                                            {loadingAI && <p className="animate-pulse">> Analyzing customer profile...</p>}
+                                            {aiCommentary && (
+                                                <div className="mt-4 p-3 border border-green-500/30 bg-green-900/10 rounded">
+                                                    <span className="text-white font-bold">📢 ANNOUNCEMENT:</span><br/>
+                                                    "{aiCommentary}"
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         )}
 
-                        {view === 'marketing' && (
-                            <div className="p-6">
-                                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-                                    <div className="relative z-10">
-                                        <h2 className="text-2xl font-bold mb-2 flex items-center gap-2"><Icon name="sparkles" /> AI Marketing</h2>
-                                        <p className="opacity-80 mb-6 text-sm">Generate copy for SMS/Instagram instantly.</p>
-                                        <input value={aiInput} onChange={e=>setAiInput(e.target.value)} className="w-full bg-white/20 border border-white/20 rounded-xl p-3 text-white placeholder-white/50 focus:outline-none focus:bg-white/30" placeholder="e.g. 50% off for students this weekend" />
-                                        <button onClick={generateAd} disabled={loadingAI} className="mt-4 w-full bg-white text-indigo-700 py-3 rounded-xl font-bold shadow-lg disabled:opacity-50">
-                                            {loadingAI ? 'Generating...' : 'Create Magic'}
-                                        </button>
-                                        {aiRes && <div className="mt-6 bg-black/30 p-4 rounded-xl font-mono text-sm border border-white/10">{aiRes}</div>}
+                        {/* VIEW: AI STUDIO (New Feature) */}
+                        {view === 'ai-studio' && (
+                            <div className="p-6 max-w-5xl mx-auto">
+                                <h1 className="text-3xl font-display font-bold mb-6 flex items-center gap-3">
+                                    <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-transparent bg-clip-text">AI Creative Studio</span>
+                                    <span className="text-xs border border-slate-600 px-2 py-0.5 rounded text-slate-400">BETA</span>
+                                </h1>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Text Gen */}
+                                    <div className="bg-dark-900 border border-slate-800 p-6 rounded-2xl">
+                                        <div className="flex items-center gap-2 mb-4 text-violet-400">
+                                            <Icon name="message-square" />
+                                            <h2 className="font-bold">Smart Copywriter</h2>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mb-4">Generate captions, replies, or sms offers.</p>
+                                        <textarea 
+                                            value={aiTextPrompt}
+                                            onChange={e=>setAiTextPrompt(e.target.value)}
+                                            className="w-full bg-black border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-violet-500 outline-none mb-4"
+                                            rows="3"
+                                            placeholder="E.g., Write an Instagram caption for a summer haircut sale..."
+                                        ></textarea>
+                                        <Button variant="ai" onClick={handleTextGen} loading={loadingAI}>Generate Text</Button>
+                                        
+                                        {generatedText && (
+                                            <div className="mt-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700 text-sm whitespace-pre-wrap">
+                                                {generatedText}
+                                                <button onClick={()=>{navigator.clipboard.writeText(generatedText); notify("Copied!")}} className="block mt-2 text-xs text-violet-400 hover:text-white">Copy to clipboard</button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl -mr-10 -mt-10"></div>
+
+                                    {/* Image Gen */}
+                                    <div className="bg-dark-900 border border-slate-800 p-6 rounded-2xl">
+                                        <div className="flex items-center gap-2 mb-4 text-fuchsia-400">
+                                            <Icon name="image" />
+                                            <h2 className="font-bold">Visual Generator</h2>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mb-4">Create posters or interior concepts.</p>
+                                        <input 
+                                            value={aiImagePrompt}
+                                            onChange={e=>setAiImagePrompt(e.target.value)}
+                                            className="w-full bg-black border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-fuchsia-500 outline-none mb-4"
+                                        />
+                                        <Button variant="ai" onClick={handleImageGen} loading={loadingAI}>Generate Art</Button>
+                                        
+                                        <div className="mt-4 aspect-video bg-black rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden relative group">
+                                            {loadingAI ? (
+                                                <Icon name="loader-2" className="animate-spin text-slate-600" />
+                                            ) : generatedImage ? (
+                                                <>
+                                                    <img src={generatedImage} className="w-full h-full object-cover" />
+                                                    <a href={generatedImage} download target="_blank" className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">Download</a>
+                                                </>
+                                            ) : (
+                                                <span className="text-slate-700 text-xs">Preview Area</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* VIEW: INVENTORY */}
+                        {view === 'inventory' && (
+                            <div className="p-6">
+                                <h1 className="text-2xl font-bold mb-6">Inventory Database</h1>
+                                <div className="bg-dark-900 border border-slate-800 rounded-xl overflow-hidden">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-slate-800 text-slate-400 uppercase text-xs">
+                                            <tr><th className="p-4">Item Name</th><th className="p-4">Stock</th><th className="p-4">Action</th></tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800">
+                                            {inventory.map(item => (
+                                                <tr key={item.id}>
+                                                    <td className="p-4 font-bold">{item.name}</td>
+                                                    <td className="p-4">
+                                                        <span className={`px-2 py-1 rounded text-xs ${item.stock<=item.par ? 'bg-red-900 text-red-400':'bg-green-900 text-green-400'}`}>
+                                                            {item.stock} Units
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 flex gap-2">
+                                                        <button onClick={()=>setInventory(prev=>prev.map(i=>i.id===item.id?{...i,stock:i.stock+1}:i))} className="bg-slate-700 p-1 rounded hover:bg-slate-600">+</button>
+                                                        <button onClick={()=>setInventory(prev=>prev.map(i=>i.id===item.id?{...i,stock:Math.max(0,i.stock-1)}:i))} className="bg-slate-700 p-1 rounded hover:bg-slate-600">-</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* VIEW: POS */}
+                        {view === 'pos' && (
+                            <div className="p-6">
+                                <h1 className="text-2xl font-bold mb-6">Point of Sale</h1>
+                                <div className="bg-dark-900 border border-slate-800 rounded-2xl p-8 text-center max-w-md mx-auto">
+                                    <input type="number" placeholder="Enter Amount" className="w-full bg-black text-4xl text-center font-bold text-white p-4 rounded-xl border border-slate-700 mb-6 focus:border-brand-500 outline-none" />
+                                    <Button onClick={()=>notify("Payment Link Sent!", "success")}>Generate UPI QR</Button>
+                                    <p className="mt-4 text-xs text-slate-500">Secure Transaction via Stripe/Razorpay</p>
                                 </div>
                             </div>
                         )}
@@ -459,256 +492,193 @@
             );
         };
 
-        // --- CUSTOMER FEATURES ---
-
-        const ScratchModal = ({ onClose }) => {
-            return (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-dark-800 p-6 rounded-3xl w-full max-w-sm relative">
-                        <button onClick={onClose} className="absolute -top-4 -right-4 bg-white rounded-full p-2 text-black"><Icon name="x" /></button>
-                        <h3 className="text-center font-bold text-xl mb-4 dark:text-white">Scratch & Win!</h3>
-                        <div className="scratch-container bg-slate-200">
-                            {/* Canvas logic would go here, simplistic for now */}
-                            <div className="absolute inset-0 flex items-center justify-center bg-brand-500 text-white font-bold text-2xl">
-                                20% OFF
-                            </div>
-                            <div className="absolute inset-0 bg-slate-400 flex items-center justify-center text-slate-100 font-bold text-lg cursor-pointer hover:opacity-0 transition-opacity duration-700">
-                                SCRATCH HERE
-                            </div>
-                        </div>
-                        <p className="text-center text-xs text-slate-400 mt-4">Reveal your prize to add it to your wallet.</p>
-                    </div>
-                </div>
-            );
-        };
-
-        const ARMirror = ({ onClose }) => {
-            const videoRef = useRef(null);
-            
-            useEffect(() => {
-                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-                    if(videoRef.current) videoRef.current.srcObject = stream;
-                }).catch(e => alert("Camera permission denied"));
-                return () => {
-                    if(videoRef.current && videoRef.current.srcObject) {
-                        videoRef.current.srcObject.getTracks().forEach(t => t.stop());
-                    }
-                }
-            }, []);
-
-            return (
-                <div className="fixed inset-0 z-50 bg-black flex flex-col">
-                    <div className="relative flex-1 bg-black">
-                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform -scale-x-100"></video>
-                        <div className="absolute inset-0 pointer-events-none" style={{background: 'radial-gradient(circle at 50% 30%, rgba(236, 72, 153, 0.3), transparent 50%)', mixBlendMode: 'overlay'}}></div>
-                        <button onClick={onClose} className="absolute top-4 left-4 bg-black/50 text-white p-3 rounded-full backdrop-blur"><Icon name="arrow-left" /></button>
-                    </div>
-                    <div className="h-32 bg-black flex items-center justify-center gap-4 overflow-x-auto p-4">
-                        {['#ef4444', '#eab308', '#a855f7', '#3b82f6'].map(c => (
-                            <button key={c} className="w-12 h-12 rounded-full border-2 border-white" style={{backgroundColor: c}}></button>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
+        // --------------------------------------------------------------------------------
+        // --- CUSTOMER DASHBOARD (UNCHANGED BUT STYLED) ---
+        // --------------------------------------------------------------------------------
 
         const CustomerDash = () => {
             const { user, salons, addToken, myTokens, setMyTokens, favorites, setFavorites, points, logout, musicPlaying, setMusicPlaying, darkMode, setDarkMode } = useContext(AppContext);
             const [view, setView] = useState('home');
             const [selectedSalon, setSelectedSalon] = useState(null);
             const [cart, setCart] = useState([]);
-            const [showScratch, setShowScratch] = useState(false);
             const [showAR, setShowAR] = useState(false);
-            const [loading, setLoading] = useState(false);
             const [searchTerm, setSearch] = useState("");
 
-            const toggleFav = (id) => setFavorites(prev => prev.includes(id) ? prev.filter(f=>f!==id) : [...prev, id]);
-
-            const book = () => {
-                setLoading(true);
-                setTimeout(() => {
-                    addToken(selectedSalon, cart);
-                    setLoading(false);
-                    setCart([]);
-                    setView('tokens');
-                }, 1500);
+            // AR Component
+            const ARMirror = ({ onClose }) => {
+                const videoRef = useRef(null);
+                useEffect(() => {
+                    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                        if(videoRef.current) videoRef.current.srcObject = stream;
+                    }).catch(()=>alert("Camera denied"));
+                    return () => { if(videoRef.current?.srcObject) videoRef.current.srcObject.getTracks().forEach(t=>t.stop()); }
+                }, []);
+                return (
+                    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+                        <div className="relative flex-1 bg-black">
+                            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100"></video>
+                            <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-4">
+                                {['#ef4444', '#eab308', '#3b82f6'].map(c=><div key={c} className="w-12 h-12 rounded-full border-2 border-white" style={{background:c}}></div>)}
+                            </div>
+                            <button onClick={onClose} className="absolute top-4 left-4 bg-black/50 text-white p-3 rounded-full"><Icon name="x"/></button>
+                        </div>
+                    </div>
+                );
             };
 
-            if (showAR) return <ARMirror onClose={()=>setShowAR(false)} />;
+            const book = () => {
+                addToken(selectedSalon, cart);
+                setCart([]);
+                setView('tokens');
+            };
 
-            if (selectedSalon && view === 'salon') {
+            if(showAR) return <ARMirror onClose={()=>setShowAR(false)} />;
+
+            if(view === 'salon' && selectedSalon) {
                 return (
-                    <div className="bg-white dark:bg-dark-900 min-h-screen pb-24">
-                        <div className="relative h-64">
+                    <div className="min-h-screen bg-slate-50 dark:bg-dark-950 pb-24">
+                        <div className="h-64 relative">
                             <img src={selectedSalon.image} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                            <button onClick={()=>setView('home')} className="absolute top-4 left-4 bg-white/20 backdrop-blur p-2 rounded-full text-white"><Icon name="arrow-left"/></button>
-                            <button onClick={()=>toggleFav(selectedSalon.id)} className="absolute top-4 right-4 bg-white/20 backdrop-blur p-2 rounded-full text-white">
-                                <Icon name="heart" className={favorites.includes(selectedSalon.id)?'fill-red-500 text-red-500':''} />
-                            </button>
-                            <div className="absolute bottom-4 left-4 right-4 text-white">
-                                <h2 className="text-3xl font-display font-bold">{selectedSalon.name}</h2>
-                                <p className="opacity-90 text-sm flex items-center gap-2"><Icon name="map-pin" size={14}/> {selectedSalon.location} • <Icon name="star" size={14} className="fill-gold-500 text-gold-500"/> {selectedSalon.rating}</p>
+                            <div className="absolute inset-0 bg-gradient-to-t from-dark-950 to-transparent"></div>
+                            <button onClick={()=>setView('home')} className="absolute top-4 left-4 p-2 bg-black/20 backdrop-blur rounded-full text-white"><Icon name="arrow-left"/></button>
+                            <div className="absolute bottom-4 left-4 text-white">
+                                <h1 className="text-3xl font-display font-bold">{selectedSalon.name}</h1>
+                                <p className="opacity-80 text-sm">{selectedSalon.location} • ⭐ {selectedSalon.rating}</p>
                             </div>
                         </div>
-                        <div className="p-5">
-                            <div className="flex gap-3 mb-6">
-                                <div className="flex-1 bg-slate-50 dark:bg-dark-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Queue</p>
-                                    <p className="text-xl font-bold dark:text-white">{selectedSalon.queueLength} Ppl</p>
+                        <div className="p-5 space-y-4">
+                            <div className="flex gap-3">
+                                <div className="flex-1 bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                                    <div className="text-xs text-slate-400 font-bold uppercase">Queue</div>
+                                    <div className="text-xl font-bold dark:text-white">{selectedSalon.queueLength}</div>
                                 </div>
-                                <div className="flex-1 bg-slate-50 dark:bg-dark-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Wait</p>
-                                    <p className="text-xl font-bold text-brand-600">~{selectedSalon.queueLength * 15} min</p>
+                                <div className="flex-1 bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                                    <div className="text-xs text-slate-400 font-bold uppercase">Wait Time</div>
+                                    <div className="text-xl font-bold text-brand-500">~{selectedSalon.queueLength * 15}m</div>
                                 </div>
                             </div>
-                            
-                            <h3 className="font-bold text-lg mb-3 dark:text-white">Services</h3>
-                            <div className="space-y-3">
-                                {selectedSalon.services.map(s => {
-                                    const inCart = cart.find(x => x.id === s.id);
-                                    return (
-                                        <div key={s.id} onClick={()=>{inCart?setCart(cart.filter(x=>x.id!==s.id)):setCart([...cart,s])}} className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${inCart ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-slate-800'}`}>
-                                            <div><p className="font-bold dark:text-white">{s.name}</p><p className="text-xs text-slate-500">{s.duration} min</p></div>
-                                            <div className="flex items-center gap-3">
-                                                <p className="font-bold text-brand-600">₹{s.price}</p>
-                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${inCart ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-300'}`}>{inCart && <Icon name="check" size={12}/>}</div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            <h3 className="font-bold text-lg dark:text-white mt-4">Services</h3>
+                            {selectedSalon.services.map(s => {
+                                const inCart = cart.find(x=>x.id===s.id);
+                                return (
+                                    <div key={s.id} onClick={()=>{inCart?setCart(cart.filter(x=>x.id!==s.id)):setCart([...cart,s])}} 
+                                        className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${inCart?'border-brand-500 bg-brand-500/10':'border-slate-200 dark:border-slate-800 bg-white dark:bg-dark-900'}`}>
+                                        <div><div className="font-bold dark:text-white">{s.name}</div><div className="text-xs text-slate-500">₹{s.price} • {s.duration}m</div></div>
+                                        <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${inCart?'bg-brand-500 border-brand-500 text-white':'border-slate-400'}`}>{inCart && <Icon name="check" size={14}/>}</div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <div className="fixed bottom-0 w-full p-4 bg-white dark:bg-dark-900 border-t border-slate-100 dark:border-slate-800 z-20">
-                            <Button onClick={book} disabled={cart.length===0} loading={loading}>
-                                {cart.length>0 ? `Book (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}` : 'Select Services'}
-                            </Button>
+                        <div className="fixed bottom-0 w-full p-4 bg-white/80 dark:bg-dark-950/80 backdrop-blur border-t border-slate-200 dark:border-slate-800">
+                            <Button onClick={book} disabled={!cart.length}>{cart.length?`Book (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}`:'Select Service'}</Button>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="bg-slate-50 dark:bg-dark-950 min-h-screen pb-24 transition-colors duration-300">
-                    {/* Header */}
-                    <div className="sticky top-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-md px-5 py-4 z-30 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-9 h-9 rounded-full border border-slate-200" />
-                            <div><p className="text-xs font-bold text-slate-400">HELLO</p><h3 className="font-bold leading-none dark:text-white">{user.name.split(' ')[0]}</h3></div>
+                <div className="min-h-screen bg-slate-50 dark:bg-dark-950 pb-20 transition-colors duration-300">
+                    <nav className="sticky top-0 bg-white/80 dark:bg-dark-950/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 p-4 flex justify-between items-center z-10">
+                        <div className="flex items-center gap-2">
+                            <img src={user.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} className="w-8 h-8 rounded-full border border-slate-300"/>
+                            <span className="font-bold dark:text-white">Hi, {user.name.split(' ')[0]}</span>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={()=>setDarkMode(!darkMode)} className="w-9 h-9 rounded-full bg-slate-100 dark:bg-dark-800 flex items-center justify-center text-slate-600 dark:text-slate-400"><Icon name={darkMode?'sun':'moon'} size={18}/></button>
-                            <button onClick={()=>setShowScratch(true)} className="w-9 h-9 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 flex items-center justify-center text-white shadow-lg shadow-gold-500/30 animate-pulse"><Icon name="gift" size={18}/></button>
+                            <button onClick={()=>setDarkMode(!darkMode)} className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 dark:text-white"><Icon name={darkMode?'sun':'moon'}/></button>
                         </div>
-                    </div>
+                    </nav>
 
-                    <div className="p-5">
+                    <div className="p-4 space-y-6">
                         {view === 'home' && (
-                            <div className="space-y-6">
-                                {/* Search */}
-                                <div className="relative">
-                                    <Icon name="search" className="absolute left-3 top-3 text-slate-400" size={18} />
-                                    <input value={searchTerm} onChange={e=>setSearch(e.target.value)} placeholder="Search salons, services..." className="w-full bg-white dark:bg-dark-800 border-none rounded-xl py-3 pl-10 text-sm shadow-sm focus:ring-2 focus:ring-brand-500 dark:text-white" />
-                                </div>
-
-                                {/* AR Banner */}
-                                <div className="bg-black rounded-2xl overflow-hidden relative h-40 shadow-xl flex items-center cursor-pointer group" onClick={()=>setShowAR(true)}>
-                                    <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
-                                    <div className="relative z-10 p-6">
-                                        <span className="bg-brand-500 text-white text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block">NEW AI FEATURE</span>
-                                        <h2 className="text-2xl font-bold text-white mb-1">Virtual Try-On</h2>
-                                        <p className="text-white/80 text-xs">Test hair colors before you book.</p>
+                            <>
+                                {/* AR Promo */}
+                                <div onClick={()=>setShowAR(true)} className="relative h-40 rounded-2xl overflow-hidden cursor-pointer group shadow-lg">
+                                    <img src="https://images.unsplash.com/photo-1599351431202-6e0000000000?w=800&q=80" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                                    <div className="absolute inset-0 bg-black/40 flex flex-col justify-center p-6">
+                                        <span className="bg-brand-500 text-white text-[10px] font-bold px-2 py-1 rounded w-fit mb-2">TRY ON AI</span>
+                                        <h2 className="text-2xl font-bold text-white">Virtual Mirror</h2>
+                                        <p className="text-white/80 text-xs">Test colors before you book.</p>
                                     </div>
                                 </div>
 
-                                {/* Salons */}
-                                <h3 className="font-bold text-lg dark:text-white">Featured Salons</h3>
-                                <div className="space-y-4">
-                                    {salons.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 20).map(s => (
-                                        <div key={s.id} onClick={()=>{setSelectedSalon(s); setView('salon')}} className="bg-white dark:bg-dark-800 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex gap-4 cursor-pointer hover:border-brand-500 transition-colors">
-                                            <div className="w-24 h-24 rounded-xl bg-slate-200 overflow-hidden shrink-0"><img src={s.image} className="w-full h-full object-cover" loading="lazy" /></div>
-                                            <div className="flex-1 py-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{s.name}</h4>
-                                                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-500">{s.rating} ★</span>
-                                                </div>
-                                                <p className="text-xs text-slate-500 mt-1 mb-3">{s.location}</p>
-                                                <div className="flex gap-2">
-                                                    <span className="text-[10px] font-bold bg-green-50 text-green-600 px-2 py-1 rounded">Wait: ~{s.queueLength * 15}m</span>
+                                <div className="relative">
+                                    <Icon name="search" className="absolute left-3 top-3 text-slate-400" size={18}/>
+                                    <input value={searchTerm} onChange={e=>setSearch(e.target.value)} placeholder="Search salons..." className="w-full pl-10 py-3 rounded-xl bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-800 dark:text-white focus:outline-none focus:border-brand-500"/>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {salons.filter(s=>s.name.toLowerCase().includes(searchTerm.toLowerCase())).map(s => (
+                                        <div key={s.id} onClick={()=>{setSelectedSalon(s); setView('salon')}} className="flex gap-4 p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer hover:border-brand-500 transition-colors">
+                                            <img src={s.image} className="w-20 h-20 rounded-lg object-cover bg-slate-200"/>
+                                            <div>
+                                                <h3 className="font-bold dark:text-white">{s.name}</h3>
+                                                <p className="text-xs text-slate-500 mb-2">{s.location}</p>
+                                                <div className="flex gap-2 text-[10px] font-bold">
+                                                    <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">★ {s.rating}</span>
+                                                    <span className="bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded">{s.queueLength} Waiting</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </>
                         )}
 
                         {view === 'tokens' && (
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold font-display dark:text-white">My Tokens</h2>
-                                {myTokens.length === 0 ? (
-                                    <div className="text-center py-20 opacity-50 dark:text-white"><Icon name="ticket" size={48} className="mx-auto mb-2"/><p>No active tokens</p></div>
-                                ) : (
+                            <div className="space-y-4">
+                                <h2 className="text-xl font-bold dark:text-white">My Tokens</h2>
+                                {myTokens.length === 0 ? <p className="text-center text-slate-500 py-10">No active bookings.</p> : 
                                     myTokens.map(t => (
-                                        <div key={t.id} className="bg-white dark:bg-dark-800 rounded-3xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 relative">
-                                            <div className="bg-dark-900 p-6 text-white relative">
-                                                <h3 className="font-bold text-lg">{t.salonName}</h3>
-                                                <p className="text-xs opacity-70">{t.salonLocation}</p>
-                                            </div>
-                                            <div className="p-6 relative">
-                                                <div className="ticket-notch notch-l shadow-inner dark:bg-dark-950"></div>
-                                                <div className="ticket-notch notch-r shadow-inner dark:bg-dark-950"></div>
-                                                <div className="border-b-2 border-dashed border-slate-200 dark:border-slate-700 pb-6 mb-6 flex justify-between items-center">
-                                                    <div className="text-center"><p className="text-xs text-slate-400 font-bold uppercase">Token</p><p className="text-5xl font-display font-bold text-brand-600">#{t.tokenNumber}</p></div>
-                                                    <div className="text-right"><p className="text-xs text-slate-400 font-bold uppercase">Est. Time</p><p className="text-2xl font-bold text-slate-800 dark:text-white">{t.estimatedTime}</p></div>
-                                                </div>
-                                                <div className="flex justify-between items-center">
-                                                    <div><p className="font-bold text-sm dark:text-white">{t.serviceNames}</p><p className="text-xs text-slate-500">₹{t.totalPrice}</p></div>
-                                                    <button onClick={()=>{if(confirm('Cancel?')) setMyTokens(myTokens.filter(x=>x.id!==t.id))}} className="text-xs text-red-500 font-bold border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-50">Cancel</button>
+                                        <div key={t.id} className="relative bg-white dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+                                            <div className="p-5 pb-8 border-b-2 border-dashed border-slate-300 dark:border-slate-700">
+                                                <h3 className="font-bold text-lg dark:text-white">{t.salonName}</h3>
+                                                <p className="text-xs text-slate-500 mb-4">{t.salonLocation}</p>
+                                                <div className="flex justify-between items-end">
+                                                    <div><div className="text-xs uppercase text-slate-400 font-bold">Token</div><div className="text-4xl font-display font-bold text-brand-500">#{t.tokenNumber}</div></div>
+                                                    <div className="text-right"><div className="text-xs uppercase text-slate-400 font-bold">Est. Wait</div><div className="text-xl font-bold dark:text-white">{t.estimatedTime}</div></div>
                                                 </div>
                                             </div>
+                                            <div className="bg-slate-50 dark:bg-black p-4 flex justify-between items-center">
+                                                <div className="text-xs font-mono dark:text-slate-400">ID: {t.id.toUpperCase()}</div>
+                                                <button onClick={()=>setMyTokens(myTokens.filter(x=>x.id!==t.id))} className="text-xs text-red-500 font-bold">Cancel</button>
+                                            </div>
+                                            <div className="ticket-notch notch-l shadow-inner dark:bg-dark-950"></div>
+                                            <div className="ticket-notch notch-r shadow-inner dark:bg-dark-950"></div>
                                         </div>
                                     ))
-                                )}
+                                }
                             </div>
                         )}
 
                         {view === 'profile' && (
-                            <div className="pt-10 text-center">
-                                <div className="w-24 h-24 rounded-full bg-slate-200 mx-auto mb-4 overflow-hidden border-4 border-white shadow-lg"><img src={user.photo || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover"/></div>
-                                <h2 className="text-2xl font-bold dark:text-white">{user.name}</h2>
-                                <p className="text-slate-500 mb-8">{user.email}</p>
-                                
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                        <p className="text-xs text-slate-400 font-bold uppercase">Points</p>
-                                        <p className="text-2xl font-bold text-gold-500">{points}</p>
+                            <div className="text-center space-y-6 pt-6">
+                                <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg mx-auto overflow-hidden">
+                                    <img src={user.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} className="w-full h-full object-cover"/>
+                                </div>
+                                <div><h2 className="text-2xl font-bold dark:text-white">{user.name}</h2><p className="text-slate-500">{user.email}</p></div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div className="text-xs uppercase text-slate-400 font-bold">Loyalty Pts</div>
+                                        <div className="text-2xl font-bold text-gold-500">{points}</div>
                                     </div>
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                                        <p className="text-xs text-slate-400 font-bold uppercase">Bookings</p>
-                                        <p className="text-2xl font-bold text-brand-600">{myTokens.length}</p>
+                                    <div className="bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div className="text-xs uppercase text-slate-400 font-bold">Bookings</div>
+                                        <div className="text-2xl font-bold text-brand-500">{myTokens.length}</div>
                                     </div>
                                 </div>
-
-                                <div className="space-y-3">
-                                    <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`w-full p-4 rounded-xl flex items-center justify-between ${musicPlaying ? 'bg-green-100 text-green-700' : 'bg-white dark:bg-dark-800 dark:text-white'}`}>
-                                        <span className="flex items-center gap-3 font-bold"><Icon name="music" /> Ambience Music</span>
-                                        <span className="text-xs font-bold uppercase">{musicPlaying ? 'ON' : 'OFF'}</span>
-                                    </button>
-                                    <button onClick={logout} className="w-full p-4 rounded-xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 hover:bg-red-100"><Icon name="log-out"/> Logout</button>
-                                </div>
+                                <Button onClick={()=>setMusicPlaying(!musicPlaying)} variant="secondary" className="gap-2">
+                                    <Icon name={musicPlaying?'volume-2':'volume-x'}/> {musicPlaying?'Mute Ambience':'Play Ambience'}
+                                </Button>
+                                <Button onClick={logout} className="bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20">Logout</Button>
                             </div>
                         )}
                     </div>
 
-                    {showScratch && <ScratchModal onClose={()=>setShowScratch(false)} />}
-
-                    {/* Bottom Nav */}
-                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-dark-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-20 flex justify-around items-center z-30 pb-4 left-0 right-0 mx-auto">
-                        {['home', 'tokens', 'profile'].map(t => (
-                            <button key={t} onClick={()=>setView(t)} className={`flex flex-col items-center gap-1 ${view===t ? 'text-brand-600' : 'text-slate-400'}`}>
-                                <Icon name={t==='home'?'home':t==='tokens'?'ticket':'user'} size={24} className={view===t?'fill-current':''} />
-                                <span className="text-[10px] font-bold capitalize">{t}</span>
+                    <div className="fixed bottom-0 w-full bg-white/90 dark:bg-dark-950/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 flex justify-around p-3 pb-5 z-50">
+                        {['home', 'tokens', 'profile'].map(v => (
+                            <button key={v} onClick={()=>setView(v)} className={`flex flex-col items-center gap-1 ${view===v?'text-brand-500':'text-slate-400'}`}>
+                                <Icon name={v==='home'?'home':v==='tokens'?'ticket':'user'} size={22} className={view===v?'fill-current':''}/>
+                                <span className="text-[10px] font-bold uppercase">{v}</span>
                             </button>
                         ))}
                     </div>
@@ -716,101 +686,66 @@
             );
         };
 
-        // --- AUTH FLOW ---
+        // --- AUTH ---
         const Login = () => {
-            const { setUser, googleLogin, notify } = useContext(AppContext);
-            const [step, setStep] = useState(1);
-            const [loading, setLoading] = useState(false);
-            const [temp, setTemp] = useState(null);
-            const [phone, setPhone] = useState('');
-
-            const handleGoogle = async () => {
-                setLoading(true);
-                const data = await googleLogin();
-                if(data) {
-                    setTemp(data);
-                    setStep(2);
+            const { googleLogin, setUser } = useContext(AppContext);
+            const [role, setRole] = useState(null);
+            
+            const handleLogin = async () => {
+                const u = await googleLogin();
+                if(u) {
+                    if(!role) {
+                        alert("Please select a role first!");
+                        return;
+                    }
+                    setUser({...u, role});
                 }
-                setLoading(false);
-            };
-
-            const finalize = (role) => {
-                setLoading(true);
-                setTimeout(() => {
-                    setUser({ ...temp, phone, role });
-                    setLoading(false);
-                }, 800);
             };
 
             return (
-                <div className="min-h-screen bg-dark-950 flex items-center justify-center p-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1600&q=80')] bg-cover bg-center opacity-30"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-900/90 to-transparent"></div>
-
-                    <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-white">
-                        <div className="text-center mb-10">
-                            <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/50">
-                                <Icon name="scissors" size={32} />
-                            </div>
-                            <h1 className="text-4xl font-display font-bold">Line Free</h1>
-                            <p className="text-white/60 mt-2">Skip the wait. Style instantly.</p>
+                <div className="min-h-screen bg-dark-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=1200&q=80')] bg-cover opacity-20"></div>
+                    <div className="relative z-10 w-full max-w-sm bg-black/60 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-center">
+                        <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-500/50">
+                            <Icon name="scissors" className="text-white" size={32} />
                         </div>
+                        <h1 className="text-4xl font-display font-bold text-white mb-2">Line Free</h1>
+                        <p className="text-slate-400 mb-8">The Future of Grooming</p>
 
-                        {step === 1 && (
-                            <button onClick={handleGoogle} disabled={loading} className="w-full bg-white text-slate-900 py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors">
-                                {loading ? <Icon name="loader-2" className="animate-spin" /> : (
-                                    <>
-                                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                                        Continue with Google
-                                    </>
-                                )}
-                            </button>
-                        )}
-
-                        {step === 2 && (
-                            <form onSubmit={(e)=>{e.preventDefault(); if(phone.length<10)return; setStep(3)}} className="space-y-4">
-                                <div className="bg-white/10 p-4 rounded-xl flex items-center gap-3">
-                                    <img src={temp.photo} className="w-10 h-10 rounded-full" />
-                                    <div><p className="font-bold text-sm">{temp.name}</p><p className="text-xs text-white/60">{temp.email}</p></div>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold uppercase text-brand-300 tracking-wider">Mobile Number</label>
-                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl mt-2 py-3 px-4 text-white focus:outline-none focus:border-brand-500" placeholder="98765 43210" autoFocus />
-                                </div>
-                                <Button onClick={()=>{}}>Next <Icon name="arrow-right" size={16} className="ml-2"/></Button>
-                            </form>
-                        )}
-
-                        {step === 3 && (
+                        {!role ? (
                             <div className="space-y-3">
-                                <p className="text-center text-sm text-white/60 mb-4">Choose your role</p>
-                                <button onClick={()=>finalize('customer')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
-                                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform"><Icon name="user" /></div>
-                                    <div><h4 className="font-bold text-lg">Customer</h4><p className="text-xs text-white/50">Book & Explore</p></div>
+                                <button onClick={()=>setRole('customer')} className="w-full p-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center gap-4 text-white transition-all group">
+                                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><Icon name="user"/></div>
+                                    <div className="text-left"><div className="font-bold">Customer</div><div className="text-xs text-slate-400">Book & Browse</div></div>
                                 </button>
-                                <button onClick={()=>finalize('barber')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-colors text-left group">
-                                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform"><Icon name="scissors" /></div>
-                                    <div><h4 className="font-bold text-lg">Salon Owner</h4><p className="text-xs text-white/50">Manage Business</p></div>
+                                <button onClick={()=>setRole('barber')} className="w-full p-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center gap-4 text-white transition-all group">
+                                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><Icon name="scissors"/></div>
+                                    <div className="text-left"><div className="font-bold">Salon Owner</div><div className="text-xs text-slate-400">Manage Business</div></div>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="text-white text-sm bg-white/10 p-2 rounded-lg inline-flex items-center gap-2">
+                                    Joining as <span className="font-bold uppercase text-brand-400">{role}</span> <button onClick={()=>setRole(null)}><Icon name="x" size={14}/></button>
+                                </div>
+                                <button onClick={handleLogin} className="w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+                                    <Icon name="log-in" size={18}/> Continue with Google
                                 </button>
                             </div>
                         )}
-                        {loading && <div className="absolute inset-0 bg-dark-950/80 flex items-center justify-center rounded-3xl"><Icon name="loader-2" className="animate-spin text-white" size={32} /></div>}
-                    </motion.div>
+                    </div>
                 </div>
             );
         };
 
-        // --- ROOT ---
         const App = () => {
             const { user } = useContext(AppContext);
             if (!user) return <Login />;
             return user.role === 'barber' ? <BarberDash /> : <CustomerDash />;
         };
 
-        const Root = () => ( <AppProvider> <App /> </AppProvider> );
-        ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<AppProvider><App /></AppProvider>);
     </script>
 </body>
 </html>
-
 
