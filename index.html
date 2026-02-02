@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Salon Queue Pro | Ultimate AI</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s infinite',
+                        'music': 'music 1s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        music: { '0%': { height: '10%' }, '100%': { height: '100%' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.6); }
+        .dark .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); }
+        .ticket-notch { width: 24px; height: 24px; background: #f8fafc; border-radius: 50%; position: absolute; bottom: 98px; z-index: 10; }
+        .dark .ticket-notch { background: #0f172a; }
+        .notch-l { left: -12px; } .notch-r { right: -12px; }
+        
+        /* Music Visualizer Bars */
+        .bar { width: 3px; background: currentColor; border-radius: 99px; }
+        .bar:nth-child(1) { animation-delay: 0.1s; }
+        .bar:nth-child(2) { animation-delay: 0.3s; }
+        .bar:nth-child(3) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // --- TRANSLATIONS (Hinglish/English) ---
+        const TEXTS = {
+            en: {
+                welcome: "Welcome Back",
+                loginSub: "Skip the queue, look your best.",
+                loginGoogle: "Continue with Google",
+                mobileLabel: "Mobile Number",
+                roleTitle: "Choose Your Role",
+                roleSub: "How will you use the app?",
+                customer: "Customer",
+                customerDesc: "I want to book services",
+                barber: "Salon Owner",
+                barberDesc: "I want to manage my queue",
+                findSalon: "Find a Salon",
+                searchPlace: "Search salons, services...",
+                myTokens: "My Tokens",
+                noTokens: "No active tokens",
+                bookNow: "Book Now",
+                aiConsult: "AI Style Consultant",
+                aiSub: "Powered by Gemini AI",
+                aiInput: "Ask for style advice...",
+                barberDash: "Owner Dashboard",
+                queueControl: "Queue Control",
+                revenue: "Today's Revenue",
+                marketing: "AI Marketing",
+                shopStatus: "Shop Status",
+                callNext: "Call Next",
+                completed: "Completed",
+                selectStaff: "Select Specialist",
+                addToCart: "Add",
+                checkout: "Book Appointment",
+                loyalty: "Loyalty Points",
+                voiceSearch: "Listening...",
+                settings: "Settings",
+                appearance: "Appearance",
+                themeColor: "Theme Color",
+                fontStyle: "Font Style",
+                music: "Ambience Music"
+            },
+            hi: {
+                welcome: "Swagat Hai",
+                loginSub: "Line chodo, smart bano.",
+                loginGoogle: "Google se Login karein",
+                mobileLabel: "Mobile Number",
+                roleTitle: "Aap kaun hain?",
+                roleSub: "App kaise use karenge?",
+                customer: "Customer",
+                customerDesc: "Mujhe booking karni hai",
+                barber: "Salon Malik",
+                barberDesc: "Mujhe queue manage karni hai",
+                findSalon: "Salon Khojein",
+                searchPlace: "Salon ya service dhundein...",
+                myTokens: "Mere Tokens",
+                noTokens: "Koi active token nahi hai",
+                bookNow: "Abhi Book Karein",
+                aiConsult: "AI Stylist",
+                aiSub: "Gemini AI dwara powered",
+                aiInput: "Style advice maangein...",
+                barberDash: "Maalik Dashboard",
+                queueControl: "Queue Control",
+                revenue: "Aaj ki Kamai",
+                marketing: "Marketing Tool",
+                shopStatus: "Dukan Status",
+                callNext: "Agla Bulaayein",
+                completed: "Ho Gaya",
+                selectStaff: "Specialist Chunein",
+                addToCart: "Jodein",
+                checkout: "Book Karein",
+                loyalty: "Reward Points",
+                voiceSearch: "Sun raha hoon...",
+                settings: "Settings",
+                appearance: "Dikhawat",
+                themeColor: "Rang Chunein",
+                fontStyle: "Font Style",
+                music: "Music Bajayein"
+            }
+        };
+
+        // --- ICON COMPONENT ---
+        const Icon = ({ name, size = 20, className = "", color }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    const iconName = name.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                    const { icons, createElement } = window.lucide;
+                    const lucideIcon = icons[iconName.charAt(0).toUpperCase() + iconName.slice(1)];
+                    if (lucideIcon) {
+                        const svgElement = createElement(lucideIcon);
+                        svgElement.setAttribute('width', size);
+                        svgElement.setAttribute('height', size);
+                        if(className) svgElement.setAttribute('class', className);
+                        if(color) svgElement.setAttribute('stroke', color);
+                        iconRef.current.innerHTML = '';
+                        iconRef.current.appendChild(svgElement);
+                    }
+                }
+            }, [name, size, className, color]);
+            return <span ref={iconRef} className="inline-flex items-center justify-center" />;
+        };
+
+        // --- IMAGE ASSETS ---
+        const SALON_IMAGES = [
+            "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80",
+            "https://images.unsplash.com/photo-1521590832169-dca1f55b2d85?w=800&q=80",
+            "https://images.unsplash.com/photo-1503951914875-452162b7f30a?w=800&q=80",
+            "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&q=80",
+            "https://images.unsplash.com/photo-1595476103518-3c8ad043fbc8?w=800&q=80"
+        ];
+
+        const STAFF_IMAGES = [
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+        ];
+
+        // --- CONTEXT ---
+        const AppContext = createContext();
+
+        const AppProvider = ({ children }) => {
+            const [user, setUser] = useState(JSON.parse(localStorage.getItem('sq_user_v3')) || null);
+            const [salons, setSalons] = useState([]);
+            const [myTokens, setMyTokens] = useState(JSON.parse(localStorage.getItem('sq_tokens_v3')) || []);
+            const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('sq_favs')) || []);
+            const [lang, setLang] = useState(localStorage.getItem('sq_lang') || 'en');
+            const [darkMode, setDarkMode] = useState(JSON.parse(localStorage.getItem('sq_dark')) || false);
+            const [theme, setTheme] = useState(localStorage.getItem('sq_theme') || 'indigo');
+            const [font, setFont] = useState(localStorage.getItem('sq_font') || 'sans');
+            const [notifications, setNotifications] = useState([]);
+            const [points, setPoints] = useState(150);
+            const [musicPlaying, setMusicPlaying] = useState(false);
+            const [showSettings, setShowSettings] = useState(false); // Added State for Settings
+            const audioRef = useRef(new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"));
+
+            useEffect(() => {
+                if(darkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+                localStorage.setItem('sq_dark', JSON.stringify(darkMode));
+            }, [darkMode]);
+
+            useEffect(() => {
+                localStorage.setItem('sq_theme', theme);
+                localStorage.setItem('sq_font', font);
+                localStorage.setItem('sq_lang', lang);
+                
+                // Apply Font
+                document.body.className = document.body.className.replace(/font-\w+/, `font-${font}`);
+                
+            }, [theme, font, lang]);
+
+            useEffect(() => {
+                audioRef.current.loop = true;
+                audioRef.current.volume = 0.4;
+                if(musicPlaying) {
+                    audioRef.current.play().catch(e => console.log("Audio play failed (interaction needed)", e));
+                } else {
+                    audioRef.current.pause();
+                }
+            }, [musicPlaying]);
+
+            // Generate Data
+            useEffect(() => {
+                const brands = ["Looks", "Geetanjali", "Enrich", "Javed Habib", "Urban Cuts", "The Barber", "Velvet", "Aura"];
+                const cities = ["Mumbai", "Delhi", "Bangalore"];
+                let generated = [];
+                for (let i = 0; i < 30; i++) {
+                    generated.push({
+                        id: `s_${i}`,
+                        name: `${brands[Math.floor(Math.random() * brands.length)]} ${Math.floor(Math.random()*100)}`,
+                        location: `Sector ${Math.floor(Math.random()*20)}, ${cities[i%3]}`,
+                        image: SALON_IMAGES[i % SALON_IMAGES.length],
+                        rating: (3.5 + Math.random() * 1.5).toFixed(1),
+                        isOpen: Math.random() > 0.1,
+                        queueLength: Math.floor(Math.random() * 6),
+                        category: i % 2 === 0 ? "Men" : "Unisex",
+                        staff: [
+                            { id: 1, name: "Rahul", role: "Senior Stylist", img: STAFF_IMAGES[0] },
+                            { id: 2, name: "Sneha", role: "Colorist", img: STAFF_IMAGES[1] },
+                            { id: 3, name: "Vikram", role: "Barber", img: STAFF_IMAGES[2] }
+                        ],
+                        services: [
+                            { id: 1, name: "Haircut", price: 300, time: 30 },
+                            { id: 2, name: "Shave", price: 200, time: 20 },
+                            { id: 3, name: "Facial", price: 1500, time: 60 },
+                            { id: 4, name: "Head Massage", price: 400, time: 20 }
+                        ]
+                    });
+                }
+                setSalons(generated);
+            }, []);
+
+            const t = (key) => TEXTS[lang][key] || key;
+
+            const googleLogin = () => new Promise(resolve => setTimeout(() => resolve({
+                name: "Aditya Roy",
+                email: "aditya@example.com",
+                photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aditya"
+            }), 1500));
+
+            const saveUser = (userData) => {
+                setUser(userData);
+                localStorage.setItem('sq_user_v3', JSON.stringify(userData));
+            };
+
+            const logout = () => {
+                setUser(null);
+                setMusicPlaying(false);
+                localStorage.removeItem('sq_user_v3');
+            };
+
+            const addToken = (salon, services, staff) => {
+                const totalCost = services.reduce((acc, s) => acc + s.price, 0);
+                const totalTime = services.reduce((acc, s) => acc + s.time, 0);
+                const token = {
+                    id: `t_${Date.now()}`,
+                    salonId: salon.id,
+                    salonName: salon.name,
+                    salonLocation: salon.location,
+                    salonImage: salon.image,
+                    serviceNames: services.map(s => s.name).join(", "),
+                    totalPrice: totalCost,
+                    staffName: staff ? staff.name : "Any Available",
+                    tokenNumber: salon.queueLength + 1,
+                    estimatedTime: `${totalTime + (salon.queueLength * 20)} min`,
+                    status: 'Active'
+                };
+                const updated = [token, ...myTokens];
+                setMyTokens(updated);
+                localStorage.setItem('sq_tokens_v3', JSON.stringify(updated));
+                
+                // Rewards
+                setPoints(prev => prev + Math.floor(totalCost / 10));
+                
+                // Confetti
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                addNotification(`Booking Confirmed! +${Math.floor(totalCost/10)} Points`);
+            };
+
+            const toggleFavorite = (salonId) => {
+                let updated;
+                if (favorites.includes(salonId)) updated = favorites.filter(id => id !== salonId);
+                else updated = [...favorites, salonId];
+                setFavorites(updated);
+                localStorage.setItem('sq_favs', JSON.stringify(updated));
+            };
+
+            const addNotification = (msg) => {
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, msg }]);
+                setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 4000);
+            };
+
+            const askGemini = async (prompt) => {
+                await new Promise(r => setTimeout(r, 2000));
+                return lang === 'hi' 
+                    ? `Aapke request "${prompt}" ke liye, main textured crop suggest karunga. Yeh summer ke liye best hai.` 
+                    : `Based on "${prompt}", I recommend a textured crop fade. It is perfect for summer.`;
+            };
+
+            return (
+                <AppContext.Provider value={{ 
+                    user, saveUser, logout, salons, addToken, myTokens, setMyTokens, 
+                    favorites, toggleFavorite, lang, setLang, t, 
+                    notifications, addNotification, askGemini, googleLogin, 
+                    darkMode, setDarkMode, points, theme, setTheme, font, setFont,
+                    musicPlaying, setMusicPlaying, showSettings, setShowSettings
+                }}>
+                    {children}
+                </AppContext.Provider>
+            );
+        };
+
+        // --- THEME UTILS ---
+        const getColorClass = (theme, type) => {
+            const colors = {
+                indigo: { bg: 'bg-indigo-600', text: 'text-indigo-600', border: 'border-indigo-600', ring: 'ring-indigo-200' },
+                emerald: { bg: 'bg-emerald-600', text: 'text-emerald-600', border: 'border-emerald-600', ring: 'ring-emerald-200' },
+                rose: { bg: 'bg-rose-600', text: 'text-rose-600', border: 'border-rose-600', ring: 'ring-rose-200' },
+                amber: { bg: 'bg-amber-600', text: 'text-amber-600', border: 'border-amber-600', ring: 'ring-amber-200' },
+                cyan: { bg: 'bg-cyan-600', text: 'text-cyan-600', border: 'border-cyan-600', ring: 'ring-cyan-200' }
+            };
+            return colors[theme][type] || colors['indigo'][type];
+        };
+
+        // --- COMPONENTS ---
+        const Button = ({ children, onClick, className, variant="primary", loading, disabled }) => {
+            const { theme } = useContext(AppContext);
+            const themeBg = getColorClass(theme, 'bg');
+            const styles = {
+                primary: `${themeBg} text-white shadow-lg shadow-black/20 hover:opacity-90 active:scale-95`,
+                outline: "border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800",
+                google: "bg-white text-slate-800 border border-slate-200 shadow-sm",
+                ai: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+            };
+            return (
+                <button onClick={onClick} disabled={disabled || loading} className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center transition-all disabled:opacity-50 ${styles[variant]} ${className}`}>
+                    {loading ? <Icon name="loader-2" className="animate-spin mr-2" /> : children}
+                </button>
+            );
+        };
+
+        const ToastContainer = () => {
+            const { notifications } = useContext(AppContext);
+            return (
+                <div className="fixed top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none">
+                    <AnimatePresence>
+                        {notifications.map(n => (
+                            <motion.div key={n.id} initial={{y:-50, opacity:0}} animate={{y:0, opacity:1}} exit={{opacity:0}} className="bg-slate-900 text-white px-4 py-3 rounded-full shadow-xl flex items-center gap-3 text-sm font-medium backdrop-blur-md bg-opacity-90 border border-slate-700">
+                                <Icon name="bell" size={16} className="text-primary-400" /> {n.msg}
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            );
+        };
+
+        const SettingsPanel = ({ onClose }) => {
+            const { theme, setTheme, font, setFont, musicPlaying, setMusicPlaying, t } = useContext(AppContext);
+            
+            return (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
+                    <motion.div initial={{y:100}} animate={{y:0}} className="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold dark:text-white">{t('settings')}</h2>
+                            <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><Icon name="x" size={20} /></button>
+                        </div>
+
+                        {/* Theme */}
+                        <div className="mb-6">
+                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('themeColor')}</h3>
+                            <div className="flex gap-3">
+                                {['indigo', 'emerald', 'rose', 'amber', 'cyan'].map(c => (
+                                    <button key={c} onClick={()=>setTheme(c)} className={`w-10 h-10 rounded-full ${getColorClass(c, 'bg')} ${theme===c ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-slate-600' : ''} shadow-sm`}></button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Font */}
+                        <div className="mb-6">
+                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('fontStyle')}</h3>
+                            <div className="grid grid-cols-3 gap-3">
+                                <button onClick={()=>setFont('sans')} className={`p-3 rounded-xl border ${font==='sans' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-sans`}>Modern</button>
+                                <button onClick={()=>setFont('serif')} className={`p-3 rounded-xl border ${font==='serif' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-serif`}>Classic</button>
+                                <button onClick={()=>setFont('mono')} className={`p-3 rounded-xl border ${font==='mono' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-mono text-xs`}>Tech</button>
+                            </div>
+                        </div>
+
+                        {/* Music */}
+                        <div className="mb-6">
+                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('music')}</h3>
+                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${musicPlaying ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                                        <Icon name={musicPlaying ? "music" : "volume-x"} />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold dark:text-white">Lo-Fi Beats</p>
+                                        <p className="text-xs text-slate-500">Relaxing Vibes</p>
+                                    </div>
+                                </div>
+                                <button onClick={()=>setMusicPlaying(!musicPlaying)} className={`px-4 py-2 rounded-lg text-sm font-bold ${musicPlaying ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                    {musicPlaying ? 'Stop' : 'Play'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        // --- LOGIN FLOW ---
+        const Login = () => {
+            const { saveUser, googleLogin, t, lang, setLang, darkMode, setDarkMode } = useContext(AppContext);
+            const [step, setStep] = useState(1);
+            const [loading, setLoading] = useState(false);
+            const [tempUser, setTempUser] = useState(null);
+            const [phone, setPhone] = useState("");
+
+            const handleGoogle = async () => {
+                setLoading(true);
+                const data = await googleLogin();
+                setTempUser(data);
+                setLoading(false);
+                setStep(2);
+            };
+
+            const handlePhone = (e) => {
+                e.preventDefault();
+                if(phone.length < 10) return alert("Enter valid number");
+                setStep(3);
+            };
+
+            const completeLogin = (role) => {
+                setLoading(true);
+                setTimeout(() => saveUser({ ...tempUser, phone, role }), 800);
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1600&q=80" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                    
+                    {/* Top Controls */}
+                    <div className="absolute top-6 right-6 z-20 flex gap-2">
+                        <button onClick={() => setDarkMode(!darkMode)} className="bg-white/20 backdrop-blur text-white p-2 rounded-full border border-white/30">
+                            <Icon name={darkMode ? "sun" : "moon"} size={16} />
+                        </button>
+                        <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="bg-white/20 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-bold border border-white/30">
+                            {lang === 'en' ? 'हिंदी' : 'English'}
+                        </button>
+                    </div>
+
+                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="relative z-10 w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl text-white shadow-2xl">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/50">
+                                <Icon name="scissors" size={32} color="white" />
+                            </div>
+                            <h1 className="text-3xl font-display font-bold">SalonPro</h1>
+                            <p className="text-white/60">{t('loginSub')}</p>
+                        </div>
+
+                        {step === 1 && (
+                            <div className="space-y-4">
+                                <Button variant="google" onClick={handleGoogle} loading={loading}>
+                                    <Icon name="chrome" className="mr-2" size={18} /> {t('loginGoogle')}
+                                </Button>
+                            </div>
+                        )}
+
+                        {step === 2 && (
+                            <form onSubmit={handlePhone} className="space-y-4">
+                                <div className="flex items-center gap-3 mb-4 bg-white/10 p-3 rounded-xl">
+                                    <img src={tempUser.photo} className="w-10 h-10 rounded-full" />
+                                    <div><p className="font-bold text-sm">{tempUser.name}</p><p className="text-xs text-white/60">{tempUser.email}</p></div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-indigo-300">{t('mobileLabel')}</label>
+                                    <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="98765 43210" className="w-full bg-white/5 border border-white/20 rounded-xl py-3 pl-4 text-white mt-2 focus:outline-none focus:border-indigo-500" autoFocus />
+                                </div>
+                                <Button className="bg-indigo-600 hover:bg-indigo-500">Next <Icon name="arrow-right" className="ml-2" size={18} /></Button>
+                            </form>
+                        )}
+
+                        {step === 3 && (
+                            <div className="space-y-4">
+                                <h3 className="text-center font-bold text-lg">{t('roleTitle')}</h3>
+                                
+                                <div onClick={() => completeLogin('customer')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
+                                    <div className="bg-emerald-500/20 p-3 rounded-full text-emerald-400"><Icon name="user" /></div>
+                                    <div><h4 className="font-bold">{t('customer')}</h4><p className="text-xs text-white/50">{t('customerDesc')}</p></div>
+                                </div>
+
+                                <div onClick={() => completeLogin('barber')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
+                                    <div className="bg-amber-500/20 p-3 rounded-full text-amber-400"><Icon name="scissors" /></div>
+                                    <div><h4 className="font-bold">{t('barber')}</h4><p className="text-xs text-white/50">{t('barberDesc')}</p></div>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
+            );
+        };
+
+        // --- BARBER DASHBOARD ---
+        const BarberDash = () => {
+            const { t, askGemini, theme, musicPlaying } = useContext(AppContext);
+            const themeText = getColorClass(theme, 'text');
+            const [queue, setQueue] = useState([
+                { id: 1, name: "Rahul", service: "Haircut", token: 5, status: "serving" },
+                { id: 2, name: "Amit", service: "Shave", token: 6, status: "waiting" },
+                { id: 3, name: "Sneha", service: "Spa", token: 7, status: "waiting" }
+            ]);
+            const [marketingGoal, setGoal] = useState("");
+            const [marketingRes, setRes] = useState("");
+            const [loadingAI, setLoadingAI] = useState(false);
+
+            const callNext = () => {
+                const next = queue.find(q => q.status === 'waiting');
+                if(next) {
+                    setQueue(queue.map(q => {
+                        if(q.status === 'serving') return {...q, status: 'completed'};
+                        if(q.id === next.id) return {...q, status: 'serving'};
+                        return q;
+                    }));
+                }
+            };
+
+            const generateMarketing = async () => {
+                if(!marketingGoal) return;
+                setLoadingAI(true);
+                const res = await askGemini(`Write a short marketing SMS for a salon about: ${marketingGoal}`);
+                setRes(res);
+                setLoadingAI(false);
+            };
+
+            const current = queue.find(q => q.status === 'serving');
+
+            return (
+                <div className="pb-24 p-5 bg-slate-50 dark:bg-slate-900 min-h-screen">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-2xl font-bold font-display dark:text-white">{t('barberDash')}</h1>
+                        {musicPlaying && <div className="flex gap-1 h-4 items-end text-slate-400"><div className="bar h-full animate-music"></div><div className="bar h-[60%] animate-music"></div><div className="bar h-[80%] animate-music"></div></div>}
+                    </div>
+
+                    {/* Stats Graph */}
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-6">
+                        <div className="flex justify-between items-end mb-4">
+                            <div><p className="text-xs text-slate-400 font-bold uppercase">{t('revenue')}</p><p className="text-3xl font-bold text-slate-800 dark:text-white">₹4,200</p></div>
+                            <span className="text-green-500 text-xs font-bold bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full flex items-center"><Icon name="trending-up" size={12} className="mr-1" /> +15%</span>
+                        </div>
+                        <div className="flex items-end gap-2 h-24">
+                            {[40, 65, 30, 85, 50, 90, 60].map((h,i) => (
+                                <div key={i} className={`flex-1 rounded-t-lg opacity-80 ${getColorClass(theme, 'bg')}`} style={{height: `${h}%`}}></div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Active Customer */}
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border-t-4 border-slate-200 dark:border-slate-600 text-center mb-6 relative overflow-hidden">
+                        <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(theme, 'bg')}`}></div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
+                        {current ? (
+                            <motion.div key={current.id} initial={{scale:0.9}} animate={{scale:1}}>
+                                <h2 className={`text-6xl font-display font-bold ${themeText}`}>#{current.token}</h2>
+                                <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-2">{current.name}</p>
+                                <p className="text-sm text-slate-500">{current.service}</p>
+                                <Button onClick={callNext} className="mt-6">{t('completed')} & {t('callNext')}</Button>
+                            </motion.div>
+                        ) : (
+                            <div className="py-8"><p className="text-slate-400">Queue Empty</p></div>
+                        )}
+                    </div>
+
+                    {/* AI Marketing */}
+                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-5 text-white shadow-xl">
+                        <div className="flex items-center gap-2 mb-3"><Icon name="sparkles" size={18} /> <h3 className="font-bold">{t('marketing')}</h3></div>
+                        <input value={marketingGoal} onChange={e=>setGoal(e.target.value)} placeholder="e.g. Diwali Dhamaka Offer" className="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-sm text-white placeholder-white/50 focus:outline-none mb-3" />
+                        {marketingRes && <div className="bg-black/20 p-3 rounded-lg text-xs mb-3 italic">"{marketingRes}"</div>}
+                        <button onClick={generateMarketing} className="w-full bg-white text-indigo-700 py-2 rounded-lg font-bold text-sm shadow-md">{loadingAI ? "Writing..." : "Generate SMS"}</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CUSTOMER DASHBOARD ---
+        const CustomerDash = () => {
+            const { user, salons, addToken, myTokens, t, favorites, toggleFavorite, setMyTokens, askGemini, points, theme, musicPlaying, showSettings, setShowSettings } = useContext(AppContext);
+            const [view, setView] = useState("home");
+            const [selectedSalon, setSelectedSalon] = useState(null);
+            const [cart, setCart] = useState([]);
+            const [selectedStaff, setSelectedStaff] = useState(null);
+            const [aiPrompt, setAiPrompt] = useState("");
+            const [aiRes, setAiRes] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [voiceListening, setVoiceListening] = useState(false);
+
+            const themeText = getColorClass(theme, 'text');
+            const themeBorder = getColorClass(theme, 'border');
+
+            const addToCart = (service) => {
+                if(cart.find(s => s.id === service.id)) setCart(cart.filter(s => s.id !== service.id));
+                else setCart([...cart, service]);
+            };
+
+            const book = () => {
+                setLoading(true);
+                setTimeout(() => {
+                    addToken(selectedSalon, cart, selectedStaff);
+                    setLoading(false);
+                    setCart([]);
+                    setSelectedStaff(null);
+                    setView('tokens');
+                }, 1500);
+            };
+
+            const cancel = (id) => {
+                if(confirm("Cancel booking?")) setMyTokens(myTokens.filter(t => t.id !== id));
+            };
+
+            const handleAI = async () => {
+                if(!aiPrompt) return;
+                setLoading(true);
+                const res = await askGemini(aiPrompt);
+                setAiRes(res);
+                setLoading(false);
+            };
+
+            const handleVoice = () => {
+                setVoiceListening(true);
+                setTimeout(() => {
+                    setVoiceListening(false);
+                    alert("Voice Search Simulated: 'Best hair salon'");
+                }, 2000);
+            };
+
+            // SUB-COMPONENTS
+            const SalonDetail = () => (
+                <div className="bg-white dark:bg-slate-900 min-h-screen pb-28">
+                    <div className="relative h-64">
+                        <img src={selectedSalon.image} className="w-full h-full object-cover" />
+                        <button onClick={() => setView('home')} className="absolute top-4 left-4 bg-white/20 backdrop-blur w-10 h-10 rounded-full flex items-center justify-center text-white"><Icon name="arrow-left" /></button>
+                        <button onClick={() => toggleFavorite(selectedSalon.id)} className="absolute top-4 right-4 bg-white/20 backdrop-blur w-10 h-10 rounded-full flex items-center justify-center text-white">
+                            <Icon name="heart" className={favorites.includes(selectedSalon.id) ? `fill-red-500 text-red-500` : ""} />
+                        </button>
+                        <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-5 text-white">
+                            <h2 className="text-3xl font-display font-bold">{selectedSalon.name}</h2>
+                            <p className="text-white/80 text-sm flex gap-2 items-center"><Icon name="map-pin" size={14} /> {selectedSalon.location} • <Icon name="star" size={14} className="fill-gold-500 text-gold-500" /> {selectedSalon.rating}</p>
+                        </div>
+                    </div>
+                    <div className="p-5">
+                        {/* Queue Info */}
+                        <div className="flex gap-4 mb-6">
+                            <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
+                                <p className="text-xs text-slate-400 font-bold uppercase">Queue</p>
+                                <p className="text-xl font-bold text-slate-800 dark:text-white">{selectedSalon.queueLength} People</p>
+                            </div>
+                            <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
+                                <p className="text-xs text-slate-400 font-bold uppercase">Wait</p>
+                                <p className={`text-xl font-bold ${themeText}`}>~{selectedSalon.queueLength * 15} min</p>
+                            </div>
+                        </div>
+
+                        {/* Staff Selector */}
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">{t('selectStaff')}</h3>
+                        <div className="flex gap-4 overflow-x-auto hide-scroll pb-2 mb-6">
+                            {selectedSalon.staff.map(staff => (
+                                <div key={staff.id} onClick={() => setSelectedStaff(staff)} className={`flex flex-col items-center min-w-[70px] cursor-pointer ${selectedStaff?.id === staff.id ? 'opacity-100' : 'opacity-60'}`}>
+                                    <div className={`w-14 h-14 rounded-full overflow-hidden border-2 mb-2 ${selectedStaff?.id === staff.id ? themeBorder + ' ring-2 ring-offset-1' : 'border-slate-200'}`}>
+                                        <img src={staff.img} className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="text-xs font-bold text-center dark:text-slate-200">{staff.name}</span>
+                                    <span className="text-[10px] text-slate-500">{staff.role}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Services */}
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Services</h3>
+                        <div className="space-y-3">
+                            {selectedSalon.services.map(s => {
+                                const inCart = cart.find(i => i.id === s.id);
+                                return (
+                                    <div key={s.id} onClick={() => addToCart(s)} className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${inCart ? `${themeBorder} bg-slate-50 dark:bg-slate-800 border-2` : 'border-slate-100 dark:border-slate-700'}`}>
+                                        <div><p className="font-bold dark:text-slate-200">{s.name}</p><p className="text-xs text-slate-500">{s.time} mins</p></div>
+                                        <div className="flex items-center gap-3">
+                                            <p className={`font-bold ${themeText}`}>₹{s.price}</p>
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${inCart ? `${getColorClass(theme, 'bg')} border-transparent text-white` : 'border-slate-300'}`}>
+                                                {inCart && <Icon name="check" size={14} />}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Sticky Footer */}
+                    <div className="fixed bottom-0 w-full max-w-md left-0 right-0 mx-auto p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 safe-bottom">
+                        <Button onClick={book} disabled={cart.length === 0} loading={loading}>
+                            {cart.length > 0 ? `${t('checkout')} (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}` : t('addToCart')}
+                        </Button>
+                    </div>
+                </div>
+            );
+
+            const TokenCard = ({ token }) => (
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden mb-6 relative border border-slate-100 dark:border-slate-700">
+                    <div className="bg-slate-900 p-6 text-white relative">
+                        <div className="flex justify-between items-start">
+                            <div><h3 className="font-bold text-lg">{token.salonName}</h3><p className="text-xs opacity-70">{token.salonLocation}</p></div>
+                            <div className="bg-white/10 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">{token.status}</div>
+                        </div>
+                    </div>
+                    <div className="p-6 relative">
+                        <div className="ticket-notch notch-l shadow-inner"></div>
+                        <div className="ticket-notch notch-r shadow-inner"></div>
+                        <div className="border-b-2 border-dashed border-slate-100 dark:border-slate-700 pb-6 mb-6 flex justify-between items-center">
+                            <div className="text-center"><p className="text-xs text-slate-400 uppercase font-bold">Token</p><p className={`text-5xl font-display font-bold ${themeText}`}>#{token.tokenNumber}</p></div>
+                            <div className="text-right"><p className="text-xs text-slate-400 uppercase font-bold">Est. Time</p><p className="text-2xl font-bold text-slate-800 dark:text-slate-200">{token.estimatedTime}</p></div>
+                        </div>
+                        <div className="mb-4">
+                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Services</p>
+                            <p className="font-medium text-sm text-slate-700 dark:text-slate-300">{token.serviceNames}</p>
+                        </div>
+                        <div className="flex justify-between items-center pt-2">
+                            <div className="flex items-center gap-2">
+                                <img src={STAFF_IMAGES[0]} className="w-8 h-8 rounded-full border border-slate-200" />
+                                <div><p className="text-xs text-slate-400">Stylist</p><p className="text-sm font-bold dark:text-slate-200">{token.staffName}</p></div>
+                            </div>
+                            <Button variant="outline" className="w-auto px-4 py-2 h-auto text-xs text-red-500 border-red-100 hover:bg-red-50" onClick={()=>cancel(token.id)}>Cancel</Button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if(view === 'salon' && selectedSalon) return <SalonDetail />;
+
+            return (
+                <div className="pb-20 max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative transition-colors duration-300">
+                    {/* Header */}
+                    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-20 px-5 pt-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex justify-between items-center mb-4">
+                            <div><h1 className="text-xl font-display font-bold text-slate-900 dark:text-white">{t('findSalon')}</h1><p className="text-xs text-slate-500 flex items-center"><Icon name="map-pin" size={12} className={`mr-1 ${themeText}`} /> Mumbai, India</p></div>
+                            <div className="flex items-center gap-3">
+                                {musicPlaying && <div className="flex gap-1 h-3 items-end text-slate-400"><div className="bar h-full animate-music"></div><div className="bar h-[60%] animate-music"></div><div className="bar h-[80%] animate-music"></div></div>}
+                                <div className="bg-gold-100 text-gold-600 px-2 py-1 rounded-full text-xs font-bold flex items-center"><Icon name="award" size={12} className="mr-1" /> {points}</div>
+                                <div onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden cursor-pointer"><img src={user.photo} className="w-full h-full object-cover" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-5">
+                        {view === 'home' && (
+                            <div className="space-y-6">
+                                <div className="relative">
+                                    <Icon name="search" className="absolute left-3 top-3 text-slate-400" size={18} />
+                                    <input placeholder={t('searchPlace')} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-primary-500 dark:text-white" />
+                                    <button onClick={handleVoice} className={`absolute right-3 top-2.5 ${voiceListening ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}><Icon name="mic" size={18} /></button>
+                                </div>
+                                
+                                <div className="flex gap-3 overflow-x-auto hide-scroll">
+                                    {['Hair', 'Beard', 'Spa', 'Face'].map(c => <span key={c} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm">{c}</span>)}
+                                </div>
+
+                                <h2 className="font-bold text-lg dark:text-white">Featured</h2>
+                                <div className="flex gap-4 overflow-x-auto hide-scroll -mx-5 px-5 pb-4">
+                                    {salons.slice(0,5).map(s => (
+                                        <div key={s.id} onClick={() => { setSelectedSalon(s); setView('salon'); }} className="min-w-[260px] h-40 rounded-2xl relative overflow-hidden shadow-md group cursor-pointer">
+                                            <img src={s.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col justify-end text-white">
+                                                <h3 className="font-bold">{s.name}</h3>
+                                                <div className="flex justify-between text-xs opacity-90"><span>{s.location}</span><span className="flex items-center"><Icon name="star" size={10} className="fill-gold-500 text-gold-500 mr-1" /> {s.rating}</span></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <h2 className="font-bold text-lg dark:text-white">Nearby</h2>
+                                <div className="space-y-4">
+                                    {salons.slice(5).map(s => (
+                                        <div key={s.id} onClick={() => { setSelectedSalon(s); setView('salon'); }} className="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-100 dark:border-slate-700 flex gap-4 shadow-sm cursor-pointer active:scale-98 transition-transform">
+                                            <div className="w-20 h-20 bg-slate-200 rounded-xl overflow-hidden"><img src={s.image} className="w-full h-full object-cover" /></div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200">{s.name}</h4>
+                                                <p className="text-xs text-slate-500 mb-2">{s.location}</p>
+                                                <div className="flex gap-2 text-[10px] font-bold">
+                                                    <span className="bg-green-50 text-green-600 px-2 py-1 rounded">Wait: {s.queueLength * 15}m</span>
+                                                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded">{s.queueLength} in Q</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'tokens' && (
+                            <div>
+                                <h2 className="font-display font-bold text-2xl mb-4 dark:text-white">{t('myTokens')}</h2>
+                                {myTokens.length === 0 ? <div className="text-center py-20 opacity-50"><Icon name="ticket" size={48} className="mx-auto mb-2 text-slate-400" /><p className="dark:text-slate-400">{t('noTokens')}</p></div> : myTokens.map(t => <TokenCard key={t.id} token={t} />)}
+                            </div>
+                        )}
+
+                        {view === 'ai' && (
+                            <div className="min-h-[70vh] flex flex-col">
+                                <h2 className="font-display font-bold text-2xl mb-1 flex items-center gap-2 dark:text-white"><Icon name="sparkles" className="text-indigo-500" /> {t('aiConsult')}</h2>
+                                <p className="text-xs text-slate-500 mb-6">{t('aiSub')}</p>
+                                <div className="flex-1 bg-white dark:bg-slate-800 rounded-2xl border border-indigo-100 dark:border-indigo-900 p-4 shadow-sm mb-4 overflow-y-auto">
+                                    {aiRes ? <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{aiRes}</p> : <div className="text-center text-slate-400 text-xs mt-10">Ask me anything about styling!</div>}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder={t('aiInput')} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 dark:text-white" />
+                                    <button onClick={handleAI} disabled={loading} className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50"><Icon name="send" size={18} /></button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+
+                    {/* Bottom Nav */}
+                    <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-16 flex justify-around items-center z-30 pb-safe left-0 right-0 mx-auto">
+                        {['home', 'tokens', 'ai', 'user'].map(v => (
+                            <button key={v} onClick={() => setView(v)} className={`flex flex-col items-center ${view === v ? themeText : 'text-slate-400'}`}>
+                                <Icon name={v === 'ai' ? 'sparkles' : v === 'user' ? 'user' : v === 'tokens' ? 'ticket' : 'home'} size={22} className={view === v ? 'fill-current' : ''} />
+                                {v === 'tokens' && myTokens.length > 0 && <span className="absolute mt-1 ml-4 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const { user, logout, showSettings, setShowSettings } = useContext(AppContext);
+            
+            if (!user) return <Login />;
+            
+            return (
+                <div className="relative">
+                    <ToastContainer />
+                    {user.role === 'barber' ? (
+                        <>
+                            <BarberDash />
+                            <button onClick={logout} className="fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50"><Icon name="log-out" size={20} /></button>
+                        </>
+                    ) : (
+                        <CustomerDash />
+                    )}
+                </div>
+            );
+        };
+
+        const Root = () => ( <AppProvider> <App /> </AppProvider> );
+        ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+    </script>
+</body>
+</html>
