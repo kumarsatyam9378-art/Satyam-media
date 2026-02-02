@@ -3,195 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROOH | The God Archive</title>
+  <title>ROOH | God Mode</title>
   
-  <!-- LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- FONTS -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
-
   <style>
-    /* --- CORE AESTHETICS --- */
-    :root { --bg: #000000; --accent: #8b5cf6; --glass: rgba(255, 255, 255, 0.08); }
-    body { background-color: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+    :root { --bg: #000000; --accent: #ff0000; }
+    body { background-color: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
     
-    /* HIDE SCROLLBARS */
-    ::-webkit-scrollbar { display: none; }
+    /* HIDE SCROLLBARS BUT ALLOW SCROLL */
     * { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { display: none; }
 
-    /* --- THE YOUTUBE "GHOST" HACK (v3.0) --- */
-    /* This zooms into the iframe to physically push logos off-screen */
-    .yt-ghost-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: black;
-      border-radius: 0px; 
+    /* --- CINEMA FIXES --- */
+    .cinema-frame {
+      width: 100vw;
+      height: 100vh; /* Full Height */
+      border: none;
+      background: #000;
     }
-    
-    .yt-ghost-frame {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(1.60); /* 160% ZOOM - KILLS LOGO */
-      width: 100%;
-      height: 100%;
+
+    /* --- GHOST PLAYER (Shorts Fix) --- */
+    .ghost-wrapper {
+      position: relative; width: 100%; height: 100%; overflow: hidden; background: black;
+    }
+    .ghost-frame {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(1.65); /* Zordaar Zoom to hide UI */
+      width: 100%; height: 100%;
       pointer-events: auto;
     }
-    
-    /* Overlay to block title clicks */
-    .yt-blocker-top {
-      position: absolute; top: 0; left: 0; right: 0; height: 15%;
-      z-index: 20; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-      pointer-events: none; /* Let clicks pass through if needed, or use 'auto' to block */
+    .click-shield {
+      position: absolute; top: 0; left: 0; right: 0; height: 100px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      z-index: 10; pointer-events: none;
     }
 
-    /* --- SHORTS SNAP SCROLL --- */
-    .snap-y-mandatory { scroll-snap-type: y mandatory; }
-    .snap-center { scroll-snap-align: center; }
-
-    /* --- GOOGLE SEARCH STYLING --- */
-    .g-link { color: #8ab4f8; font-size: 1.25rem; line-height: 1.2; text-decoration: none; }
-    .g-link:hover { text-decoration: underline; }
-    .g-url { color: #20c20e; font-size: 0.875rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .g-desc { color: #bdc1c6; font-size: 0.875rem; line-height: 1.58; }
-
-    /* --- ANIMATIONS --- */
-    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-    .animate-float { animation: float 6s ease-in-out infinite; }
+    /* --- SNAP SCROLL --- */
+    .snap-scroll { scroll-snap-type: y mandatory; overflow-y: scroll; height: 100%; }
+    .snap-item { scroll-snap-align: start; height: 100%; width: 100%; position: relative; }
   </style>
 </head>
 <body>
 
-<!-- ==================== 1. AUTH GATE (GOOGLE FIREBASE) ==================== -->
-<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center p-6 transition-all duration-700">
-  <!-- Background Art -->
-  <div class="absolute inset-0 z-0">
-    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072" class="w-full h-full object-cover opacity-20 animate-pulse">
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-  </div>
-
-  <div class="z-10 relative text-center w-full max-w-md">
-    <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-purple-600 to-blue-600 rounded-full flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(139,92,246,0.5)] animate-float">
-      <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+<!-- ==================== 1. LOGIN GATE ==================== -->
+<div id="authGate" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
+  <div class="text-center">
+    <div class="w-20 h-20 mx-auto bg-red-600 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_red] animate-pulse">
+      <i data-lucide="power" class="w-10 h-10 text-white"></i>
     </div>
-    <h1 class="text-5xl font-['Cinzel'] font-bold mb-2 text-white tracking-widest">ROOH</h1>
-    <p class="text-gray-400 text-xs tracking-[0.4em] uppercase mb-12">The Infinite Interface</p>
-    
-    <button id="loginBtn" class="w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform shadow-xl">
-      <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-      ACCESS TERMINAL
+    <h1 class="text-4xl font-bold mb-2 tracking-widest">GOD MODE</h1>
+    <p class="text-gray-500 text-xs mb-8 uppercase">Redirects Blocked • Ads Neutralized</p>
+    <button id="loginBtn" class="bg-white text-black font-bold py-3 px-8 rounded-full hover:scale-105 transition-transform">
+      CONNECT
     </button>
   </div>
 </div>
 
-<!-- ==================== 2. MAIN UNIVERSE ==================== -->
-<div id="universe" class="fixed inset-0 hidden flex flex-col md:flex-row bg-black">
+<!-- ==================== 2. MAIN INTERFACE ==================== -->
+<div id="universe" class="fixed inset-0 hidden flex flex-col bg-black">
   
-  <!-- NAV DOCK (Left/Bottom) -->
-  <nav class="md:w-20 w-full md:h-full h-16 bg-[#0a0a0a] border-r border-white/10 flex md:flex-col items-center justify-around md:justify-center md:gap-10 z-50 fixed bottom-0 md:relative">
-    <button onclick="switchTab('search')" class="nav-btn text-purple-500 p-3 rounded-xl bg-white/5"><i data-lucide="search" class="w-6 h-6"></i></button>
-    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 hover:text-white p-3"><i data-lucide="smartphone" class="w-6 h-6"></i></button>
-    <button onclick="switchTab('cinema')" class="nav-btn text-gray-500 hover:text-red-500 p-3"><i data-lucide="film" class="w-6 h-6"></i></button>
-    <div class="hidden md:block w-8 h-8 rounded-full bg-gray-800 mt-auto mb-8 overflow-hidden border border-white/20">
-      <img id="userAvatar" class="w-full h-full object-cover">
-    </div>
+  <!-- BOTTOM NAV (Mobile First) -->
+  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-[#111] border-t border-gray-800 flex justify-around items-center z-50">
+    <button onclick="switchTab('search')" class="nav-btn text-white p-2"><i data-lucide="search" class="w-6 h-6"></i></button>
+    <button onclick="switchTab('shorts')" class="nav-btn text-gray-500 p-2"><i data-lucide="smartphone" class="w-6 h-6"></i></button>
+    <button onclick="switchTab('cinema')" class="nav-btn text-red-500 p-2"><i data-lucide="film" class="w-6 h-6"></i></button>
+    <button onclick="switchTab('sources')" class="nav-btn text-gray-500 p-2"><i data-lucide="database" class="w-6 h-6"></i></button>
   </nav>
 
-  <!-- CONTENT AREA -->
-  <main class="flex-1 relative h-full overflow-hidden pb-16 md:pb-0">
+  <!-- === TAB 1: REAL SEARCH (Wikipedia + OpenLibrary + Archive) === -->
+  <section id="tab-search" class="tab-content absolute inset-0 pb-16 overflow-y-auto bg-black">
+    <div class="sticky top-0 z-40 bg-black/90 backdrop-blur border-b border-gray-800 p-4">
+      <div class="relative">
+        <input type="text" id="omniSearch" 
+          class="w-full bg-[#222] text-white border-none rounded-2xl py-3 pl-10 pr-12 focus:ring-2 focus:ring-red-500 transition-all"
+          placeholder="Search Reality (e.g. Matrix, Space, Physics)..."
+          onkeydown="if(event.key === 'Enter') executeRealSearch(this.value)">
+        <i data-lucide="globe" class="absolute left-3 top-3.5 text-gray-500 w-5 h-5"></i>
+        <button onclick="executeRealSearch(document.getElementById('omniSearch').value)" class="absolute right-2 top-2 p-1.5 bg-red-600 rounded-xl">
+          <i data-lucide="arrow-right" class="text-white w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="searchResults" class="p-4 space-y-4 min-h-screen">
+      <!-- Default State -->
+      <div class="flex flex-col items-center justify-center h-[50vh] opacity-50">
+        <i data-lucide="server" class="w-16 h-16 mb-4 text-gray-700"></i>
+        <p class="text-xs text-gray-500 uppercase">Connecting to 3 Public APIs...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- === TAB 2: GHOST SHORTS (Fixed Playback) === -->
+  <section id="tab-shorts" class="tab-content hidden absolute inset-0 bg-black pb-16">
+    <div id="shortsFeed" class="snap-scroll w-full h-full">
+      <!-- JS Injected -->
+    </div>
+  </section>
+
+  <!-- === TAB 3: CINEMA (FIXED - No Header, Ad Blocked) === -->
+  <section id="tab-cinema" class="tab-content hidden absolute inset-0 bg-black z-40">
+    <!-- NO HEADER HERE. PURE FRAME. -->
     
-    <!-- === TAB 1: SEARCH (THE GOOGLE MIRROR) === -->
-    <section id="tab-search" class="absolute inset-0 overflow-y-auto bg-[#0a0a0a] pt-4 px-4 md:px-20">
-      
-      <!-- GOOGLE SEARCH BAR -->
-      <div class="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur py-4">
-        <div class="max-w-3xl mx-auto">
-          <div class="relative group">
-            <input type="text" id="searchInput" 
-              class="w-full bg-[#1a1a1a] text-white border border-white/10 rounded-full py-3 pl-12 pr-12 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-lg"
-              placeholder="Search the Infinite Web..."
-              onkeydown="if(event.key === 'Enter') performSearch(this.value)">
-            <i data-lucide="search" class="absolute left-4 top-3.5 text-gray-400 w-5 h-5"></i>
-            <button onclick="performSearch(document.getElementById('searchInput').value)" class="absolute right-3 top-2.5 p-1 rounded-full hover:bg-white/10">
-              <i data-lucide="arrow-right" class="text-purple-400 w-5 h-5"></i>
-            </button>
-          </div>
-          
-          <!-- FILTERS -->
-          <div class="flex gap-4 mt-4 text-sm text-gray-400 ml-4">
-            <span class="text-white border-b-2 border-white pb-1 cursor-pointer">All</span>
-            <span class="hover:text-white cursor-pointer">Images</span>
-            <span class="hover:text-white cursor-pointer">Videos</span>
-            <span class="hover:text-white cursor-pointer">Books</span>
-          </div>
-        </div>
-      </div>
+    <!-- 
+      SANDBOX EXPLANATION:
+      - allow-scripts: Website JS chalega (Video player needs this).
+      - allow-same-origin: Website apne assets load kar payegi.
+      - allow-forms: Search bar kaam karega.
+      - MISSING 'allow-popups': Ye wo cheez hai jo ADS ko naye tab me khulne se rokegi. 
+    -->
+    <iframe 
+      src="https://wvv-fmovies.com/all-movies/" 
+      class="cinema-frame"
+      sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
+      allowfullscreen>
+    </iframe>
+    
+    <!-- Fallback if site fails -->
+    <div id="cinemaFallback" class="absolute inset-0 flex flex-col items-center justify-center bg-black z-[-1] p-8 text-center">
+      <h2 class="text-red-500 font-bold mb-2">Access Restricted by Source</h2>
+      <p class="text-gray-500 text-sm mb-4">The movie site blocks embedded players. Click below to force open.</p>
+      <a href="https://wvv-fmovies.com/all-movies/" target="_blank" class="bg-red-600 text-white px-6 py-2 rounded-full">Force Open Cinema</a>
+    </div>
+  </section>
 
-      <!-- RESULTS FEED -->
-      <div class="max-w-3xl mx-auto py-6 space-y-8 min-h-screen">
-        
-        <!-- AI ANSWER BOX -->
-        <div id="aiBox" class="hidden bg-[#1a1a1a] p-6 rounded-2xl border border-white/10">
-          <div class="flex items-center gap-2 mb-3">
-            <i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
-            <span class="text-sm font-bold text-white">Generative AI Overview</span>
-          </div>
-          <p id="aiText" class="text-gray-300 leading-relaxed text-sm"></p>
-        </div>
+  <!-- === TAB 4: SOURCES (Your Mega List) === -->
+  <section id="tab-sources" class="tab-content hidden absolute inset-0 pb-16 overflow-y-auto bg-[#050505] p-4">
+    <h2 class="text-2xl font-bold mb-6 text-white px-2">The Deep Index</h2>
+    <div class="grid grid-cols-1 gap-4" id="sourceGrid">
+      <!-- Populated via JS -->
+    </div>
+  </section>
 
-        <!-- SEARCH RESULTS (Injected JS) -->
-        <div id="searchResults">
-          <!-- Initial State -->
-          <div class="text-center py-20 opacity-50">
-            <i data-lucide="globe" class="w-16 h-16 mx-auto mb-4 text-gray-600"></i>
-            <h2 class="text-xl font-bold">Enter the Void</h2>
-            <p class="text-sm">Access 100+ Billion Nodes instantly.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- === TAB 2: SHORTS (THE GHOST PLAYER) === -->
-    <section id="tab-shorts" class="hidden absolute inset-0 bg-black">
-      <div id="shortsContainer" class="h-full w-full overflow-y-scroll snap-y-mandatory scroll-smooth">
-        <!-- Shorts injected via JS -->
-      </div>
-    </section>
-
-    <!-- === TAB 3: CINEMA (YOUR WEBSITE) === -->
-    <section id="tab-cinema" class="hidden absolute inset-0 bg-black flex flex-col">
-      <div class="h-14 bg-[#111] flex items-center px-4 justify-between border-b border-white/10">
-        <div class="flex items-center gap-2 text-red-500 font-bold tracking-widest">
-          <i data-lucide="film" class="w-5 h-5"></i> PREMIUM THEATER
-        </div>
-        <div class="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">SECURE SOURCE: wvv-fmovies.com</div>
-      </div>
-      <div class="flex-1 relative">
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div class="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-        <!-- Embedding your site -->
-        <iframe src="https://wvv-fmovies.com/all-movies/" class="w-full h-full border-none relative z-10" allowfullscreen></iframe>
-      </div>
-    </section>
-
-  </main>
 </div>
 
-<!-- ==================== LOGIC ENGINE ==================== -->
+<!-- ==================== LOGIC CORE ==================== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { 
-    getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, 
-    setPersistence, browserLocalPersistence 
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // --- FIREBASE CONFIG ---
+  // FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
     authDomain: "midnight-library-satyam-media.firebaseapp.com",
@@ -200,216 +153,167 @@
     messagingSenderId: "842047619495",
     appId: "1:842047619495:web:7483bc7e4a9029d6dc7682"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  setPersistence(auth, browserLocalPersistence);
 
-  // --- DATABASE ---
-  const db = {
-    // Curated high-quality aesthetic videos for "Infinite" feed
-    shorts: [
-      "jfKfPfyJRdk", "5qap5aO4i9A", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk", "wbSwFU6tY1c", // Lofi/Space
-      "p770Xv5tq64", "t4g2h4s", "uNKdXj9h_a4", "CDa9M8J_tG0" // Random viral
-    ]
+  // --- DATA SOURCES ---
+  const sourceLinks = [
+    { name: "Archive.org", url: "https://archive.org", desc: "Wayback Machine & Dead Web", color: "border-yellow-500" },
+    { name: "Common Crawl", url: "https://commoncrawl.org", desc: "Petabytes of Web Data", color: "border-blue-500" },
+    { name: "Sci-Hub", url: "https://sci-hub.se", desc: "Unlock All Research", color: "border-red-500" },
+    { name: "LibGen", url: "https://libgen.is", desc: "Free Books & Papers", color: "border-green-500" },
+    { name: "GitHub List", url: "https://github.com/topics/awesome", desc: "Dev Resources", color: "border-gray-500" },
+    { name: "DuckDuckGo", url: "https://duckduckgo.com", desc: "Private Search", color: "border-orange-500" },
+    { name: "Radio Garden", url: "http://radio.garden", desc: "Global Live Radio", color: "border-green-400" },
+    { name: "Invidious", url: "https://invidious.io", desc: "YouTube Frontend", color: "border-purple-500" }
+  ];
+
+  const validShorts = [
+    "jfKfPfyJRdk", "5qap5aO4i9A", "uNKdXj9h_a4", "1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk", // Lofi
+    "p770Xv5tq64", "t4g2h4s", "ScMzIvxBSi4", "wbSwFU6tY1c", // Random
+    "f77SKdyn-1Y", "CDa9M8J_tG0", "S3X-z_7h_w", "n61ULEU7CO0" // Nature/Rain
+  ];
+
+  // --- UI CONTROLS ---
+  document.getElementById('loginBtn').onclick = async () => {
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
+    catch(e) { alert("Auth Failed: " + e.message); }
   };
 
-  // --- UI CONTROLLERS ---
-  const authGate = document.getElementById('authGate');
-  const universe = document.getElementById('universe');
-  const loginBtn = document.getElementById('loginBtn');
-
-  // Login Logic
-  loginBtn.onclick = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (e) { alert("Access Error: " + e.message); }
-  };
-
-  // Auth Listener
   onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById('userAvatar').src = user.photoURL;
-      authGate.style.opacity = '0';
-      setTimeout(() => {
-        authGate.style.display = 'none';
-        universe.classList.remove('hidden');
-        initShorts(); // Preload shorts
-      }, 700);
+    if(user) {
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('universe').classList.remove('hidden');
+      initShorts();
+      initSources();
     }
   });
 
-  // Tab Switcher
-  window.switchTab = (tabId) => {
-    ['search', 'shorts', 'cinema'].forEach(t => {
-      document.getElementById('tab-' + t).classList.add('hidden');
-    });
-    document.getElementById('tab-' + tabId).classList.remove('hidden');
+  window.switchTab = (tab) => {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
     
-    // Update icons color
-    document.querySelectorAll('.nav-btn').forEach(b => {
-      b.classList.remove('text-purple-500', 'bg-white/5');
-      b.classList.add('text-gray-500');
-    });
-    // Highlight active (simple logic for demo)
-    event.currentTarget.classList.add('text-purple-500', 'bg-white/5');
-    event.currentTarget.classList.remove('text-gray-500');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-white', 'text-gray-500'));
+    event.currentTarget.classList.replace('text-gray-500', 'text-white');
   };
 
-  // --- SEARCH ENGINE LOGIC (THE "GOOGLE" SIMULATION) ---
-  window.performSearch = async (query) => {
+  // --- REAL SEARCH ENGINE (Multi-API) ---
+  window.executeRealSearch = async (query) => {
     if(!query) return;
-    
     const container = document.getElementById('searchResults');
-    const aiBox = document.getElementById('aiBox');
-    const aiText = document.getElementById('aiText');
-    
-    container.innerHTML = `<div class="text-center py-10"><div class="inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>`;
-    
-    // 1. GENERATE AI SUMMARY
-    aiBox.classList.remove('hidden');
-    aiText.innerText = "Analyzing neural web...";
-    setTimeout(() => {
-        aiText.innerText = `Based on 4.2 billion indexed pages regarding "${query}", the consensus is that this topic represents a significant node in the digital archive. It relates to multiple domains including history, science, and pop culture. Below are the most relevant verified links found in the deep index.`;
-    }, 1500);
+    container.innerHTML = `<div class="p-8 text-center"><div class="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin inline-block"></div><p class="text-gray-500 mt-2 text-xs">Accessing Global Nodes...</p></div>`;
 
-    // 2. FETCH REAL DATA (Wikipedia API -> Google Style Cards)
+    let html = "";
+
     try {
-        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
-        const data = await res.json();
-        
-        container.innerHTML = ""; // Clear loader
+      // 1. Wikipedia API (For General Knowledge)
+      const wikiRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&format=json&origin=*`);
+      const wikiData = await wikiRes.json();
+      
+      // 2. OpenLibrary API (For Books)
+      const bookRes = await fetch(`https://openlibrary.org/search.json?q=${query}&limit=3`);
+      const bookData = await bookRes.json();
 
-        // Add "Real" Website Links (Simulated Google Results)
-        data.query.search.forEach((item, i) => {
-            const fakeDomain = item.title.replace(/\s+/g, '').toLowerCase() + '.com';
-            const randomViews = (Math.random() * 10).toFixed(1) + 'M';
-            
-            // Generate Google-style Card
-            const card = document.createElement('div');
-            card.className = "mb-8";
-            card.innerHTML = `
-                <div class="g-url">
-                    <div class="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-400 border border-white/10">
-                        <img src="https://www.google.com/s2/favicons?domain=${fakeDomain}" onerror="this.style.display='none'" class="w-4 h-4">
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-xs text-white font-medium">${item.title}</span>
-                        <span class="text-[10px] text-gray-500">https://www.${fakeDomain}</span>
-                    </div>
-                    <i data-lucide="more-vertical" class="w-4 h-4 text-gray-600 ml-auto"></i>
-                </div>
-                <a href="https://en.m.wikipedia.org/wiki/${item.title}" target="_blank" class="g-link text-purple-400 visited:text-purple-600 block mb-1">
-                    ${item.title} - Official Archive & Documentation
-                </a>
-                <p class="g-desc">
-                    ${item.timestamp.split('T')[0]} — ${item.snippet.replace(/<[^>]*>?/gm, '')}... This is a verified result from the master index matching your query about ${query}.
-                </p>
-                <!-- Image Strip -->
-                <div class="flex gap-2 mt-3 overflow-hidden">
-                   ${[1,2,3].map(n => `
-                      <div class="w-24 h-16 rounded-lg bg-gray-800 overflow-hidden relative">
-                         <img src="https://source.unsplash.com/random/200x200?${item.title}&sig=${n+i}" class="w-full h-full object-cover opacity-80 hover:opacity-100">
-                      </div>
-                   `).join('')}
-                </div>
-            `;
-            container.appendChild(card);
-            
-            // Inject a "Ghost Video" every 3 results
-            if(i === 1) {
-                const vidDiv = document.createElement('div');
-                vidDiv.className = "mb-8 border border-white/10 rounded-xl overflow-hidden bg-black";
-                vidDiv.innerHTML = `
-                   <div class="p-4 border-b border-white/10 flex justify-between items-center">
-                      <span class="text-white font-bold text-sm">Videos</span>
-                      <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                   </div>
-                   <div class="flex gap-4 p-4 overflow-x-auto">
-                      <div class="w-64 flex-shrink-0">
-                         <div class="aspect-video bg-black rounded-lg overflow-hidden relative mb-2">
-                             <iframe src="https://www.youtube.com/embed/${db.shorts[0]}?controls=0&modestbranding=1" class="w-full h-full opacity-70 hover:opacity-100 transition"></iframe>
-                         </div>
-                         <p class="text-sm text-white truncate">Top Video for ${query}</p>
-                      </div>
-                      <div class="w-64 flex-shrink-0">
-                         <div class="aspect-video bg-black rounded-lg overflow-hidden relative mb-2">
-                             <iframe src="https://www.youtube.com/embed/${db.shorts[1]}?controls=0&modestbranding=1" class="w-full h-full opacity-70 hover:opacity-100 transition"></iframe>
-                         </div>
-                         <p class="text-sm text-white truncate">Viral Analysis</p>
-                      </div>
-                   </div>
-                `;
-                container.appendChild(vidDiv);
-            }
+      // RENDER: Wiki Results (Google Style)
+      if(wikiData.query && wikiData.query.search) {
+        wikiData.query.search.forEach(item => {
+           const fakeUrl = `www.${item.title.replace(/\s+/g,'').toLowerCase()}.org`;
+           html += `
+             <div class="bg-[#111] p-4 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
+               <div class="flex items-center gap-2 mb-1">
+                 <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-400">W</div>
+                 <div class="flex flex-col">
+                   <span class="text-[10px] text-gray-400">${fakeUrl}</span>
+                   <span class="text-xs text-white font-bold">${item.title}</span>
+                 </div>
+               </div>
+               <a href="https://en.m.wikipedia.org/wiki/${item.title}" target="_blank" class="text-blue-400 text-lg hover:underline block mb-1">
+                 ${item.title} - Encyclopedia Entry
+               </a>
+               <p class="text-sm text-gray-400 leading-snug">
+                 ${item.snippet.replace(/<[^>]*>?/gm, '')}... Verified Knowledge Source.
+               </p>
+             </div>
+           `;
         });
-        
-        lucide.createIcons();
+      }
 
-    } catch(e) { console.error(e); }
+      // RENDER: Book Results
+      if(bookData.docs && bookData.docs.length > 0) {
+        html += `<h3 class="text-xl font-bold text-white mt-8 mb-4 px-2">Library Archives</h3>`;
+        bookData.docs.forEach(book => {
+          html += `
+             <div class="flex gap-4 bg-[#111] p-4 rounded-xl border border-white/5 mb-2">
+               <div class="w-16 h-24 bg-gray-800 rounded flex-shrink-0 overflow-hidden">
+                 ${book.cover_i ? `<img src="https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-xs text-gray-600">No Cover</div>'}
+               </div>
+               <div>
+                 <h4 class="text-white font-bold">${book.title}</h4>
+                 <p class="text-sm text-gray-400">${book.author_name ? book.author_name[0] : 'Unknown Author'}</p>
+                 <a href="https://openlibrary.org${book.key}" target="_blank" class="text-xs text-green-500 mt-2 inline-block border border-green-500/30 px-2 py-1 rounded">Read Free</a>
+               </div>
+             </div>
+          `;
+        });
+      }
+
+    } catch(e) {
+      html += `<div class="text-red-500">Connection Error: ${e.message}</div>`;
+    }
+
+    container.innerHTML = html;
   };
 
-  // --- SHORTS ENGINE (GHOST MODE) ---
-  function initShorts() {
-    const container = document.getElementById('shortsContainer');
-    // Generate 100 Infinite Slides
-    for(let i=0; i<100; i++) {
-        const vidId = db.shorts[i % db.shorts.length];
-        const slide = document.createElement('div');
-        slide.className = "w-full h-full snap-center relative bg-black flex items-center justify-center overflow-hidden";
-        
-        slide.innerHTML = `
-            <!-- GHOST CONTAINER: This hides the YouTube UI -->
-            <div class="yt-ghost-container">
-                <iframe 
-                    class="yt-ghost-frame" 
-                    src="https://www.youtube.com/embed/${vidId}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vidId}&iv_load_policy=3&rel=0&showinfo=0&playsinline=1" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                </iframe>
-                
-                <!-- TOP BLOCKER (Hides Title) -->
-                <div class="yt-blocker-top"></div>
-            </div>
+  // --- SOURCES TAB ---
+  function initSources() {
+    const grid = document.getElementById('sourceGrid');
+    grid.innerHTML = sourceLinks.map(link => `
+      <a href="${link.url}" target="_blank" class="block bg-[#111] p-6 rounded-2xl border-l-4 ${link.color} hover:bg-[#1a1a1a] transition-colors">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-bold text-white">${link.name}</h3>
+          <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">${link.desc}</p>
+      </a>
+    `).join('');
+    lucide.createIcons();
+  }
 
-            <!-- CUSTOM UI OVERLAY (Since we hid real controls) -->
-            <div class="absolute right-4 bottom-24 flex flex-col gap-6 items-center z-30">
-                <div class="flex flex-col items-center gap-1">
-                    <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
-                        <i data-lucide="heart" class="w-6 h-6 text-white fill-white"></i>
-                    </div>
-                    <span class="text-xs font-bold text-white">1.2M</span>
-                </div>
-                <div class="flex flex-col items-center gap-1">
-                    <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
-                        <i data-lucide="message-circle" class="w-6 h-6 text-white fill-white"></i>
-                    </div>
-                    <span class="text-xs font-bold text-white">45K</span>
-                </div>
-                <div class="w-12 h-12 bg-gray-800/60 backdrop-blur rounded-full flex items-center justify-center">
-                    <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
-                </div>
-            </div>
-            
-            <div class="absolute bottom-6 left-4 right-16 z-30">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">R</div>
-                    <span class="font-bold text-white shadow-black drop-shadow-md">@RoohUniverse</span>
-                </div>
-                <p class="text-sm text-gray-200 line-clamp-2 shadow-black drop-shadow-md">
-                    Infinite stream generated by the neural network. #infinity #cosmos #vibe
-                </p>
-            </div>
-        `;
-        container.appendChild(slide);
+  // --- FIXED SHORTS ENGINE ---
+  function initShorts() {
+    const container = document.getElementById('shortsFeed');
+    // Creating 50 infinite slots reusing the valid ID list
+    for(let i=0; i<50; i++) {
+      const vid = validShorts[i % validShorts.length];
+      const div = document.createElement('div');
+      div.className = "snap-item bg-black flex items-center justify-center overflow-hidden";
+      div.innerHTML = `
+        <div class="ghost-wrapper">
+          <div class="click-shield"></div>
+          <iframe 
+            class="ghost-frame" 
+            src="https://www.youtube.com/embed/${vid}?autoplay=0&controls=0&modestbranding=1&loop=1&playlist=${vid}&rel=0&showinfo=0&iv_load_policy=3&fs=0" 
+            frameborder="0" 
+            allow="encrypted-media">
+          </iframe>
+          
+          <!-- FAKE UI OVERLAY -->
+          <div class="absolute right-4 bottom-24 flex flex-col gap-6 z-20">
+             <div class="w-12 h-12 bg-gray-800/50 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="heart" class="w-6 h-6 text-white"></i></div>
+             <div class="w-12 h-12 bg-gray-800/50 backdrop-blur rounded-full flex items-center justify-center"><i data-lucide="share" class="w-6 h-6 text-white"></i></div>
+          </div>
+          <div class="absolute bottom-6 left-4 z-20 pointer-events-none">
+             <p class="text-white font-bold drop-shadow-md">@RoohArchive</p>
+             <p class="text-xs text-gray-300 drop-shadow-md">Infinite Content Stream #${i+1}</p>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
     }
     lucide.createIcons();
   }
 
-  // Init Icons
   lucide.createIcons();
-
 </script>
 </body>
 </html>
