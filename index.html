@@ -1,277 +1,1027 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midnight Library | Ultimate Salon App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Salon Queue Pro | Smart Queue Management</title>
     
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        display: ['sans-serif'],
-                        body: ['sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Plus Jakarta Sans', 'sans-serif'],
                     },
                     colors: {
-                        background: '#000000', 
-                        surface: '#121212',    
-                        primary: '#8b5cf6',    
-                        secondary: '#1f2937',  
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'float': 'float 6s ease-in-out infinite',
                     },
                     keyframes: {
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
                     }
                 }
             }
         }
     </script>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
     <style>
-        body { background-color: #000; color: #fff; overflow-x: hidden; }
-        .glass {
-            background: rgba(20, 20, 20, 0.6);
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .btn-gradient {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            transition: transform 0.2s;
+
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .btn-gradient:active { transform: scale(0.95); }
     </style>
 </head>
-<body>
-
+<body class="bg-slate-50 text-slate-900 font-body antialiased selection:bg-primary-500 selection:text-white">
+    
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- FIREBASE SETUP ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
-            authDomain: "midnight-library-satyam-media.firebaseapp.com",
-            projectId: "midnight-library-satyam-media",
-            appId: "1:842047619495:web:7483bc7e4a9029d6dc7682"
+        const { useState, useEffect, useContext, createContext, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // --- ICONS ---
+        const Icons = {
+            Scissors: () => <i data-lucide="scissors"></i>,
+            User: () => <i data-lucide="user"></i>,
+            MapPin: () => <i data-lucide="map-pin"></i>,
+            Clock: () => <i data-lucide="clock"></i>,
+            Star: () => <i data-lucide="star"></i>,
+            Search: () => <i data-lucide="search"></i>,
+            Home: () => <i data-lucide="home"></i>,
+            Ticket: () => <i data-lucide="ticket"></i>,
+            LogOut: () => <i data-lucide="log-out"></i>,
+            ChevronLeft: () => <i data-lucide="chevron-left"></i>,
+            Plus: () => <i data-lucide="plus"></i>,
+            CheckCircle: () => <i data-lucide="check-circle-2"></i>,
+            AlertCircle: () => <i data-lucide="alert-circle"></i>,
+            Power: () => <i data-lucide="power"></i>,
+            Coffee: () => <i data-lucide="coffee"></i>,
+            Crown: () => <i data-lucide="crown"></i>,
+            Calendar: () => <i data-lucide="calendar"></i>,
+            Phone: () => <i data-lucide="phone"></i>,
+            ShieldCheck: () => <i data-lucide="shield-check"></i>,
+            Trash2: () => <i data-lucide="trash-2"></i>,
+            TrendingUp: () => <i data-lucide="trending-up"></i>
         };
-        
-        // Initialize safely
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const provider = new firebase.auth.GoogleAuthProvider();
 
-        const { useState, useEffect } = React;
-
-        // --- COMPONENTS ---
-
-        const Icon = ({ name, size=24, className="" }) => {
-            useEffect(() => { if(window.lucide) window.lucide.createIcons(); }, [name]);
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
             return <i data-lucide={name} width={size} height={size} className={className}></i>;
         };
 
-        // --- LOGIN SCREEN ---
-        const LoginScreen = ({ onLogin }) => {
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState("");
+        // --- MOCK DATA SEEDER ---
+        const SEED_DATA = {
+            users: [
+                { id: 'u1', name: 'Rahul Kumar', phone: '9876543210', role: 'customer', plan: 'basic', image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80' },
+                { id: 'u2', name: 'Vikram Barber', phone: '1122334455', role: 'barber', salonId: 's1', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80' }
+            ],
+            salons: [
+                {
+                    id: 's1',
+                    ownerId: 'u2',
+                    name: "Vikram's Hair Studio",
+                    location: "Andheri West, Mumbai",
+                    image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80",
+                    rating: 4.8,
+                    reviews: 124,
+                    isOpen: true,
+                    isOnBreak: false,
+                    breakEndTime: null,
+                    currentToken: 4,
+                    features: ['AC', 'WiFi', 'Music'],
+                    services: [
+                        { id: 'sv1', name: 'Classic Haircut', duration: 30, price: 250, category: 'Hair' },
+                        { id: 'sv2', name: 'Beard Trim & Shape', duration: 20, price: 150, category: 'Beard' },
+                        { id: 'sv3', name: 'Haircut + Shave Combo', duration: 45, price: 350, category: 'Combo' },
+                        { id: 'sv4', name: 'O3+ Facial', duration: 60, price: 1200, category: 'Face' },
+                        { id: 'sv5', name: 'Head Massage', duration: 20, price: 200, category: 'Relax' }
+                    ]
+                },
+                {
+                    id: 's2',
+                    ownerId: 'u99',
+                    name: "Luxe Men's Lounge",
+                    location: "Koramangala, Bangalore",
+                    image: "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?auto=format&fit=crop&w=800&q=80",
+                    rating: 4.9,
+                    reviews: 89,
+                    isOpen: true,
+                    isOnBreak: true,
+                    currentToken: 12,
+                    features: ['Premium', 'Beverages'],
+                    services: [
+                        { id: 'sv6', name: 'Premium Haircut', duration: 45, price: 500, category: 'Hair' },
+                        { id: 'sv7', name: 'Royal Shave', duration: 30, price: 300, category: 'Beard' }
+                    ]
+                }
+            ],
+            queue: [
+                { id: 'q1', salonId: 's1', customerId: 'u3', serviceId: 'sv1', tokenNumber: 5, status: 'waiting', estimatedWait: 15 },
+                { id: 'q2', salonId: 's1', customerId: 'u4', serviceId: 'sv3', tokenNumber: 6, status: 'waiting', estimatedWait: 45 },
+                { id: 'q3', salonId: 's1', customerId: 'u5', serviceId: 'sv2', tokenNumber: 7, status: 'waiting', estimatedWait: 90 }
+            ]
+        };
 
-            // Original Google Login (Works on Server)
-            const handleGoogle = async () => {
+        // --- CONTEXT & UTILS ---
+        const DataContext = createContext();
+
+        const DataProvider = ({ children }) => {
+            const [users, setUsers] = useState(JSON.parse(localStorage.getItem('sq_users')) || SEED_DATA.users);
+            const [salons, setSalons] = useState(JSON.parse(localStorage.getItem('sq_salons')) || SEED_DATA.salons);
+            const [queue, setQueue] = useState(JSON.parse(localStorage.getItem('sq_queue')) || SEED_DATA.queue);
+            const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('sq_current_user')) || null);
+
+            // Persist Data
+            useEffect(() => {
+                localStorage.setItem('sq_users', JSON.stringify(users));
+                localStorage.setItem('sq_salons', JSON.stringify(salons));
+                localStorage.setItem('sq_queue', JSON.stringify(queue));
+                if (currentUser) localStorage.setItem('sq_current_user', JSON.stringify(currentUser));
+                else localStorage.removeItem('sq_current_user');
+            }, [users, salons, queue, currentUser]);
+
+            const login = (phone, otp) => {
+                if (otp !== '1234') throw new Error("Invalid OTP");
+                const user = users.find(u => u.phone === phone);
+                if (user) {
+                    setCurrentUser(user);
+                    return user;
+                }
+                throw new Error("User not found");
+            };
+
+            const googleLogin = () => {
+                // Simulation of Google Login
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const googleUser = { 
+                            id: 'g_' + Date.now(), 
+                            name: 'Google User', 
+                            phone: 'google_linked', 
+                            role: 'customer', 
+                            plan: 'basic',
+                            image: 'https://lh3.googleusercontent.com/a/default-user=s96-c' 
+                        };
+                        setUsers([...users, googleUser]);
+                        setCurrentUser(googleUser);
+                        resolve(googleUser);
+                    }, 1500);
+                });
+            };
+
+            const logout = () => {
+                setCurrentUser(null);
+            };
+
+            const joinQueue = (salonId, serviceId) => {
+                const salon = salons.find(s => s.id === salonId);
+                const service = salon.services.find(s => s.id === serviceId);
+                
+                // Calculate position and time
+                const salonQueue = queue.filter(q => q.salonId === salonId && q.status === 'waiting');
+                const lastToken = salonQueue.length > 0 ? Math.max(...salonQueue.map(q => q.tokenNumber)) : salon.currentToken;
+                const newToken = lastToken + 1;
+                
+                // Smart Wait Time Calculation
+                let waitTime = 0;
+                salonQueue.forEach(q => {
+                    const s = salon.services.find(ser => ser.id === q.serviceId);
+                    waitTime += s ? s.duration : 20;
+                });
+
+                const newEntry = {
+                    id: 'q_' + Date.now(),
+                    salonId,
+                    customerId: currentUser.id,
+                    serviceId,
+                    tokenNumber: newToken,
+                    status: 'waiting',
+                    estimatedWait: waitTime,
+                    joinedAt: new Date().toISOString()
+                };
+
+                setQueue([...queue, newEntry]);
+                return newEntry;
+            };
+
+            const updateSalonStatus = (salonId, updates) => {
+                setSalons(salons.map(s => s.id === salonId ? { ...s, ...updates } : s));
+            };
+
+            const processNextCustomer = (salonId) => {
+                const salonQueue = queue.filter(q => q.salonId === salonId && q.status === 'waiting').sort((a,b) => a.tokenNumber - b.tokenNumber);
+                
+                if (salonQueue.length === 0) return null;
+
+                const nextCustomer = salonQueue[0];
+                
+                // Update queue
+                setQueue(queue.map(q => q.id === nextCustomer.id ? { ...q, status: 'completed' } : q));
+                
+                // Update salon current token
+                const newCurrentToken = nextCustomer.tokenNumber;
+                setSalons(salons.map(s => s.id === salonId ? { ...s, currentToken: newCurrentToken } : s));
+                
+                return nextCustomer;
+            };
+
+            return (
+                <DataContext.Provider value={{ 
+                    users, salons, queue, currentUser, 
+                    login, googleLogin, logout, 
+                    joinQueue, updateSalonStatus, processNextCustomer,
+                    setQueue
+                }}>
+                    {children}
+                </DataContext.Provider>
+            );
+        };
+
+        // --- UI COMPONENTS ---
+
+        const Button = ({ children, variant = 'primary', className = "", onClick, disabled, loading }) => {
+            const baseClass = "relative overflow-hidden rounded-xl font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center";
+            const variants = {
+                primary: "bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50",
+                secondary: "bg-white text-slate-800 border border-slate-200 hover:bg-slate-50",
+                danger: "bg-red-50 text-red-600 border border-red-100 hover:bg-red-100",
+                ghost: "bg-transparent text-slate-600 hover:bg-slate-100",
+                google: "bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50"
+            };
+
+            return (
+                <button 
+                    onClick={onClick} 
+                    disabled={disabled || loading}
+                    className={`${baseClass} ${variants[variant]} ${className} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                    {loading ? (
+                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    ) : null}
+                    {children}
+                </button>
+            );
+        };
+
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 ${className}`}>
+                {children}
+            </div>
+        );
+
+        const Modal = ({ isOpen, onClose, children, title }) => (
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={onClose}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 100, scale: 0.95 }}
+                            className="fixed left-4 right-4 bottom-4 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-white rounded-3xl z-50 overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <h3 className="font-display font-bold text-lg">{title}</h3>
+                                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full">
+                                    <Icon name="x" size={20} />
+                                </button>
+                            </div>
+                            <div className="p-5 max-h-[70vh] overflow-y-auto">
+                                {children}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        );
+
+        // --- LOGIN SCREEN ---
+        const LoginScreen = () => {
+            const { login, googleLogin } = useContext(DataContext);
+            const [phone, setPhone] = useState('9876543210');
+            const [otp, setOtp] = useState('');
+            const [step, setStep] = useState(1);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleLogin = async () => {
                 setLoading(true);
+                setError('');
                 try {
-                    await auth.signInWithPopup(provider);
-                } catch (err) {
-                    console.error(err);
-                    setError("Google Login failed (File protocol?). Try Guest Mode.");
+                    // Simulate network delay
+                    await new Promise(r => setTimeout(r, 800));
+                    login(phone, otp);
+                } catch (e) {
+                    setError(e.message);
+                } finally {
                     setLoading(false);
                 }
             };
 
-            // Guest Bypass (Works Everywhere)
-            const handleGuest = () => {
-                onLogin({ 
-                    displayName: "Guest User", 
-                    photoURL: "https://api.dicebear.com/7.x/avataaars/svg?seed=Guest",
-                    uid: "guest-123"
-                });
+            const handleGoogle = async () => {
+                setLoading(true);
+                await googleLogin();
+                setLoading(false);
             };
 
             return (
-                <div className="h-screen flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=1600&q=80')] bg-cover bg-center">
-                    <div className="absolute inset-0 bg-black/80"></div>
-                    
-                    <div className="relative glass p-8 rounded-3xl w-full max-w-sm mx-4 text-center animate-fade-in shadow-2xl">
-                        <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/50">
-                            <Icon name="scissors" size={32} className="text-primary" />
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary-50 to-white relative overflow-hidden">
+                    {/* Background decorations */}
+                    <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-primary-200 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+                    <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-gold-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '1s'}}></div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full max-w-sm"
+                    >
+                        <div className="text-center mb-10">
+                            <div className="w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary-500/20 transform rotate-3">
+                                <Icon name="scissors" size={40} className="text-white" />
+                            </div>
+                            <h1 className="font-display text-4xl font-bold text-slate-900 mb-2">SalonPro</h1>
+                            <p className="text-slate-500">Queue Management System</p>
                         </div>
+
+                        <Card className="p-6 backdrop-blur-xl bg-white/80 border-white/50 shadow-xl">
+                            {step === 1 ? (
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
+                                        <div className="relative">
+                                            <Icon name="phone" size={18} className="absolute left-3 top-3.5 text-slate-400" />
+                                            <input 
+                                                type="tel" 
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
+                                                placeholder="98765 43210"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <Button onClick={() => setStep(2)} className="w-full py-3.5">
+                                        Continue <Icon name="chevron-right" size={18} className="ml-1" />
+                                    </Button>
+
+                                    <div className="relative py-2">
+                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
+                                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold tracking-wider">Or</span></div>
+                                    </div>
+
+                                    <Button variant="google" onClick={handleGoogle} className="w-full py-3.5 flex items-center justify-center gap-2" loading={loading}>
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                                        Login with Google
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="text-center mb-4">
+                                        <p className="text-slate-500 text-sm">Enter OTP sent to <span className="font-bold text-slate-800">{phone}</span></p>
+                                        <button onClick={() => setStep(1)} className="text-primary-600 text-xs font-bold hover:underline">Change Number</button>
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <input 
+                                            type="text" 
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value)}
+                                            className="w-full text-center tracking-[1em] font-bold text-2xl py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                                            placeholder="••••"
+                                            maxLength={4}
+                                        />
+                                        <p className="text-xs text-center text-slate-400 mt-2">Use Mock OTP: 1234</p>
+                                    </div>
+                                    
+                                    {error && (
+                                        <motion.div initial={{opacity:0}} animate={{opacity:1}} className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100 flex items-center justify-center gap-1">
+                                            <Icon name="alert-circle" size={14} /> {error}
+                                        </motion.div>
+                                    )}
+
+                                    <Button onClick={handleLogin} loading={loading} className="w-full py-3.5 mt-2">
+                                        Verify & Login
+                                    </Button>
+                                </div>
+                            )}
+                        </Card>
                         
-                        <h1 className="text-3xl font-bold mb-2">Midnight Library</h1>
-                        <p className="text-gray-400 mb-8 text-sm">Premium Booking Experience</p>
-
-                        {error && <div className="bg-red-900/50 text-red-200 text-xs p-2 rounded mb-4">{error}</div>}
-
-                        <button onClick={handleGoogle} disabled={loading} className="w-full bg-white text-black font-bold py-3 rounded-xl mb-3 flex items-center justify-center gap-2 hover:bg-gray-200">
-                            {loading ? "Loading..." : "Continue with Google"}
-                        </button>
-
-                        <button onClick={handleGuest} className="w-full bg-secondary text-white font-medium py-3 rounded-xl border border-white/10 hover:bg-white/10">
-                            Enter as Guest (No Login)
-                        </button>
-                    </div>
+                        <div className="mt-8 text-center space-y-2">
+                             <div className="bg-white/50 backdrop-blur-sm p-3 rounded-xl border border-white inline-block">
+                                <p className="text-xs font-bold text-slate-500 mb-1">QUICK TEST LOGIN:</p>
+                                <div className="flex gap-2 justify-center text-xs">
+                                    <span className="px-2 py-1 bg-primary-100 text-primary-700 rounded border border-primary-200">User: 9876543210</span>
+                                    <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded border border-amber-200">Barber: 1122334455</span>
+                                </div>
+                             </div>
+                        </div>
+                    </motion.div>
                 </div>
             );
         };
 
-        // --- MAIN APP ---
-        const App = () => {
-            const [user, setUser] = useState(null);
-            const [view, setView] = useState('home'); // home, queue, barber
-            const [activeToken, setActiveToken] = useState(null);
+        // --- CUSTOMER DASHBOARD ---
+        const CustomerDashboard = () => {
+            const { salons, currentUser, queue, joinQueue, updateSalonStatus, setQueue } = useContext(DataContext);
+            const [view, setView] = useState('home'); // home, salon, tokens, profile
+            const [selectedSalonId, setSelectedSalonId] = useState(null);
+            const [selectedService, setSelectedService] = useState(null);
+            const [showJoinModal, setShowJoinModal] = useState(false);
+            const [search, setSearch] = useState('');
+            const [tab, setTab] = useState('all'); // all, hair, spa
 
-            // Listen for Real Auth
-            useEffect(() => {
-                auth.onAuthStateChanged(u => {
-                    if (u) setUser(u);
+            const activeQueue = queue.filter(q => q.customerId === currentUser.id && ['waiting', 'serving'].includes(q.status));
+            const selectedSalon = salons.find(s => s.id === selectedSalonId);
+            
+            // Filtered salons
+            const filteredSalons = salons.filter(s => 
+                s.name.toLowerCase().includes(search.toLowerCase()) || 
+                s.location.toLowerCase().includes(search.toLowerCase())
+            );
+
+            // Wait time calculation for selected service
+            const calculatedWait = useMemo(() => {
+                if (!selectedSalon || !selectedService) return 0;
+                const salonQueue = queue.filter(q => q.salonId === selectedSalon.id && q.status === 'waiting');
+                
+                let time = 0;
+                // Add time of people ahead
+                salonQueue.forEach(q => {
+                    const serv = selectedSalon.services.find(s => s.id === q.serviceId);
+                    if(serv) time += serv.duration;
                 });
-            }, []);
+                return time;
+            }, [selectedSalon, selectedService, queue]);
 
-            // Handle Login (Guest or Real)
-            const handleLogin = (u) => setUser(u);
+            const handleJoinQueue = () => {
+                joinQueue(selectedSalonId, selectedService.id);
+                setShowJoinModal(false);
+                setView('tokens');
+            };
 
-            // --- UI SECTIONS ---
-            if (!user) return <LoginScreen onLogin={handleLogin} />;
+            const cancelToken = (id) => {
+                if(confirm("Are you sure you want to cancel?")) {
+                    setQueue(queue.map(q => q.id === id ? {...q, status: 'cancelled'} : q));
+                }
+            };
 
-            return (
-                <div className="max-w-md mx-auto min-h-screen bg-black border-x border-white/10 relative shadow-2xl">
-                    
-                    {/* TOP BAR */}
-                    <div className="p-4 flex justify-between items-center glass sticky top-0 z-50">
-                        <div className="flex items-center gap-3">
-                            <img src={user.photoURL} className="w-10 h-10 rounded-full border border-primary" />
+            const renderHome = () => (
+                <div className="pb-24">
+                    {/* Header */}
+                    <div className="bg-white p-5 pb-4 sticky top-0 z-30 shadow-sm border-b border-slate-100">
+                        <div className="flex justify-between items-center mb-4">
                             <div>
-                                <p className="text-xs text-gray-400">Welcome,</p>
-                                <h3 className="font-bold">{user.displayName.split(' ')[0]}</h3>
+                                <h2 className="font-display text-2xl font-bold text-slate-800">Find a Salon</h2>
+                                <p className="text-slate-500 text-sm flex items-center"><Icon name="map-pin" size={14} className="mr-1 text-primary-500" /> Mumbai, India</p>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden border-2 border-primary-200" onClick={() => setView('profile')}>
+                                <img src={currentUser.image} className="w-full h-full object-cover" />
                             </div>
                         </div>
-                        <button onClick={() => setView(view === 'barber' ? 'home' : 'barber')} className="text-xs bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                            {view === 'barber' ? 'Switch to Customer' : 'Switch to Barber'}
-                        </button>
+                        
+                        <div className="relative">
+                            <Icon name="search" size={18} className="absolute left-3.5 top-3.5 text-slate-400" />
+                            <input 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="Search salons, services..." 
+                            />
+                        </div>
                     </div>
 
-                    {/* CUSTOMER HOME */}
-                    {view === 'home' && (
-                        <div className="p-4 space-y-6 animate-fade-in pb-24">
-                            <div className="relative">
-                                <input className="w-full bg-secondary p-3 pl-10 rounded-xl text-sm border border-white/10 focus:outline-none focus:border-primary" placeholder="Search salons..." />
-                                <div className="absolute left-3 top-3 text-gray-400"><Icon name="search" size={18}/></div>
-                            </div>
-
-                            {/* SALON CARD */}
-                            <div className="glass rounded-2xl overflow-hidden group">
-                                <div className="h-40 relative">
-                                    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600" className="w-full h-full object-cover opacity-80" />
-                                    <div className="absolute top-3 right-3 bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded font-bold backdrop-blur">OPEN</div>
+                    {/* Featured & List */}
+                    <div className="p-5 space-y-6">
+                        {!search && (
+                            <div>
+                                <h3 className="font-bold text-slate-800 mb-3 flex items-center"><Icon name="star" size={16} className="text-gold-500 fill-current mr-1" /> Featured</h3>
+                                <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scroll -mx-5 px-5">
+                                    {salons.map(salon => (
+                                        <div key={salon.id} onClick={() => { setSelectedSalonId(salon.id); setView('salon'); }} className="snap-center shrink-0 w-72 h-44 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer">
+                                            <img src={salon.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-4 flex flex-col justify-end text-white">
+                                                <h4 className="font-bold text-lg">{salon.name}</h4>
+                                                <div className="flex justify-between items-end">
+                                                    <p className="text-xs text-white/80">{salon.location}</p>
+                                                    <span className="bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold flex items-center">
+                                                        <Icon name="star" size={10} className="fill-current mr-1" /> {salon.rating}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="p-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h2 className="text-xl font-bold">Noir Barbershop</h2>
+                            </div>
+                        )}
+
+                        <div>
+                            <h3 className="font-bold text-slate-800 mb-3">Nearby Salons</h3>
+                            <div className="space-y-4">
+                                {filteredSalons.map(salon => (
+                                    <Card key={salon.id} className="p-3 flex gap-4 cursor-pointer hover:border-primary-200 transition-colors" onClick={() => { setSelectedSalonId(salon.id); setView('salon'); }}>
+                                        <div className="w-24 h-24 rounded-xl bg-slate-200 shrink-0 overflow-hidden relative">
+                                            <img src={salon.image} className="w-full h-full object-cover" />
+                                            {!salon.isOpen && <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xs font-bold uppercase">Closed</div>}
+                                        </div>
+                                        <div className="flex-1 py-1">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-slate-800 leading-tight mb-1">{salon.name}</h4>
+                                                {salon.isOnBreak && <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded">BREAK</span>}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-3">{salon.location}</p>
+                                            
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center text-xs font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded-md">
+                                                    <Icon name="clock" size={12} className="mr-1" /> ~20 min
+                                                </div>
+                                                <div className="flex items-center text-xs font-medium text-slate-600">
+                                                    <Icon name="user" size={12} className="mr-1" /> {salon.reviews} reviews
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderSalonDetail = () => {
+                if (!selectedSalon) return null;
+                return (
+                    <div className="bg-white min-h-screen pb-24">
+                        {/* Hero */}
+                        <div className="relative h-64 w-full">
+                            <img src={selectedSalon.image} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                            <button onClick={() => setView('home')} className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                                <Icon name="chevron-left" size={24} />
+                            </button>
+                            <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                                <h1 className="font-display text-3xl font-bold mb-1">{selectedSalon.name}</h1>
+                                <p className="text-white/80 text-sm flex items-center mb-3"><Icon name="map-pin" size={14} className="mr-1" /> {selectedSalon.location}</p>
+                                <div className="flex gap-2">
+                                    {selectedSalon.isOpen ? (
+                                        <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">OPEN NOW</span>
+                                    ) : (
+                                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">CLOSED</span>
+                                    )}
+                                    <span className="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded flex items-center"><Icon name="star" size={10} className="fill-current mr-1" /> {selectedSalon.rating}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Queue Stats Bar */}
+                        <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-around text-center">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Token</p>
+                                <p className="text-xl font-display font-bold text-primary-600">#{selectedSalon.currentToken}</p>
+                            </div>
+                            <div className="w-px bg-slate-200"></div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Wait Time</p>
+                                <p className="text-xl font-display font-bold text-primary-600">~25 min</p>
+                            </div>
+                        </div>
+
+                        {/* Services */}
+                        <div className="p-5">
+                            <h3 className="font-bold text-lg mb-4">Select Service</h3>
+                            <div className="space-y-3">
+                                {selectedSalon.services.map(service => (
+                                    <div 
+                                        key={service.id} 
+                                        onClick={() => setSelectedService(service)}
+                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${selectedService?.id === service.id ? 'border-primary-500 bg-primary-50' : 'border-slate-100 hover:border-slate-200'}`}
+                                    >
+                                        <div>
+                                            <h4 className="font-bold text-slate-800">{service.name}</h4>
+                                            <p className="text-sm text-slate-500 flex items-center mt-1"><Icon name="clock" size={12} className="mr-1" /> {service.duration} mins</p>
+                                        </div>
                                         <div className="text-right">
-                                            <span className="text-primary font-bold">25m</span>
-                                            <p className="text-[10px] text-gray-400 uppercase">Wait</p>
+                                            <p className="font-bold text-primary-700">₹{service.price}</p>
+                                            {selectedService?.id === service.id && <Icon name="check-circle" size={18} className="text-primary-600 mt-1 ml-auto" />}
                                         </div>
                                     </div>
-                                    <p className="text-gray-400 text-sm mb-4">📍 Bandra West, Mumbai</p>
-                                    <button onClick={() => { setActiveToken(88); setView('queue'); }} className="w-full btn-gradient py-3 rounded-xl font-bold">Get Token</button>
-                                </div>
+                                ))}
                             </div>
+                        </div>
 
-                            <div className="glass rounded-2xl overflow-hidden group">
-                                <div className="h-40 relative">
-                                    <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600" className="w-full h-full object-cover opacity-80" />
+                        {/* Sticky Bottom Action */}
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 safe-bottom">
+                            <Button 
+                                onClick={() => setShowJoinModal(true)} 
+                                disabled={!selectedService || !selectedSalon.isOpen} 
+                                className="w-full py-4 text-lg shadow-xl shadow-primary-500/20"
+                            >
+                                {!selectedSalon.isOpen ? 'Salon Closed' : 'Get Token'}
+                            </Button>
+                        </div>
+
+                        {/* Confirm Modal */}
+                        <Modal isOpen={showJoinModal} onClose={() => setShowJoinModal(false)} title="Confirm Booking">
+                            <div className="space-y-4">
+                                <div className="bg-slate-50 p-4 rounded-xl space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-500">Service</span>
+                                        <span className="font-bold">{selectedService?.name}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-500">Price</span>
+                                        <span className="font-bold">₹{selectedService?.price}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
+                                        <span className="text-slate-500">Est. Wait Time</span>
+                                        <span className="font-bold text-primary-600">{calculatedWait} mins</span>
+                                    </div>
                                 </div>
-                                <div className="p-4">
-                                    <h2 className="text-xl font-bold">Luxe Spa</h2>
-                                    <p className="text-gray-400 text-sm mb-4">📍 Juhu, Mumbai</p>
-                                    <button onClick={() => { setActiveToken(92); setView('queue'); }} className="w-full bg-secondary py-3 rounded-xl font-bold border border-white/10">Get Token</button>
+                                <p className="text-xs text-slate-400 text-center">
+                                    By booking, you agree to arrive 10 mins before your turn.
+                                </p>
+                                <Button onClick={handleJoinQueue} className="w-full py-3">Confirm & Join Queue</Button>
+                            </div>
+                        </Modal>
+                    </div>
+                );
+            };
+
+            const renderMyTokens = () => (
+                <div className="p-5 pb-24 min-h-screen">
+                    <h2 className="font-display text-2xl font-bold mb-6">My Tokens</h2>
+                    
+                    {activeQueue.length === 0 ? (
+                        <div className="text-center py-20 opacity-50">
+                            <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Icon name="ticket" size={40} className="text-slate-400" />
+                            </div>
+                            <p>No active tokens</p>
+                            <Button variant="secondary" onClick={() => setView('home')} className="mt-4">Find a Salon</Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {activeQueue.map(item => {
+                                const salon = salons.find(s => s.id === item.salonId);
+                                const service = salon.services.find(s => s.id === item.serviceId);
+                                const position = item.tokenNumber - salon.currentToken;
+                                
+                                return (
+                                    <div key={item.id} className="bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-100 relative">
+                                        {/* Ticket Top */}
+                                        <div className="bg-primary-600 p-6 text-white text-center relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                                            <p className="text-primary-100 text-xs font-bold uppercase tracking-widest mb-1">YOUR TOKEN NUMBER</p>
+                                            <h3 className="text-6xl font-display font-bold">{item.tokenNumber}</h3>
+                                        </div>
+                                        
+                                        {/* Ticket Body */}
+                                        <div className="p-6">
+                                            <div className="text-center mb-6">
+                                                <h4 className="font-bold text-xl">{salon.name}</h4>
+                                                <p className="text-slate-500 text-sm">{salon.location}</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                                <div className="bg-slate-50 p-3 rounded-xl text-center">
+                                                    <p className="text-xs text-slate-400 font-bold uppercase">Position</p>
+                                                    <p className="text-xl font-bold text-slate-800">{position > 0 ? `#${position} in line` : "You're Up!"}</p>
+                                                </div>
+                                                <div className="bg-slate-50 p-3 rounded-xl text-center">
+                                                    <p className="text-xs text-slate-400 font-bold uppercase">Est. Wait</p>
+                                                    <p className="text-xl font-bold text-primary-600">{item.estimatedWait}m</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center py-4 border-t border-dashed border-slate-200">
+                                                <div>
+                                                    <p className="font-bold text-sm">{service.name}</p>
+                                                    <p className="text-slate-500 text-xs">₹{service.price}</p>
+                                                </div>
+                                                <Button variant="danger" onClick={() => cancelToken(item.id)} className="px-4 py-2 text-sm h-auto">Cancel</Button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Punch hole illusion */}
+                                        <div className="absolute top-[120px] -left-3 w-6 h-6 bg-slate-50 rounded-full"></div>
+                                        <div className="absolute top-[120px] -right-3 w-6 h-6 bg-slate-50 rounded-full"></div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderProfile = () => (
+                <div className="pb-24 min-h-screen bg-slate-50">
+                    <div className="bg-white p-6 pb-10 rounded-b-3xl shadow-sm mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 rounded-full border-4 border-primary-100 overflow-hidden">
+                                <img src={currentUser.image} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold font-display">{currentUser.name}</h2>
+                                <p className="text-slate-500">{currentUser.phone}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-5 space-y-4">
+                        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                            <div className="absolute right-0 top-0 p-4 opacity-10"><Icon name="crown" size={100} /></div>
+                            <div className="flex justify-between items-start relative z-10">
+                                <div>
+                                    <p className="text-slate-400 text-xs font-bold uppercase">Membership</p>
+                                    <h3 className="text-xl font-bold mb-1">Basic Plan</h3>
+                                    <p className="text-xs text-slate-400">Upgrade for Advance Booking</p>
                                 </div>
+                                <Button className="bg-gold-500 hover:bg-gold-600 text-black border-none px-4 py-1.5 h-auto text-xs">Upgrade</Button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                            <div className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50">
+                                <span className="flex items-center gap-3 font-medium"><Icon name="calendar" size={18} className="text-slate-400" /> Booking History</span>
+                                <Icon name="chevron-right" size={16} className="text-slate-300" />
+                            </div>
+                            <div className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50">
+                                <span className="flex items-center gap-3 font-medium"><Icon name="shield-check" size={18} className="text-slate-400" /> Help & Support</span>
+                                <Icon name="chevron-right" size={16} className="text-slate-300" />
+                            </div>
+                             <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-red-50 text-red-500" onClick={useContext(DataContext).logout}>
+                                <span className="flex items-center gap-3 font-medium"><Icon name="log-out" size={18} /> Logout</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Routing Logic
+            let content;
+            if (view === 'salon') content = renderSalonDetail();
+            else if (view === 'tokens') content = renderMyTokens();
+            else if (view === 'profile') content = renderProfile();
+            else content = renderHome();
+
+            return (
+                <div className="max-w-md mx-auto bg-slate-50 min-h-screen shadow-2xl relative">
+                    {content}
+                    
+                    {/* Bottom Nav */}
+                    {view !== 'salon' && (
+                        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe z-40 max-w-md mx-auto">
+                            <div className="flex justify-around items-center h-16">
+                                <button onClick={() => setView('home')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'home' ? 'text-primary-600' : 'text-slate-400'}`}>
+                                    <Icon name="home" size={24} className={view === 'home' ? 'fill-current bg-primary-50 rounded-xl p-1 w-8 h-8' : ''} />
+                                    <span className="text-[10px] font-bold mt-1">Home</span>
+                                </button>
+                                <button onClick={() => setView('tokens')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'tokens' ? 'text-primary-600' : 'text-slate-400'}`}>
+                                    <div className="relative">
+                                        <Icon name="ticket" size={24} className={view === 'tokens' ? 'fill-current bg-primary-50 rounded-xl p-1 w-8 h-8' : ''} />
+                                        {activeQueue.length > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>}
+                                    </div>
+                                    <span className="text-[10px] font-bold mt-1">Tokens</span>
+                                </button>
+                                <button onClick={() => setView('profile')} className={`flex flex-col items-center justify-center w-full h-full ${view === 'profile' ? 'text-primary-600' : 'text-slate-400'}`}>
+                                    <Icon name="user" size={24} className={view === 'profile' ? 'fill-current bg-primary-50 rounded-xl p-1 w-8 h-8' : ''} />
+                                    <span className="text-[10px] font-bold mt-1">Profile</span>
+                                </button>
                             </div>
                         </div>
                     )}
+                </div>
+            );
+        };
 
-                    {/* QUEUE PAGE */}
-                    {view === 'queue' && (
-                        <div className="h-[80vh] flex flex-col items-center justify-center p-6 animate-fade-in text-center">
-                            {activeToken ? (
-                                <div className="glass w-full p-8 rounded-3xl border border-primary/30 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-primary/10 blur-xl"></div>
-                                    <div className="relative z-10">
-                                        <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">Your Token</p>
-                                        <h1 className="text-8xl font-black text-white mb-2">#{activeToken}</h1>
-                                        <p className="text-primary font-medium mb-8">Noir Barbershop</p>
-                                        <div className="bg-black/40 p-4 rounded-xl mb-6">
-                                            <div className="flex justify-between text-sm"><span>Est. Wait</span><span className="font-bold">25 Mins</span></div>
-                                        </div>
-                                        <button onClick={() => setActiveToken(null)} className="text-red-400 text-sm hover:text-red-300">Cancel Booking</button>
+        // --- BARBER DASHBOARD ---
+        const BarberDashboard = () => {
+            const { currentUser, salons, queue, updateSalonStatus, processNextCustomer, logout } = useContext(DataContext);
+            const salon = salons.find(s => s.id === currentUser.salonId);
+            
+            // Stats
+            const todayQueue = queue.filter(q => q.salonId === salon.id);
+            const waitingList = todayQueue.filter(q => q.status === 'waiting').sort((a,b) => a.tokenNumber - b.tokenNumber);
+            const currentCustomer = waitingList.find(q => q.tokenNumber === salon.currentToken);
+            const nextList = waitingList.filter(q => q.tokenNumber > salon.currentToken);
+
+            const [loadingNext, setLoadingNext] = useState(false);
+
+            const handleNext = async () => {
+                setLoadingNext(true);
+                // Simulate processing
+                await new Promise(r => setTimeout(r, 500));
+                processNextCustomer(salon.id);
+                setLoadingNext(false);
+            };
+
+            const toggleStatus = () => {
+                updateSalonStatus(salon.id, { isOpen: !salon.isOpen, isOnBreak: false });
+            };
+
+            const toggleBreak = () => {
+                updateSalonStatus(salon.id, { isOnBreak: !salon.isOnBreak });
+            };
+
+            return (
+                <div className="max-w-md mx-auto bg-slate-50 min-h-screen shadow-2xl pb-20">
+                    {/* Header */}
+                    <div className="bg-white p-5 border-b border-slate-100 flex justify-between items-center sticky top-0 z-30">
+                        <div>
+                            <h2 className="font-display text-xl font-bold">{salon.name}</h2>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Owner Dashboard</p>
+                        </div>
+                         <button onClick={logout} className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-red-50 hover:text-red-500">
+                            <Icon name="power" size={18} />
+                        </button>
+                    </div>
+
+                    <div className="p-5 space-y-6">
+                        {/* Control Panel */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className={`p-4 rounded-2xl border transition-all ${salon.isOpen ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'}`}>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className={`p-2 rounded-lg ${salon.isOpen ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                        <Icon name="power" size={20} />
+                                    </div>
+                                    <div onClick={toggleStatus} className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${salon.isOpen ? 'bg-green-500' : 'bg-slate-300'}`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${salon.isOpen ? 'translate-x-4' : 'translate-x-0'}`}></div>
                                     </div>
                                 </div>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Salon Status</p>
+                                <p className={`font-bold text-lg ${salon.isOpen ? 'text-green-700' : 'text-slate-600'}`}>{salon.isOpen ? 'OPEN' : 'CLOSED'}</p>
+                            </div>
+
+                            <div className={`p-4 rounded-2xl border transition-all ${salon.isOnBreak ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'}`}>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className={`p-2 rounded-lg ${salon.isOnBreak ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
+                                        <Icon name="coffee" size={20} />
+                                    </div>
+                                    <div onClick={toggleBreak} className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${salon.isOnBreak ? 'bg-amber-500' : 'bg-slate-300'}`}>
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${salon.isOnBreak ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                    </div>
+                                </div>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Break Mode</p>
+                                <p className={`font-bold text-lg ${salon.isOnBreak ? 'text-amber-700' : 'text-slate-600'}`}>{salon.isOnBreak ? 'ON BREAK' : 'WORKING'}</p>
+                            </div>
+                        </div>
+
+                        {/* Current Customer (Big Card) */}
+                        <div className="bg-white rounded-3xl p-6 shadow-xl border-t-4 border-primary-600 text-center relative overflow-hidden">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
+                            
+                            {currentCustomer ? (
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                                    <h1 className="text-8xl font-display font-bold text-slate-900 mb-2">{currentCustomer.tokenNumber}</h1>
+                                    <div className="bg-slate-50 inline-block px-4 py-2 rounded-xl mb-6 border border-slate-100">
+                                        <h3 className="font-bold text-lg text-primary-700">Customer {currentCustomer.tokenNumber}</h3> {/* In real app, fetch name */}
+                                        <p className="text-slate-500 text-sm">Haircut + Shave</p>
+                                    </div>
+
+                                    <Button onClick={handleNext} loading={loadingNext} className="w-full py-4 text-lg shadow-lg shadow-primary-500/30">
+                                        <Icon name="check-circle" className="mr-2" /> Complete & Next
+                                    </Button>
+                                </motion.div>
                             ) : (
-                                <div className="opacity-50">
-                                    <Icon name="ticket" size={48} className="mx-auto mb-4"/>
-                                    <p>No Active Queue</p>
-                                    <button onClick={() => setView('home')} className="mt-4 text-primary font-bold">Find a Salon</button>
+                                <div className="py-10">
+                                    <div className="text-6xl text-slate-200 font-bold mb-4">--</div>
+                                    <p className="text-slate-500">No active customer</p>
+                                    {nextList.length > 0 && (
+                                        <Button onClick={handleNext} loading={loadingNext} className="mt-6 w-full">Start Queue</Button>
+                                    )}
                                 </div>
                             )}
                         </div>
-                    )}
 
-                    {/* BARBER VIEW */}
-                    {view === 'barber' && (
-                        <div className="p-6 pb-24 animate-fade-in">
-                            <div className="glass p-6 rounded-3xl text-center mb-6 border border-primary/20">
-                                <p className="text-xs uppercase text-gray-400 mb-2">Serving Now</p>
-                                <h1 className="text-7xl font-bold text-white mb-4">102</h1>
-                                <button className="w-full btn-gradient py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                                    <Icon name="check"/> Next Customer
-                                </button>
+                        {/* Waiting List */}
+                        <div>
+                            <div className="flex justify-between items-center mb-4 px-1">
+                                <h3 className="font-bold text-lg">Up Next ({nextList.length})</h3>
+                                <button className="text-primary-600 text-xs font-bold">View All</button>
                             </div>
-                            <h3 className="text-sm font-bold text-gray-400 mb-4 uppercase">Waiting Queue (3)</h3>
-                            {[103, 104, 105].map(n => (
-                                <div key={n} className="bg-secondary p-4 rounded-xl flex justify-between items-center mb-2 border border-white/5">
-                                    <div className="flex items-center gap-4">
-                                        <span className="font-bold text-lg">#{n}</span>
-                                        <span className="text-sm text-gray-300">Customer Name</span>
+
+                            <div className="space-y-3">
+                                {nextList.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+                                        Queue is empty
                                     </div>
-                                    <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">~15m</span>
-                                </div>
-                            ))}
+                                ) : (
+                                    nextList.map(item => (
+                                        <div key={item.id} className="bg-white p-4 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-primary-50 text-primary-700 rounded-lg flex items-center justify-center font-bold text-xl">
+                                                    {item.tokenNumber}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-800">Customer {item.tokenNumber}</p>
+                                                    <p className="text-xs text-slate-500 flex items-center"><Icon name="clock" size={10} className="mr-1" /> Est. 15m</p>
+                                                </div>
+                                            </div>
+                                            <div className="px-2 py-1 bg-slate-100 rounded text-xs font-bold text-slate-500">Waiting</div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
-                    )}
 
-                    {/* BOTTOM NAV */}
-                    <div className="fixed bottom-0 max-w-md w-full glass flex justify-around p-4 border-t border-white/10 z-50">
-                        <button onClick={() => setView('home')} className={view === 'home' ? 'text-primary' : 'text-gray-500'}><Icon name="home" /></button>
-                        <button onClick={() => setView('queue')} className={view === 'queue' ? 'text-primary' : 'text-gray-500'}><Icon name="ticket" /></button>
-                        <button onClick={() => { setUser(null); auth.signOut(); }} className="text-red-500"><Icon name="log-out" /></button>
+                        {/* Analytics Preview */}
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                            <div className="bg-white p-4 rounded-xl border border-slate-100">
+                                <p className="text-xs text-slate-400 font-bold">Today's Revenue</p>
+                                <p className="text-xl font-bold text-slate-800">₹4,250</p>
+                            </div>
+                            <div className="bg-white p-4 rounded-xl border border-slate-100">
+                                <p className="text-xs text-slate-400 font-bold">Customers</p>
+                                <p className="text-xl font-bold text-slate-800">18</p>
+                            </div>
+                        </div>
                     </div>
-
                 </div>
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // --- MAIN APP COMPONENT ---
+        const App = () => {
+            const { currentUser } = useContext(DataContext);
+
+            if (!currentUser) return <LoginScreen />;
+            if (currentUser.role === 'barber') return <BarberDashboard />;
+            return <CustomerDashboard />;
+        };
+
+        const Root = () => (
+            <DataProvider>
+                <App />
+            </DataProvider>
+        );
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
     </script>
 </body>
 </html>
