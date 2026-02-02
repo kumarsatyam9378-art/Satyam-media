@@ -76,7 +76,7 @@
         const { useState, useEffect, useContext, createContext, useMemo, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        // --- FIREBASE CONFIGURATION (Provided by User) ---
+        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
@@ -87,14 +87,12 @@
             measurementId: "G-6Z6YQ8Z6CC"
         };
 
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        // --- TRANSLATIONS (Hinglish/English) ---
+        // --- TRANSLATIONS ---
         const TEXTS = {
             en: {
                 welcome: "Welcome Back",
@@ -131,7 +129,9 @@
                 appearance: "Appearance",
                 themeColor: "Theme Color",
                 fontStyle: "Font Style",
-                music: "Ambience Music"
+                music: "Ambience Music",
+                logout: "Logout",
+                done: "Apply & Close"
             },
             hi: {
                 welcome: "Swagat Hai",
@@ -168,7 +168,9 @@
                 appearance: "Dikhawat",
                 themeColor: "Rang Chunein",
                 fontStyle: "Font Style",
-                music: "Music Bajayein"
+                music: "Music Bajayein",
+                logout: "Logout Karein",
+                done: "Apply aur Band Karein"
             }
         };
 
@@ -224,7 +226,7 @@
             const [notifications, setNotifications] = useState([]);
             const [points, setPoints] = useState(150);
             const [musicPlaying, setMusicPlaying] = useState(false);
-            const [showSettings, setShowSettings] = useState(false); // Added State for Settings
+            const [showSettings, setShowSettings] = useState(false);
             const audioRef = useRef(new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"));
 
             useEffect(() => {
@@ -237,10 +239,7 @@
                 localStorage.setItem('sq_theme', theme);
                 localStorage.setItem('sq_font', font);
                 localStorage.setItem('sq_lang', lang);
-                
-                // Apply Font
                 document.body.className = document.body.className.replace(/font-\w+/, `font-${font}`);
-                
             }, [theme, font, lang]);
 
             useEffect(() => {
@@ -286,7 +285,6 @@
 
             const t = (key) => TEXTS[lang][key] || key;
 
-            // --- REAL FIREBASE LOGIN ---
             const googleLogin = async () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try {
@@ -315,6 +313,7 @@
                     await auth.signOut();
                     setUser(null);
                     setMusicPlaying(false);
+                    setShowSettings(false);
                     localStorage.removeItem('sq_user_v3');
                 } catch (e) {
                     console.error("Logout Error:", e);
@@ -341,10 +340,7 @@
                 setMyTokens(updated);
                 localStorage.setItem('sq_tokens_v3', JSON.stringify(updated));
                 
-                // Rewards
                 setPoints(prev => prev + Math.floor(totalCost / 10));
-                
-                // Confetti
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 addNotification(`Booking Confirmed! +${Math.floor(totalCost/10)} Points`);
             };
@@ -428,11 +424,11 @@
         };
 
         const SettingsPanel = ({ onClose }) => {
-            const { theme, setTheme, font, setFont, musicPlaying, setMusicPlaying, t } = useContext(AppContext);
+            const { theme, setTheme, font, setFont, musicPlaying, setMusicPlaying, t, logout } = useContext(AppContext);
             
             return (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
-                    <motion.div initial={{y:100}} animate={{y:0}} className="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[80vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center">
+                    <motion.div initial={{y:100}} animate={{y:0}} className="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold dark:text-white">{t('settings')}</h2>
                             <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><Icon name="x" size={20} /></button>
@@ -440,17 +436,17 @@
 
                         {/* Theme */}
                         <div className="mb-6">
-                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('themeColor')}</h3>
+                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('themeColor')}</h3>
                             <div className="flex gap-3">
                                 {['indigo', 'emerald', 'rose', 'amber', 'cyan'].map(c => (
-                                    <button key={c} onClick={()=>setTheme(c)} className={`w-10 h-10 rounded-full ${getColorClass(c, 'bg')} ${theme===c ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-slate-600' : ''} shadow-sm`}></button>
+                                    <button key={c} onClick={()=>setTheme(c)} className={`w-12 h-12 rounded-full ${getColorClass(c, 'bg')} ${theme===c ? 'ring-4 ring-offset-2 ring-slate-300 dark:ring-slate-600' : ''} shadow-sm transition-all`}></button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Font */}
                         <div className="mb-6">
-                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('fontStyle')}</h3>
+                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('fontStyle')}</h3>
                             <div className="grid grid-cols-3 gap-3">
                                 <button onClick={()=>setFont('sans')} className={`p-3 rounded-xl border ${font==='sans' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-sans`}>Modern</button>
                                 <button onClick={()=>setFont('serif')} className={`p-3 rounded-xl border ${font==='serif' ? 'border-primary-500 bg-primary-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700'} font-serif`}>Classic</button>
@@ -459,9 +455,9 @@
                         </div>
 
                         {/* Music */}
-                        <div className="mb-6">
-                            <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('music')}</h3>
-                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between">
+                        <div className="mb-8">
+                            <h3 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">{t('music')}</h3>
+                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between border border-slate-100 dark:border-slate-700">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${musicPlaying ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
                                         <Icon name={musicPlaying ? "music" : "volume-x"} />
@@ -475,6 +471,16 @@
                                     {musicPlaying ? 'Stop' : 'Play'}
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <button onClick={logout} className="py-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2">
+                                <Icon name="log-out" size={18} /> {t('logout')}
+                            </button>
+                            <button onClick={onClose} className="py-3.5 rounded-xl bg-slate-900 text-white font-bold">
+                                {t('done')}
+                            </button>
                         </div>
                     </motion.div>
                 </div>
@@ -516,7 +522,6 @@
                 <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
                     <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1600&q=80" className="absolute inset-0 w-full h-full object-cover opacity-30" />
                     
-                    {/* Top Controls */}
                     <div className="absolute top-6 right-6 z-20 flex gap-2">
                         <button onClick={() => setDarkMode(!darkMode)} className="bg-white/20 backdrop-blur text-white p-2 rounded-full border border-white/30">
                             <Icon name={darkMode ? "sun" : "moon"} size={16} />
@@ -538,7 +543,6 @@
                         {step === 1 && (
                             <div className="space-y-4">
                                 <Button variant="google" onClick={handleGoogle} loading={loading}>
-                                    {/* Restored Google SVG */}
                                     <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                                     {t('loginGoogle')}
                                 </Button>
@@ -562,12 +566,10 @@
                         {step === 3 && (
                             <div className="space-y-4">
                                 <h3 className="text-center font-bold text-lg">{t('roleTitle')}</h3>
-                                
                                 <div onClick={() => completeLogin('customer')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
                                     <div className="bg-emerald-500/20 p-3 rounded-full text-emerald-400"><Icon name="user" /></div>
                                     <div><h4 className="font-bold">{t('customer')}</h4><p className="text-xs text-white/50">{t('customerDesc')}</p></div>
                                 </div>
-
                                 <div onClick={() => completeLogin('barber')} className="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-colors flex items-center gap-4">
                                     <div className="bg-amber-500/20 p-3 rounded-full text-amber-400"><Icon name="scissors" /></div>
                                     <div><h4 className="font-bold">{t('barber')}</h4><p className="text-xs text-white/50">{t('barberDesc')}</p></div>
@@ -620,7 +622,6 @@
                         {musicPlaying && <div className="flex gap-1 h-4 items-end text-slate-400"><div className="bar h-full animate-music"></div><div className="bar h-[60%] animate-music"></div><div className="bar h-[80%] animate-music"></div></div>}
                     </div>
 
-                    {/* Stats Graph */}
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-6">
                         <div className="flex justify-between items-end mb-4">
                             <div><p className="text-xs text-slate-400 font-bold uppercase">{t('revenue')}</p><p className="text-3xl font-bold text-slate-800 dark:text-white">₹4,200</p></div>
@@ -633,7 +634,6 @@
                         </div>
                     </div>
 
-                    {/* Active Customer */}
                     <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border-t-4 border-slate-200 dark:border-slate-600 text-center mb-6 relative overflow-hidden">
                         <div className={`absolute top-0 left-0 w-full h-1 ${getColorClass(theme, 'bg')}`}></div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">NOW SERVING</p>
@@ -649,7 +649,6 @@
                         )}
                     </div>
 
-                    {/* AI Marketing */}
                     <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-5 text-white shadow-xl">
                         <div className="flex items-center gap-2 mb-3"><Icon name="sparkles" size={18} /> <h3 className="font-bold">{t('marketing')}</h3></div>
                         <input value={marketingGoal} onChange={e=>setGoal(e.target.value)} placeholder="e.g. Diwali Dhamaka Offer" className="w-full bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-sm text-white placeholder-white/50 focus:outline-none mb-3" />
@@ -662,7 +661,7 @@
 
         // --- CUSTOMER DASHBOARD ---
         const CustomerDash = () => {
-            const { user, salons, addToken, myTokens, t, favorites, toggleFavorite, setMyTokens, askGemini, points, theme, musicPlaying, showSettings, setShowSettings } = useContext(AppContext);
+            const { user, salons, addToken, myTokens, t, favorites, toggleFavorite, setMyTokens, askGemini, points, theme, musicPlaying, setShowSettings } = useContext(AppContext);
             const [view, setView] = useState("home");
             const [selectedSalon, setSelectedSalon] = useState(null);
             const [cart, setCart] = useState([]);
@@ -711,7 +710,6 @@
                 }, 2000);
             };
 
-            // SUB-COMPONENTS
             const SalonDetail = () => (
                 <div className="bg-white dark:bg-slate-900 min-h-screen pb-28">
                     <div className="relative h-64">
@@ -726,7 +724,6 @@
                         </div>
                     </div>
                     <div className="p-5">
-                        {/* Queue Info */}
                         <div className="flex gap-4 mb-6">
                             <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
                                 <p className="text-xs text-slate-400 font-bold uppercase">Queue</p>
@@ -738,7 +735,6 @@
                             </div>
                         </div>
 
-                        {/* Staff Selector */}
                         <h3 className="font-bold text-lg mb-3 dark:text-white">{t('selectStaff')}</h3>
                         <div className="flex gap-4 overflow-x-auto hide-scroll pb-2 mb-6">
                             {selectedSalon.staff.map(staff => (
@@ -752,7 +748,6 @@
                             ))}
                         </div>
 
-                        {/* Services */}
                         <h3 className="font-bold text-lg mb-3 dark:text-white">Services</h3>
                         <div className="space-y-3">
                             {selectedSalon.services.map(s => {
@@ -772,7 +767,6 @@
                         </div>
                     </div>
 
-                    {/* Sticky Footer */}
                     <div className="fixed bottom-0 w-full max-w-md left-0 right-0 mx-auto p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 z-20 safe-bottom">
                         <Button onClick={book} disabled={cart.length === 0} loading={loading}>
                             {cart.length > 0 ? `${t('checkout')} (${cart.length}) • ₹${cart.reduce((a,b)=>a+b.price,0)}` : t('addToCart')}
@@ -815,7 +809,6 @@
 
             return (
                 <div className="pb-20 max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative transition-colors duration-300">
-                    {/* Header */}
                     <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-20 px-5 pt-4 pb-2 border-b border-slate-100 dark:border-slate-800">
                         <div className="flex justify-between items-center mb-4">
                             <div><h1 className="text-xl font-display font-bold text-slate-900 dark:text-white">{t('findSalon')}</h1><p className="text-xs text-slate-500 flex items-center"><Icon name="map-pin" size={12} className={`mr-1 ${themeText}`} /> Mumbai, India</p></div>
@@ -894,8 +887,6 @@
                         )}
                     </div>
 
-                    {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
-
                     {/* Bottom Nav */}
                     <div className="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 h-16 flex justify-around items-center z-30 pb-safe left-0 right-0 mx-auto">
                         {['home', 'tokens', 'ai', 'user'].map(v => (
@@ -920,10 +911,14 @@
                     {user.role === 'barber' ? (
                         <>
                             <BarberDash />
-                            <button onClick={logout} className="fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50"><Icon name="log-out" size={20} /></button>
+                            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+                            <button onClick={() => setShowSettings(true)} className="fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50"><Icon name="settings" size={20} /></button>
                         </>
                     ) : (
-                        <CustomerDash />
+                        <>
+                            <CustomerDash />
+                            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+                        </>
                     )}
                 </div>
             );
@@ -934,3 +929,5 @@
     </script>
 </body>
 </html>
+
+
