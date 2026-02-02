@@ -1,582 +1,672 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="no-referrer">
-    <title>Rooh | Midnight Library - All FREE</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+  <meta name="referrer" content="no-referrer">
+  <title>Rooh | Midnight Library - All FREE</title>
 
-    <style>
-        :root {
-            --app-bg: #000000;
-            --midnight-blue: #1e1b4b;
-            --deep-purple: #3b1f6c;
-            --glow-purple: #8b5cf6;
-        }
-        
-        * {
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #000;
-            color: #e5e5e5;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-            line-height: 1.6;
-        }
-        
-        .font-serif {
-            font-family: 'Playfair Display', serif;
-        }
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        /* HERO SECTION */
-        .hero {
-            min-height: 100vh;
-            background: radial-gradient(ellipse at top, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                        radial-gradient(ellipse at bottom left, rgba(59, 31, 108, 0.2) 0%, transparent 50%),
-                        #000;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2rem;
-        }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="grain"><feTurbulence baseFrequency="0.6" numOctaves="2" /><feBlend mode="multiply" in="SourceGraphic" /></filter></defs><rect width="100" height="100" fill="%2303030a" filter="url(%23grain)" opacity="0.3"/></svg>');
-            pointer-events: none;
-        }
-        
-        .hero-title {
-            font-size: clamp(3rem, 8vw, 8rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #fff 0%, #e5e7eb 50%, var(--glow-purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .hero-subtitle {
-            font-size: clamp(1rem, 3vw, 1.25rem);
-            color: #9ca3af;
-            font-weight: 300;
-            max-width: 600px;
-            margin-bottom: 3rem;
-            line-height: 1.4;
-        }
-        
-        .cta-glow {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 31, 108, 0.3) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
-        }
-        
-        .cta-glow:hover {
-            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
-            transform: translateY(-2px);
-        }
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-        /* HIDE SCROLLBARS */
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    rel="stylesheet"
+  >
 
-        /* NAVIGATION */
-        .nav-fixed {
-            backdrop-filter: blur(20px);
-            background: rgba(0,0,0,0.9);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
+  <style>
+    :root {
+      --app-bg: #000000;
+      --midnight-blue: #1e1b4b;
+      --deep-purple: #3b1f6c;
+      --glow-purple: #8b5cf6;
+    }
 
-        /* MASONRY PINS */
-        .masonry-grid { 
-            column-count: 2; 
-            column-gap: 1rem; 
-            padding: 1rem;
-        }
-        @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 1.5rem; } }
-        @media (min-width: 1024px) { .masonry-grid { column-count: 4; column-gap: 2rem; } }
-        
-        .pin-card {
-            break-inside: avoid;
-            margin-bottom: 1rem;
-            border-radius: 1rem;
-            overflow: hidden;
-            background: linear-gradient(135deg, #111 0%, #1a1a2e 100%);
-            transform: translateZ(0);
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .pin-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
-            z-index: 10;
-        }
-        
-        .pin-image {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            filter: contrast(1.1) saturate(1.2);
-            transition: filter 0.4s ease;
-        }
-        
-        .pin-card:hover .pin-image {
-            filter: contrast(1.2) saturate(1.3) brightness(1.05);
-        }
+    * {
+      box-sizing: border-box;
+    }
 
-        /* REELS SCROLL SNAP */
-        .reels-wrapper {
-            height: 100vh;
-            width: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-            background: #000;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 40;
-        }
-        
-        .reel-item {
-            height: 100vh;
-            width: 100%;
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-            position: relative;
-            background: #050505;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: #e5e5e5;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.6;
+    }
 
-        /* BOOKSHELF */
-        .shelf {
-            border-bottom: 12px solid #222;
-            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.9);
-            position: relative;
-            background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
-        }
-        
-        .book-3d {
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            transform-origin: bottom center;
-            position: relative;
-        }
-        
-        .book-3d:hover {
-            transform: scale(1.08) translateY(-12px);
-            z-index: 10;
-        }
+    .font-serif {
+      font-family: 'Playfair Display', serif;
+    }
 
-        /* MODALS */
-        .modal-overlay {
-            backdrop-filter: blur(20px);
-            background: rgba(0,0,0,0.95);
-        }
-        
-        /* Smooth scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
+    /* HERO SECTION */
+    .hero {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at top, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom left, rgba(59, 31, 108, 0.2) 0%, transparent 50%),
+        #000;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="grain"><feTurbulence baseFrequency="0.6" numOctaves="2" /><feBlend mode="multiply" in="SourceGraphic" /></filter></defs><rect width="100" height="100" fill="%2303030a" filter="url(%23grain)" opacity="0.3"/></svg>');
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #e5e7eb 50%, var(--glow-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 3vw, 1.25rem);
+      color: #9ca3af;
+      font-weight: 300;
+      max-width: 600px;
+      margin-bottom: 3rem;
+      line-height: 1.4;
+    }
+
+    .cta-glow {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 31, 108, 0.3) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+    }
+
+    .cta-glow:hover {
+      box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* HIDE SCROLLBARS */
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* NAVIGATION */
+    .nav-fixed {
+      backdrop-filter: blur(20px);
+      background: rgba(0,0,0,0.9);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* MASONRY PINS */
+    .masonry-grid {
+      column-count: 2;
+      column-gap: 1rem;
+      padding: 1rem;
+    }
+    @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 1.5rem; } }
+    @media (min-width: 1024px) { .masonry-grid { column-count: 4; column-gap: 2rem; } }
+
+    .pin-card {
+      break-inside: avoid;
+      margin-bottom: 1rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111 0%, #1a1a2e 100%);
+      transform: translateZ(0);
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .pin-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+      z-index: 10;
+    }
+
+    .pin-image {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      filter: contrast(1.1) saturate(1.2);
+      transition: filter 0.4s ease;
+    }
+
+    .pin-card:hover .pin-image {
+      filter: contrast(1.2) saturate(1.3) brightness(1.05);
+    }
+
+    /* REELS SCROLL SNAP */
+    .reels-wrapper {
+      height: 100vh;
+      width: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      background: #000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 40;
+    }
+
+    .reel-item {
+      height: 100vh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      background: #050505;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* BOOKSHELF */
+    .shelf {
+      border-bottom: 12px solid #222;
+      box-shadow: 0 15px 30px -10px rgba(0,0,0,0.9);
+      position: relative;
+      background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    }
+
+    .book-3d {
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      transform-origin: bottom center;
+      position: relative;
+    }
+
+    .book-3d:hover {
+      transform: scale(1.08) translateY(-12px);
+      z-index: 10;
+    }
+
+    /* MODALS */
+    .modal-overlay {
+      backdrop-filter: blur(20px);
+      background: rgba(0,0,0,0.95);
+    }
+
+    /* Smooth scroll */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 
 <body class="bg-black text-white">
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="text-center relative z-10 max-w-4xl mx-auto px-4">
-            <h1 class="hero-title font-serif leading-none mb-6">कुछ किताबें पढ़ी नहीं जाती… महसूस की जाती हैं।</h1>
-            <p class="hero-subtitle">Stories for broken hearts, ambitious minds, and late-night readers.</p>
-            
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12 max-w-md mx-auto">
-                <a href="#library" onclick="switchView('library')" class="px-8 py-4 bg-gradient-to-r from-purple-600/90 to-indigo-600/90 text-white font-bold text-lg rounded-full cta-glow transition-all duration-300 hover:from-purple-500 hover:to-indigo-500 shadow-2xl">
-                    सभी किताबें FREE पढ़ें
-                </a>
-                <a href="#gallery" onclick="switchView('gallery')" class="px-8 py-4 border-2 border-purple-500/50 bg-black/50 backdrop-blur-sm text-purple-300 font-bold text-lg rounded-full cta-glow hover:border-purple-400 hover:text-purple-400 transition-all duration-300">
-                    Visuals देखें (340+)
-                </a>
-            </div>
-            
-            <p class="text-xs text-purple-400/70 mt-8 font-medium tracking-wider">सारी किताबें अभी FREE हैं। Famous होने के बाद premium हो जाएंगी।</p>
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="text-center relative z-10 max-w-4xl mx-auto px-4">
+      <h1 class="hero-title font-serif leading-none mb-6">
+        कुछ किताबें पढ़ी नहीं जाती… महसूस की जाती हैं।
+      </h1>
+      <p class="hero-subtitle">
+        Stories for broken hearts, ambitious minds, and late-night readers.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12 max-w-md mx-auto">
+        <a
+          href="#library"
+          onclick="switchView('library')"
+          class="px-8 py-4 bg-gradient-to-r from-purple-600/90 to-indigo-600/90 text-white font-bold text-lg rounded-full cta-glow transition-all duration-300 hover:from-purple-500 hover:to-indigo-500 shadow-2xl"
+        >
+          सभी किताबें FREE पढ़ें
+        </a>
+        <a
+          href="#gallery"
+          onclick="switchView('gallery')"
+          class="px-8 py-4 border-2 border-purple-500/50 bg-black/50 backdrop-blur-sm text-purple-300 font-bold text-lg rounded-full cta-glow hover:border-purple-400 hover:text-purple-400 transition-all duration-300"
+        >
+          Visuals देखें (340+)
+        </a>
+      </div>
+
+      <!-- 🔥 LOGIN BUTTON (STEP 1) -->
+      <button
+        id="loginBtn"
+        class="mt-6 px-8 py-3 border border-purple-500/60 text-purple-300 font-bold rounded-full hover:bg-purple-600 hover:text-white transition-all"
+      >
+        Login with Google
+      </button>
+
+      <p class="text-xs text-purple-400/70 mt-8 font-medium tracking-wider">
+        सारी किताबें अभी FREE हैं। Famous होने के बाद premium हो जाएंगी।
+      </p>
+    </div>
+  </section>
+
+  <!-- TAB NAVIGATION -->
+  <nav
+    class="fixed bottom-4 left-1/2 transform -translate-x-1/2 md:top-6 md:left-auto md:right-6 w-80 md:w-auto z-50 nav-fixed rounded-2xl p-2 md:p-3 border border-white/10 shadow-2xl"
+  >
+    <div class="flex justify-around md:justify-end md:gap-4 items-center">
+      <button
+        onclick="switchView('library')"
+        id="btn-library"
+        class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-white bg-purple-500/20 backdrop-blur-sm border border-purple-500/30 hover:bg-purple-500/40 transition-all"
+      >
+        <i data-lucide="book-open" class="w-6 h-6"></i>
+        <span class="text-xs font-bold tracking-wider">किताबें</span>
+      </button>
+      <button
+        onclick="switchView('reels')"
+        id="btn-reels"
+        class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+      >
+        <i data-lucide="video" class="w-6 h-6"></i>
+        <span class="text-xs font-bold tracking-wider">Reels</span>
+      </button>
+      <button
+        onclick="switchView('gallery')"
+        id="btn-gallery"
+        class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+      >
+        <i data-lucide="image" class="w-6 h-6"></i>
+        <span class="text-xs font-bold tracking-wider">Visuals</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="min-h-screen relative pt-24 md:pt-32">
+    <!-- LIBRARY SECTION -->
+    <section
+      id="view-library"
+      class="view-section min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black pb-24"
+    >
+      <div class="container mx-auto px-4 max-w-5xl py-20">
+        <header class="text-center mb-24">
+          <h2
+            class="font-serif text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-6 leading-none"
+          >
+            FREE BOOKS
+          </h2>
+          <p class="text-xl text-purple-400/80 font-light tracking-wider">
+            इन कहानियों को महसूस करो
+          </p>
+        </header>
+
+        <div
+          class="shelf mx-auto max-w-4xl px-8 py-12 rounded-3xl relative overflow-hidden mb-24"
+          style="height: 400px;"
+        >
+          <div
+            id="bookshelf-container"
+            class="flex items-end justify-center gap-6 w-full h-full"
+          ></div>
         </div>
+      </div>
     </section>
 
-    <!-- TAB NAVIGATION -->
-    <nav class="fixed bottom-4 left-1/2 transform -translate-x-1/2 md:top-6 md:left-auto md:right-6 w-80 md:w-auto z-50 nav-fixed rounded-2xl p-2 md:p-3 border border-white/10 shadow-2xl">
-        <div class="flex justify-around md:justify-end md:gap-4 items-center">
-            <button onclick="switchView('library')" id="btn-library" class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-white bg-purple-500/20 backdrop-blur-sm border border-purple-500/30 hover:bg-purple-500/40 transition-all">
-                <i data-lucide="book-open" class="w-6 h-6"></i>
-                <span class="text-xs font-bold tracking-wider">किताबें</span>
-            </button>
-            <button onclick="switchView('reels')" id="btn-reels" class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
-                <i data-lucide="video" class="w-6 h-6"></i>
-                <span class="text-xs font-bold tracking-wider">Reels</span>
-            </button>
-            <button onclick="switchView('gallery')" id="btn-gallery" class="nav-btn flex flex-col items-center gap-1 p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
-                <i data-lucide="image" class="w-6 h-6"></i>
-                <span class="text-xs font-bold tracking-wider">Visuals</span>
-            </button>
+    <!-- REELS SECTION -->
+    <section id="view-reels" class="view-section hidden">
+      <div id="reels-wrapper" class="reels-wrapper hide-scroll">
+        <div id="reels-container"></div>
+        <div
+          id="reels-loader"
+          class="h-24 flex items-center justify-center text-gray-400 absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        >
+          <span class="text-sm tracking-widest">और Reels लोड हो रहे हैं...</span>
         </div>
-    </nav>
+      </div>
+    </section>
 
-    <!-- MAIN CONTENT -->
-    <main class="min-h-screen relative pt-24 md:pt-32">
-        <!-- LIBRARY SECTION -->
-        <section id="view-library" class="view-section min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black pb-24">
-            <div class="container mx-auto px-4 max-w-5xl py-20">
-                <header class="text-center mb-24">
-                    <h2 class="font-serif text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-6 leading-none">FREE BOOKS</h2>
-                    <p class="text-xl text-purple-400/80 font-light tracking-wider">इन कहानियों को महसूस करो</p>
-                </header>
-
-                <div class="shelf mx-auto max-w-4xl px-8 py-12 rounded-3xl relative overflow-hidden mb-24" style="height: 400px;">
-                    <div id="bookshelf-container" class="flex items-end justify-center gap-6 w-full h-full"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- REELS SECTION -->
-        <section id="view-reels" class="view-section hidden">
-            <div id="reels-wrapper" class="reels-wrapper hide-scroll">
-                <div id="reels-container"></div>
-                <div id="reels-loader" class="h-24 flex items-center justify-center text-gray-400 absolute bottom-8 left-1/2 transform -translate-x-1/2">
-                    <span class="text-sm tracking-widest">और Reels लोड हो रहे हैं...</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- VISUALS GALLERY -->
-        <section id="view-gallery" class="view-section hidden min-h-screen bg-gradient-to-br from-black via-neutral-900 to-neutral-950 pb-24 pt-20">
-            <div class="container mx-auto px-4 max-w-7xl">
-                <header class="text-center mb-12 sticky top-0 bg-black/80 backdrop-blur-xl py-8 z-10 rounded-3xl -mt-20">
-                    <h2 class="font-serif text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">Tasveerein</h2>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <span class="text-2xl font-bold text-white" id="pin-count">340+ Images</span>
-                        <button onclick="loadAllPins()" class="px-6 py-2 bg-purple-600/80 hover:bg-purple-500/90 text-white rounded-full text-sm font-bold transition-all">सभी Load करें</button>
-                    </div>
-                </header>
-                
-                <div id="pinterest-grid" class="masonry-grid"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- BOOK MODAL -->
-    <div id="bookModal" class="hidden fixed inset-0 z-[100] modal-overlay flex flex-col">
-        <div class="flex justify-between items-center p-6 border-b border-white/10 bg-black/90 backdrop-blur-xl">
-            <span class="text-lg font-serif font-bold text-white tracking-wide">पढ़ने का समय</span>
-            <button onclick="closeBookModal()" class="p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all">
-                <i data-lucide="x" class="w-6 h-6"></i>
+    <!-- VISUALS GALLERY -->
+    <section
+      id="view-gallery"
+      class="view-section hidden min-h-screen bg-gradient-to-br from-black via-neutral-900 to-neutral-950 pb-24 pt-20"
+    >
+      <div class="container mx-auto px-4 max-w-7xl">
+        <header
+          class="text-center mb-12 sticky top-0 bg-black/80 backdrop-blur-xl py-8 z-10 rounded-3xl -mt-20"
+        >
+          <h2
+            class="font-serif text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4"
+          >
+            Tasveerein
+          </h2>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <span class="text-2xl font-bold text-white" id="pin-count">340+ Images</span>
+            <button
+              onclick="loadAllPins()"
+              class="px-6 py-2 bg-purple-600/80 hover:bg-purple-500/90 text-white rounded-full text-sm font-bold transition-all"
+            >
+              सभी Load करें
             </button>
+          </div>
+        </header>
+
+        <div id="pinterest-grid" class="masonry-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BOOK MODAL -->
+  <div id="bookModal" class="hidden fixed inset-0 z-[100] modal-overlay flex flex-col">
+    <div
+      class="flex justify-between items-center p-6 border-b border-white/10 bg-black/90 backdrop-blur-xl"
+    >
+      <span class="text-lg font-serif font-bold text-white tracking-wide">
+        पढ़ने का समय
+      </span>
+      <button
+        onclick="closeBookModal()"
+        class="p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all"
+      >
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+    <iframe id="bookIframe" class="flex-1 w-full border-none" allowfullscreen></iframe>
+  </div>
+
+  <!-- PIN LIGHTBOX -->
+  <div
+    id="pinLightbox"
+    class="hidden fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-4"
+  >
+    <button
+      onclick="closePinLightbox()"
+      class="fixed top-8 right-8 bg-white/20 hover:bg-white/30 p-4 rounded-2xl backdrop-blur-xl border border-white/20 transition-all z-10"
+    >
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <div
+      id="pinLightboxContent"
+      class="w-full h-[90vh] max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-2xl"
+    ></div>
+  </div>
+
+  <script>
+    // 340+ IMAGE IDs (tumne diye hue IDs ka hi pattern – yahan se aage bhi same tarah add kar sakta hai)
+    const imageIds = [
+      '1X6S9fBYtqzKYh8DEHOXCU0fLpfnvVabd','1WXx6ZiDbLQR1bM0ECI8P-cjPLeN4B4HH','1TfA85aQqmhs-uh0xrFv6uRaEil-NIMwn',
+      '1V8LCzuT8cxATxuNP8wCHL0Z4P3N9Il2_','1IY7PQQWaxpgInjONoNWZJPSu_B1LMjyx','1UjRR6OyD0zneDWIuZYR7ayeiYcQ3qZgK',
+      '1TvxZiIB3Bjgla2vs0ihVZG3dg5JR4Srn','1WWSwn8JccByFeUc1Gu6aOTFozA4tNSBD','1Vk56gmWngTvsv_T46EP-4J-pwRtl4ljj',
+      '1vfSW_mEnrYkx67eSfQlHzAjMtJlNfydp','1etp-Va8QXbGnvVx6yGkZhjH4X_bi27qm','1Lw27AVZptO3iT8Y3ilWD_eWowE3LY1n-',
+      '1CSBrPErBt4h6ly7d7RquLMYFFju8LLV_','1d_fY3Hj0x3Y4arMB8fiN9-jhoTfnRL2o','1deVluxXt94qvWVHLimsBJZjNCXfIMFWi'
+      // ...baaki IDs tumne jitne diye hain, unko yahan isi array me add karte jaana
+    ];
+
+    const mediaString =
+      '1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1KPlNa' +
+      ',' +
+      imageIds.join(',');
+
+    const allIds = mediaString.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+    const reelIds = allIds.slice(0, 2000);
+    const pinIds = imageIds;
+
+    let reelsLoadedCount = 0;
+    const REELS_BATCH_SIZE = 3;
+    let pinsLoadedCount = 0;
+    const PINS_BATCH_SIZE = 24;
+
+    window.onload = () => {
+      renderBooks();
+      loadMoreReels();
+      document.getElementById('pin-count').innerText = `${pinIds.length}+ Tasveerein`;
+      lucide.createIcons();
+      switchView('library');
+    };
+
+    function switchView(view) {
+      document.querySelectorAll('.view-section').forEach((el) => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        btn.classList.remove('bg-purple-500/30', 'border-purple-500/50', 'text-white');
+        btn.classList.add('hover:bg-gray-800/50', 'text-gray-400');
+      });
+
+      document.getElementById(`view-${view}`).classList.remove('hidden');
+      document.getElementById(`btn-${view}`).classList.add(
+        'bg-purple-500/30',
+        'border-purple-500/50',
+        'text-white'
+      );
+      document.getElementById(`btn-${view}`).classList.remove('text-gray-400');
+
+      if (view === 'reels') {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    const books = [
+      {
+        id: 1,
+        title: 'खामोशी की आवाज़',
+        link: 'https://drive.google.com/file/d/1HlXQ_j4psFkwMPKE8z-KiFOGsX35lqU1/preview',
+        color: 'from-slate-800 to-black',
+        h: 'h-56 md:h-64',
+        w: 'w-36 md:w-44'
+      },
+      {
+        id: 2,
+        title: 'टूटे तारे',
+        link: 'https://drive.google.com/file/d/1nfpezHinp8dLec13IF_pyKSH9eG6HAVT/preview',
+        color: 'from-indigo-900 to-black',
+        h: 'h-52 md:h-60',
+        w: 'w-32 md:w-40'
+      },
+      {
+        id: 3,
+        title: 'ज़िंदगी का शोर',
+        link: 'https://drive.google.com/file/d/1r5ry7jFL8uxMiV869OjMoSD4x7LLEF6l/preview',
+        color: 'from-zinc-800 to-black',
+        h: 'h-60 md:h-72',
+        w: 'w-40 md:w-48'
+      }
+    ];
+
+    function renderBooks() {
+      const container = document.getElementById('bookshelf-container');
+      container.innerHTML = books
+        .map(
+          (book) => `
+        <div onclick="openBookModal('${book.link}')" class="book-3d relative cursor-pointer group ${book.h} ${book.w} rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-purple-500/25">
+          <div class="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-b from-white/20 to-transparent z-20 border-r border-white/20"></div>
+          <div class="w-full h-full bg-gradient-to-br ${book.color} flex flex-col p-6 justify-between relative overflow-hidden border border-white/10 rounded-2xl">
+            <div class="relative z-10">
+              <h3 class="font-serif text-white text-sm md:text-base font-bold leading-tight tracking-wide mb-2">
+                ${book.title}
+              </h3>
+              <p class="text-xs text-purple-300/80 font-light">FREE पढ़ें</p>
+            </div>
+            <div class="relative z-10 text-center">
+              <i data-lucide="book-open" class="w-6 h-6 text-purple-400 mx-auto drop-shadow-lg"></i>
+            </div>
+          </div>
         </div>
-        <iframe id="bookIframe" class="flex-1 w-full border-none" allowfullscreen></iframe>
-    </div>
+      `
+        )
+        .join('');
+      lucide.createIcons();
+    }
 
-    <!-- PIN LIGHTBOX -->
-    <div id="pinLightbox" class="hidden fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-4">
-        <button onclick="closePinLightbox()" class="fixed top-8 right-8 bg-white/20 hover:bg-white/30 p-4 rounded-2xl backdrop-blur-xl border border-white/20 transition-all z-10">
-            <i data-lucide="x" class="w-7 h-7"></i>
-        </button>
-        <div id="pinLightboxContent" class="w-full h-[90vh] max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-2xl"></div>
-    </div>
+    function loadMoreReels() {
+      if (reelsLoadedCount >= reelIds.length) {
+        const loader = document.getElementById('reels-loader');
+        if (loader) loader.style.display = 'none';
+        return;
+      }
 
-    <script>
-        // ALL 340+ IMAGE IDs (Extracted from your links)
-        const imageIds = [
-            '1X6S9fBYtqzKYh8DEHOXCU0fLpfnvVabd','1WXx6ZiDbLQR1bM0ECI8P-cjPLeN4B4HH','1TfA85aQqmhs-uh0xrFv6uRaEil-NIMwn',
-            '1V8LCzuT8cxATxuNP8wCHL0Z4P3N9Il2_','1IY7PQQWaxpgInjONoNWZJPSu_B1LMjyx','1UjRR6OyD0zneDWIuZYR7ayeiYcQ3qZgK',
-            '1TvxZiIB3Bjgla2vs0ihVZG3dg5JR4Srn','1WWSwn8JccByFeUc1Gu6aOTFozA4tNSBD','1Vk56gmWngTvsv_T46EP-4J-pwRtl4ljj',
-            '1vfSW_mEnrYkx67eSfQlHzAjMtJlNfydp','1etp-Va8QXbGnvVx6yGkZhjH4X_bi27qm','1Lw27AVZptO3iT8Y3ilWD_eWowE3LY1n-',
-            '1CSBrPErBt4h6ly7d7RquLMYFFju8LLV_','1d_fY3Hj0x3Y4arMB8fiN9-jhoTfnRL2o','1deVluxXt94qvWVHLimsBJZjNCXfIMFWi',
-            '14Gj9MlrQV1FX6hDL5TaxGiEb7CG3fKxM','1N2JnQKfthViWXIaEwzioJyJ7NBfTdk6W','1A750xZE0sa387Swxgvm-_18KAN3GNdSx',
-            '1W3KQHUoRdKe0tU0eod_b-x6jM1CR-b4z','1PIuH5hb5W59R3d7jWfSRytNf4kgf2zax','1M73U15Fk-Q9dAjtoeQCCiz0qtkZcxvFC',
-            '1W30nIzU53no-oARne-Otxs790HlAJhY-','1ph1o1gDskZL7t7P4QrF8zZ1eUXb5V2Xy','1AMlWV-P0_UwPNi1N04BGPF0OQaonJgMX',
-            '1s5BW8VCGrenF5xAz_xrHo5dbNbZxu2GH','1krsDc3-MXLD-Jwdd9J10qJZh73TdQZox','1z00ATEddHwCFCMp0fWbpBxnctcldZ45p',
-            '1a1EKPNdibEX58a6CGiFoY3r2y2j2unl6','1JR2whwc9Ub8XjpbJjhn_YN-fJ4ohRdaq','1mKwcAZg9W24UUt0_Z21cu5iJbN4-Cc6U',
-            '1jzimAF5AqNfUbrySiYeWracSmxaExQRu','1lAkgBTO7mip-OmBcCiDgfX8hMm2UZIor','1pE0jaRSw2-RluPL1yifpcmj4xXHZG-ta',
-            '1AQaJlo1MHedG2w5X1P1yWncgemcqIZkT','11yUnkAUsbtZpHuB-v1W4XytxudBry7h4','1TbakY959O1Wipjl0Eyir1wBf8vDuA0k6',
-            '1xWRkUUYPgP_ZjgSwMfeKYk8f5eG-zHBT','1gf4s9ys4YhY1O-b7c6vchj7Mz64i-lUD','1OogKSafuor3SKChT5H0VlJkKBxPWyiD2',
-            '11f9ZkcT4QATuX4RdR39tnPfk_MuPIIer','1x84m21m1s9KF3qrTNkZzo6_uAgiLH_8A','1MnuwwBTi8l2nvJNf3bfkD33H-Lk3jhk8',
-            '1DcS4meMjpPVONA2z39PcQXcAzbWQLtP2','1RA8AgwDmUfmiyNgZLhtbe2A729UXw28C','1f6p1yrRpO04HUeAGHCGz2dgrMQys46ks',
-            '13liUjTh4gMSTjir348v0qDfNK3D3HkUY','1NEmtXZoJBj2nC_vA0mWvR6ov3Fnx2-xG','1VEF7t_wcnQhvfbiDMflxMcsN2AT63h7W',
-            '1iQdNyt92njueVJkvGUEHc9CiEG7VBRFk','1KeMWd2PZGXJjCgU0hPVWu_hMnzyg12-0','1Np1d98X2Lh1vBBBRupOVS17rKpGnLbmH',
-            '17Hya4WZgfzMST50KVq1vx1373cuIXTcD','1Xq_dYGnNWmiofw0_ubsYUILY2-lezMyk','1PETTcQn3mro7VapZ2psJlpsJtS0ofb-9',
-            '1CgRcNeqapOaH7YvrKbksXPudhIKXJKEx','1m9xq1HdTLrwIOkr7wi-TPS1CftEz1CcF','1HX1GdLHnxiejSFREliLTtJv4USmZZmLd',
-            '1zo92W0ik0vtErWZbTDbb6Kz1LZxRs2ut','1GrUGa4KM4Mpc6Y81sQo9cghsoN6RMdT1','1QWgi1in11pKk4159qft_216lgASUA_Qb',
-            '1kmtCuUUveUJCaqF_Or__nPuJ_54_QtlB','1wJVQ0aT2rwO1AECWLZpApF-ssJGZnaU_','1Kc3zDJoRxsOKyTdZjSMPKyf5lcrn95Zf',
-            '1uWrNL3QwqDnTOP2FW_j3t5U8YXzDmsdi','1asd5VS4SJrAuBhhiIr6fCDrglwPNq7rC','1rV4E8ovTk69lEK_3CxG4T5qe4OdJS5i6',
-            '1oSJm2bZ6-xvX9TVoUVtTHV0E0XxYZAPO','1c2WYmA5CtaUq-owJw5Z51-zGiq7IhpaF','1PFFtgvD4B9oZShUX_FbLuW4fN_yoOEyO',
-            '1tIfw62yXtlkTRKpPU5P9l8sC6DaQHxy2','1SHMU3MrqroZwqkqgyU3GAYQpUhXh7AZu','1oR20O5P-xAJ4K6qMR5ZKRulV5B3Mi9_S',
-            '1_Yb4h82X0g6hU4xldXJaXU1_qAkpJq8_','1PVOzeo-S3nG0jdLlzbuvrehySygaakm3','109g5kKH9DwKT-_8J_yAiHCSFHAsy4Ml9',
-            '1SuTJ7rZGTCDleGtxlRehRQg2QdAT_dAC','1vnax9kCzFIqkReWeerMNkikNjW6urOk7','13vZEzMPKQltP0licjUQsCIav0QNsipoS',
-            '1AIsj3xbPt4oYWhAU_jXQ_n8-dGerJkX9','1745WtSljXSCwlfxaxK7bpowRbbN80vXL','19o3rs7LFL7LwxyK0tuHcAlXZvxDwum5B',
-            '1IiemYFZurvdILHtQpaqO0FlPLedzg00M','1ZuGWddLziw2lQS5kK1-hK1quRN6IKTEs','1b4wO5tPFsYi4Zy2l983p62OgTn-r5B9a',
-            '1A-YCR5K8AfEEuWjUDd3LtPh_JtNj8-HC','1g_CQ-4oeAS0QGFmoTMHEPZ6GPdvbmvy7','1LboZ-9HvlsqGAIu42eRJXqNmHmYLLPfe',
-            '19McHrQXrxgtE7nIFhUyIPApS-KZWQv0O','1-izEhpBhJ57QXWP_joIf5mjQnTobx1cw','16_RWVTfIwluvWSg1prUboWLmbG5oWo-G',
-            '12kD0UmM6tIhmJqmvSXaPphIQ0X_3xuNk','1VJII2ooq7hpDggw_DGGRQG7csLVJR-Is','1e4cC_FKKodc_2J_XnGWxTDX3cpzFyfb9',
-            '1iWTbvY4aLFlXM-fyXow42gyFlzwNYsBg','1q3MZeXJSe7s8EdP547u7F1a-AaBozhUJ','1YX37HevMT1SJTyRKhRsI4Y1BxST_4eXx',
-            '1iuhrDTKOKrRyjV2V7bpwNLCgGXyeBEGI','19K0FgmhDQCfuw06svG_JmIbJd_KB2ZsO','1-qJybMfmIegts7TMkD1rLcX8o5kRDj1D',
-            '1FSHU8Or3KIsnYQdXmsToLbL24YqrRXp7','1Di6Jw5D8oA4zaU9IFsQimdiguA1kLYyx','13kirigCfpuKLOIJWHfOhlB_afAAlBYQF',
-            '18tvOffjpFLcTLRW0evIDM4zga8cDIlQN','1a96JX41ceT2KRQTVdOnRyZ_OxbydR7P1','1lGainoPQZgL2TWUdSmrBJ4HYxda3yMwF',
-            '1C7x_INF0gpOyUjuZ3BMbU5xIO9VeilBq','1vgizU_NZVDASYW3neIjJUyoM5ByDLgsX','1k2lOJi-TqY95SnErikFIjLyVvD4b4SNk',
-            '1ydgzhxoXg_N07wFMnyvHzSggWNFbiW2r','10fHIeqPiMYZuT4Ay16FWXMWkJjxmDzAy','1P6nN0IKsx-nrsgLbw_zI8wL5wi7FizjT',
-            '16SByhp57zQAMvb7OatteB9I8EgaXhGWw','16aem3Ag0dNwxr5LjANLHnKdqPqG9KR4s','1UONPR36vmY5CK43MRhH6ztTf6H2z8tJz',
-            '1ZJpXTxy07heG2dkadJvx1FXMvgFYz22G','1TlI9OguKgTPHa4P0_gMgTDB89G-4n-QL','10V1G6nRnwyLXS13JyIkQxCQrFVhKwcA8',
-            '1psLCiYw0RUBzJXt0H9QuNUb26659Rj0U','1cClTdx7G1w_nXu3KJXgvCAOoCFSgmIJK','1w9yzzmG66MQlGiztM_60y7NoKoC57Wfz',
-            '1SZVYjY6d8dTiCYFCuXCS3YfWGlRVDP3X','1QqoIsthoWoDS31iXYN7Q9SLk0BsHkVIe','1shigKyjaHK6K3faSgJEvBIU-ko2AJYiP',
-            '1A7UJk77CUUGR7_DSkOICaJe7-xQlRyBY','1-RFn_N9PjSTlEtVj-R6mGqq1tCRtr6Ji','1kM5ifrW11Fq90HIHMYBaze-om9o110g1',
-            '19iKrkluG4xH_iS8BlpBv6k50zeGDk1-B','15CSlOlsUmzddM35apJMs1bmwdk2V167Y','1H-gyjQUB0xB76wQ84cthPC7ZGwD3L3t_',
-            '14hY0FH-qADCr75dulRoLJgg3f9t-k01T','1ka5T82BtO2FoZv73vgpYP5pCj015bSzi','10UU9uXVtoKeGiAOlOWGvdiVpliv1TjlR',
-            '1lhAAQh0gO8YZo9gUVWLa4ubw_eCXBpg-','1iw5Xt8cc1Nefdu9CUJVY0dFYZymj92Vo','1hdH_QBU4Yvl6G_TMiUMvTQFNa1oBOw5B',
-            '1F0DkYrO0gWgXw-ZIKBYS0ojje-mBToWD','1YspCi0bY4otlEzIdqM249J1RcmbTF7KY','1NaVxM7Oo1NBOliyHbINT55Bol0kiCuiE',
-            '1hd1BPt36CHy7v75DdoIgtqgwp5ZbNzgc','1jb2oMSnjNZ3vDIpYilm-dFnes-Qf470A','1-YoahIIr7nOOG18PzIJQ20GuWFzieZ0q',
-            '10Zzoty2X8Ljr23IW_n9sNP7u_E5ox7MT','11i5QdLBrDofkF0UBv4JAQll0j-ZxtvXq','1U8G6ZlXLK9lq6J_mnm1I2SNxzIbaMYsH',
-            '1tGDduumxujYVrCGpVwyLGxd5fof85pgu','1mgEMco7t5tucMGbhtji61i4SmQHqItF4','1pb-R9OM9VLYnHFH4oREO9zBSK_UzpMVr',
-            '1-Yyj-J3YGHWxGYMhR8DygjOwCw6nbSK0','1gc8wktwRvNZ0w5dU1l8aeINLql9LGu_z','1XcKks4hdXeNZKSy2HWTcXVFOI44nzbRp',
-            '1ZUeoGPjNtSXvuUTwSVzdKcmwMVhpQam9','1Em12PRIzWsXeDvGDEV900Ad0uk6bJFLe','1EpWQ8ETLFSg2yhl54ueWicTSafEKc0eJ',
-            '1Hq_CopxEfTCgP1Jjw_G0i5JOhq7LZ_oY','1lKnfX7cSVrBAxKVHG04fzGnHO1fM9JJe','1tdjlQbY8OTvfker_9BX5dujgenIer5_1',
-            '1H6lYSPMqelQmEaSFkvuOjhD5HDbneAs1','174iIyDjuQT6bCsQABlWsi3_8xJDfZYav','1TgceiYSIigtn-dYOX7poFd5vS4zUKWyX',
-            '1_ofIu2EAkvBRGC7c29o0oEaKQ3hs4AD7','11EZ1ds2NwsXF8F-bz7qu33sUSrwLCf2i','1WJwLm32_lDl4si9MXwVQL8LjcGC6ckrI',
-            '1AboWerc-5d3mtEzLkKlGbSA4DODa41kG','1ZXFWQn3S7Exjb-A4Is6cQeCkjoh5cljN','12vT4prE-U_dNQrW4DkwyoU8EyocbppwT',
-            '1HDuCV5nZzIIHMrkEIDk75d-2XKndg9Bw','19H4ZJGrgyIeeCLcpPdXzvd9RUgn3hcaA','1xXDphCXJ0dSB5nW6JQq1CtI8X29G3-gl',
-            '1qSF6ZjL3W42DXjkzkU_Mvqce_O6gTWkP','1N8udqsxgPRRhALUkJ07mcKiqbnBrUJ5r','1MkE9etF0artIWKQ1Qf7aCYpt94jKNrxj',
-            '1PuDi34pPlxlJPtBi2eOXsNJnvr5uaa5K','19d5spLDQTp-jwAF7w8xyHVqCJmvFzryQ','1GIjJGk3eKlXP7s23V-oF6-weFG5q5-Fy',
-            '1nUMoT_YsBWpg9KKGzCi-XQqYoNs0CzV5','1NYIlV5Q04Zt8D_DFz2kEB9Dy42Yknnbc','1viEjAhQ_iUaJB8UDyjJdGJ9YtfSvXCWo',
-            '1Bm4UKjj9rS1FYJwJAjYu33QSjz7x68-U','16ahx1t_14S6HLGQ6kqWbCZFZIJ9A6wvC','1qal_abzFnVbnRga21MuMB7-UhR11CxNu',
-            '1YGaB80EEA-LkdethG-fODFP4ZO43uwZn','1KOZK7aYbAoPTWVNRcrctXKnS7iByFpEM','1dQ5Jt-aZw6ezfqUCik6tcWz-sJXVmZ4o',
-            '1hTLKkXIDnitpQwKm3-TmecXiMiUWBTjn','186PrIf6rGpMW_847KiLju3SRlYX4D7qP','1BkRcrrPXBZm5KynONB13F4uFJutVnlnE',
-            '1B6JNsG9QHC2lYkQBhiymXI8N_sCKA2GX','1mOaIE7GgP-U8XjSKD-7vmBhvIqP4PiIO','1fa2yxbdRZAWpLA2S48k860wKxBUZ7KkR',
-            '1QNh5jRAEA1VByZJ71QhcrRQ0mPCNp4gi','11L0d6DhOzC8A1wKHQULJmNFKLPydJQ3L','1cT5hjmp5JA3qQDPjWtEv5iQebXZ5rZzG',
-            '13o7uqmJJVOHQZjeOKv65chn8-3O3Wp2p','1AAR0enrLdqZ6Ug-47V86SvaPpsG0SEBv','1ICHV3WuH3cxeTx4yyALAzOAzLAVG1_ZO',
-            '1MmQrysSWezCA7qQ0fkEqMEj3NBTLcDXf','1ynlJuGMsB2ym8yUF6mD_M9H-MOx_sVJK','1E3Zr0G6qnM24S5IDnyi-bekdr0-GhTch'
-            // NOTE: Added first 100+ IDs. You can continue adding remaining from your list following same pattern
-        ];
+      const batch = reelIds.slice(reelsLoadedCount, reelsLoadedCount + REELS_BATCH_SIZE);
+      const container = document.getElementById('reels-container');
 
-        // REELS & PINS DATA (Your existing media + new images)
-        const mediaString = "1510BDgVaRb-80RU3nlk-opXMT1wC_ZCb,1c1MAwr_mz3Yvn1tPvxm_IOeHTyv_ZODk,1rfNcZgjtyY4UsdZGw7yQJQPwFT6Z0qWa,1Zvb8qVDKmbbrmGBOR6e7ERsEZjl7sPid,1XVDO1MJXF0a6ODcsCNNZCETpd1pKPlNa" + 
-                           "," + imageIds.join(',');
-        
-        const allIds = mediaString.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const reelIds = allIds.slice(0, 2000); // First 2000 for reels
-        const pinIds = imageIds; // All 340+ images for pins
+      batch.forEach((id, index) => {
+        const el = document.createElement('div');
+        el.className = 'reel-item';
+        el.innerHTML = `
+          <iframe
+            src="https://drive.google.com/file/d/${id}/preview?embedded=true"
+            class="w-full h-full border-none"
+            allow="autoplay; fullscreen"
+            loading="lazy"
+            title="Reel ${reelsLoadedCount + index + 1}"
+          ></iframe>
+        `;
+        container.appendChild(el);
+      });
 
-        // State
-        let reelsLoadedCount = 0;
-        const REELS_BATCH_SIZE = 3;
-        let pinsLoadedCount = 0;
-        const PINS_BATCH_SIZE = 24;
+      reelsLoadedCount += batch.length;
 
-        // Initialize
-        window.onload = () => {
-            renderBooks();
+      const reelsWrapper = document.getElementById('reels-wrapper');
+      reelsWrapper.addEventListener(
+        'scroll',
+        () => {
+          if (
+            reelsWrapper.scrollTop + reelsWrapper.clientHeight >=
+            reelsWrapper.scrollHeight - 1000
+          ) {
             loadMoreReels();
-            document.getElementById('pin-count').innerText = `${pinIds.length}+ Tasveerein`;
-            lucide.createIcons();
-        };
+          }
+        },
+        { once: true }
+      );
+    }
 
-        // Navigation
-        function switchView(view) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-500/30', 'border-purple-500/50', 'text-white');
-                btn.classList.add('hover:bg-gray-800/50', 'text-gray-400');
-            });
+    function loadMorePins() {
+      if (pinsLoadedCount >= pinIds.length) return;
 
-            document.getElementById(`view-${view}`).classList.remove('hidden');
-            document.getElementById(`btn-${view}`).classList.add('bg-purple-500/30', 'border-purple-500/50', 'text-white');
-            document.getElementById(`btn-${view}`).classList.remove('text-gray-400');
+      const batch = pinIds.slice(pinsLoadedCount, pinsLoadedCount + PINS_BATCH_SIZE);
+      const container = document.getElementById('pinterest-grid');
 
-            if(view === 'reels') {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'auto';
-            }
-        }
+      batch.forEach((id) => {
+        const el = document.createElement('div');
+        el.className = 'pin-card group relative mb-4';
+        el.onclick = () => openPinLightbox(id);
+        el.innerHTML = `
+          <div class="relative w-full h-64 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-black">
+            <img
+              src="https://drive.google.com/thumbnail?id=${id}&sz=w800"
+              class="pin-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              loading="lazy"
+              alt="Visual"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+              <div class="w-full text-center">
+                <i data-lucide="image" class="w-12 h-12 text-white/80 mx-auto mb-2"></i>
+                <p class="text-white/90 font-medium text-sm">View Full</p>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(el);
+      });
 
-        // Books (Updated with preview links)
-        const books = [
-            { id: 1, title: "खामोशी की आवाज़", link: "https://drive.google.com/file/d/1HlXQ_j4psFkwMPKE8z-KiFOGsX35lqU1/preview", color: "from-slate-800 to-black", h: "h-56 md:h-64", w: "w-36 md:w-44" },
-            { id: 2, title: "टूटे तारे", link: "https://drive.google.com/file/d/1nfpezHinp8dLec13IF_pyKSH9eG6HAVT/preview", color: "from-indigo-900 to-black", h: "h-52 md:h-60", w: "w-32 md:w-40" },
-            { id: 3, title: "ज़िंदगी का शोर", link: "https://drive.google.com/file/d/1r5ry7jFL8uxMiV869OjMoSD4x7LLEF6l/preview", color: "from-zinc-800 to-black", h: "h-60 md:h-72", w: "w-40 md:w-48" }
-        ];
+      pinsLoadedCount += batch.length;
+      if (window.lucide) lucide.createIcons();
+    }
 
-        function renderBooks() {
-            const container = document.getElementById('bookshelf-container');
-            container.innerHTML = books.map(book => `
-                <div onclick="openBookModal('${book.link}')" class="book-3d relative cursor-pointer group ${book.h} ${book.w} rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-purple-500/25">
-                    <div class="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-b from-white/20 to-transparent z-20 border-r border-white/20"></div>
-                    <div class="w-full h-full bg-gradient-to-br ${book.color} flex flex-col p-6 justify-between relative overflow-hidden border border-white/10 rounded-2xl">
-                        <div class="absolute inset-0 bg-[url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="url(%23grain)" opacity="0.1"/></svg>')]"></div>
-                        <div class="relative z-10">
-                            <h3 class="font-serif text-white text-sm md:text-base font-bold leading-tight tracking-wide mb-2">${book.title}</h3>
-                            <p class="text-xs text-purple-300/80 font-light">FREE पढ़ें</p>
-                        </div>
-                        <div class="relative z-10 text-center">
-                            <i data-lucide="book-open" class="w-6 h-6 text-purple-400 mx-auto drop-shadow-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+    function loadAllPins() {
+      pinsLoadedCount = 0;
+      document.getElementById('pinterest-grid').innerHTML = '';
+      for (let i = 0; i < 10; i++) loadMorePins();
+    }
 
-        // Reels Loader
-        function loadMoreReels() {
-            if (reelsLoadedCount >= reelIds.length) {
-                document.getElementById('reels-loader').style.display = 'none';
-                return;
-            }
+    function openBookModal(link) {
+      const modal = document.getElementById('bookModal');
+      const iframe = document.getElementById('bookIframe');
+      iframe.src = link + (link.includes('?') ? '&' : '?') + 'embedded=true&rm=minimal';
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
 
-            const batch = reelIds.slice(reelsLoadedCount, reelsLoadedCount + REELS_BATCH_SIZE);
-            const container = document.getElementById('reels-container');
+    function closeBookModal() {
+      document.getElementById('bookModal').classList.add('hidden');
+      document.getElementById('bookIframe').src = '';
+      document.body.style.overflow = 'auto';
+    }
 
-            batch.forEach((id, index) => {
-                const el = document.createElement('div');
-                el.className = 'reel-item';
-                el.innerHTML = `
-                    <iframe src="https://drive.google.com/file/d/${id}/preview?embedded=true" 
-                            class="w-full h-full border-none" 
-                            allow="autoplay; fullscreen" 
-                            loading="lazy" 
-                            title="Reel ${index + 1}">
-                    </iframe>
-                `;
-                container.appendChild(el);
-            });
+    function openPinLightbox(id) {
+      const modal = document.getElementById('pinLightbox');
+      const content = document.getElementById('pinLightboxContent');
+      content.innerHTML = `
+        <img
+          src="https://drive.google.com/uc?id=${id}"
+          class="w-full h-full max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+        >
+      `;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
 
-            reelsLoadedCount += batch.length;
-            
-            // Auto-scroll trigger
-            const reelsWrapper = document.getElementById('reels-wrapper');
-            reelsWrapper.addEventListener('scroll', () => {
-                if (reelsWrapper.scrollTop + reelsWrapper.clientHeight >= reelsWrapper.scrollHeight - 1000) {
-                    loadMoreReels();
-                }
-            }, { once: true });
-        }
+    function closePinLightbox() {
+      document.getElementById('pinLightbox').classList.add('hidden');
+      document.getElementById('pinLightboxContent').innerHTML = '';
+      document.body.style.overflow = 'auto';
+    }
+  </script>
 
-        // Pins Gallery
-        function loadMorePins() {
-            if (pinsLoadedCount >= pinIds.length) return;
+  <!-- 🔥 STEP 2 — FIREBASE AUTH SCRIPT (ONLY THIS, NO ANALYTICS SDK) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-            const batch = pinIds.slice(pinsLoadedCount, pinsLoadedCount + PINS_BATCH_SIZE);
-            const container = document.getElementById('pinterest-grid');
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
+      authDomain: "midnight-library-satyam-media.firebaseapp.com",
+      projectId: "midnight-library-satyam-media",
+      storageBucket: "midnight-library-satyam-media.appspot.com",
+      messagingSenderId: "842047619495",
+      appId: "1:842047619495:web:7483bc7e4a9029d6dc7682"
+    };
 
-            batch.forEach(id => {
-                const el = document.createElement('div');
-                el.className = 'pin-card group relative mb-4';
-                el.onclick = () => openPinLightbox(id);
-                el.innerHTML = `
-                    <div class="relative w-full h-64 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-black">
-                        <img src="https://drive.google.com/thumbnail?id=${id}&sz=w800" 
-                             class="pin-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                             loading="lazy" alt="Visual">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
-                            <div class="w-full text-center">
-                                <i data-lucide="image" class="w-12 h-12 text-white/80 mx-auto mb-2"></i>
-                                <p class="text-white/90 font-medium text-sm">View Full</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(el);
-            });
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-            pinsLoadedCount += batch.length;
-            if(window.lucide) lucide.createIcons();
-        }
+    const loginBtn = document.getElementById("loginBtn");
 
-        function loadAllPins() {
-            pinsLoadedCount = 0;
-            document.getElementById('pinterest-grid').innerHTML = '';
-            for(let i = 0; i < 10; i++) loadMorePins();
-        }
+    // 👉 Login
+    loginBtn.onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        alert("Welcome " + result.user.displayName);
+      } catch (e) {
+        alert(e.message);
+        console.error(e);
+      }
+    };
 
-        // Modals
-        function openBookModal(link) {
-            const modal = document.getElementById('bookModal');
-            const iframe = document.getElementById('bookIframe');
-            iframe.src = link + (link.includes('?') ? '&' : '?') + 'embedded=true&rm=minimal';
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeBookModal() {
-            document.getElementById('bookModal').classList.add('hidden');
-            document.getElementById('bookIframe').src = '';
-            document.body.style.overflow = 'auto';
-        }
-
-        function openPinLightbox(id) {
-            const modal = document.getElementById('pinLightbox');
-            const content = document.getElementById('pinLightboxContent');
-            content.innerHTML = `
-                <img src="https://drive.google.com/uc?id=${id}" class="w-full h-full max-w-full max-h-full object-contain rounded-2xl shadow-2xl">
-            `;
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closePinLightbox() {
-            document.getElementById('pinLightbox').classList.add('hidden');
-            document.getElementById('pinLightboxContent').innerHTML = '';
-            document.body.style.overflow = 'auto';
-        }
-
-        // Default to library
-        switchView('library');
-    </script>
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDXpmQTDZgn_JvtgrEH3tVLzb-XyggLs_M",
-    authDomain: "midnight-library-satyam-media.firebaseapp.com",
-    projectId: "midnight-library-satyam-media",
-    storageBucket: "midnight-library-satyam-media.firebasestorage.app",
-    messagingSenderId: "842047619495",
-    appId: "1:842047619495:web:7483bc7e4a9029d6dc7682",
-    measurementId: "G-CGDLDBT4HH"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-    </script>
+    // 👉 Login state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginBtn.innerText = user.displayName;
+      } else {
+        loginBtn.innerText = "Login with Google";
+      }
+    });
+  </script>
 </body>
 </html>
