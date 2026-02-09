@@ -588,30 +588,49 @@
 
         const App = () => {
             const [user, setUser] = useState(null);
-            const [role, setRole] = useState(null);
             const [userData, setUserData] = useState(null);
             const [splash, setSplash] = useState(true);
             const [selectedRole, setSelectedRole] = useState(null);
+            const [authLoading, setAuthLoading] = useState(true);
 
             useEffect(() => {
-                const unsub = onAuthStateChanged(auth, async (u) => {
+                const unsubAuth = onAuthStateChanged(auth, (u) => {
                     setUser(u);
-                    if (u) {
-                        const snap = await getDoc(doc(db, "users", u.uid));
-                        if (snap.exists()) setUserData(snap.data());
-                    }
+                    setAuthLoading(false);
                 });
-                return () => unsub();
+                return () => unsubAuth();
             }, []);
 
+            useEffect(() => {
+                if (user) {
+                    const unsubDoc = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+                        if (snapshot.exists()) {
+                            setUserData(snapshot.data());
+                        }
+                    });
+                    return () => unsubDoc();
+                }
+            }, [user]);
+
             if (splash) return <SplashScreen onFinish={() => setSplash(false)} />;
+
+            if (authLoading) return null;
 
             if (!user) {
                 if (!selectedRole) return <RoleSelection onSelect={setSelectedRole} />;
                 return <GoogleLoginScreen role={selectedRole} onBack={() => setSelectedRole(null)} />;
             }
 
-            if (!userData) return <div className="h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Setting up profile...</div>;
+            if (!userData) {
+                 return (
+                    <div className="h-screen bg-black flex flex-col items-center justify-center gap-4">
+                        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+                        <button onClick={() => auth.signOut()} className="text-xs text-gray-500 hover:text-white underline">
+                            Stuck? Click to Logout
+                        </button>
+                    </div>
+                 );
+            }
 
             return userData.role === 'owner' ? <OwnerDashboard user={user} /> : <CustomerDashboard user={user} />;
         };
