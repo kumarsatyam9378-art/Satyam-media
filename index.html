@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free India - Ultimate</title>
+    <title>Line Free India - Titanium</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,22 +13,38 @@
                 extend: {
                     colors: {
                         bg: '#000000',
-                        surface: '#121212',
-                        surfaceHighlight: '#1E1E1E',
-                        gold: '#FFD700',
-                        goldDim: '#B8860B',
+                        surface: '#0F0F0F',
+                        surfaceLight: '#1C1C1E',
+                        surfaceLighter: '#2C2C2E',
+                        primary: '#FFD700', // Gold
+                        primaryDim: '#C5A000',
+                        accent: '#0A84FF',
                         danger: '#FF453A',
                         success: '#30D158',
+                        warning: '#FF9F0A',
+                        textMain: '#FFFFFF',
+                        textSec: '#8E8E93',
+                        textTert: '#48484A',
+                        border: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pulse-gold': 'pulseGold 2s infinite',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-down': 'slideDown 0.3s ease-out forwards',
+                        'scale-in': 'scaleIn 0.2s ease-out forwards',
+                        'pulse-slow': 'pulse 3s infinite',
+                        'shimmer': 'shimmer 2s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
-                        pulseGold: { '0%, 100%': { boxShadow: '0 0 0px rgba(255, 215, 0, 0)' }, '50%': { boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)' } }
+                        slideDown: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(0)' } },
+                        scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+                        shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } }
                     }
                 }
             }
@@ -40,26 +56,41 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        body { background-color: #000000; color: #ffffff; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        body { background-color: #000000; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        
+        /* Glassmorphism Classes */
+        .glass { background: rgba(25, 25, 25, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-heavy { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* Utility */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .text-gradient { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-shadow { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.25); }
+        
+        /* Loading Skeleton */
+        .skeleton { background: linear-gradient(to right, #1C1C1E 4%, #2C2C2E 25%, #1C1C1E 36%); background-size: 1000px 100%; animation: shimmer 2s infinite linear; }
+
+        /* Toast Container */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-col; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
+        // --- IMPORTS ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot, query, where, orderBy, updateDoc, serverTimestamp, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- CONFIG ---
+        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
@@ -75,292 +106,744 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const { useState, useEffect, useRef } = React;
-        const Icon = ({ name, size = 20, className }) => <i data-lucide={name} width={size} height={size} className={className}></i>;
+        const { useState, useEffect, useRef, createContext, useContext, useMemo } = React;
+
+        // --- CONTEXTS & HOOKS ---
+
+        // 1. Toast Notification Context
+        const ToastContext = createContext();
+        const ToastProvider = ({ children }) => {
+            const [toasts, setToasts] = useState([]);
+
+            const addToast = (message, type = 'info') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, message, type }]);
+                setTimeout(() => removeToast(id), 3000);
+            };
+
+            const removeToast = (id) => {
+                setToasts(prev => prev.filter(t => t.id !== id));
+            };
+
+            return (
+                <ToastContext.Provider value={{ addToast }}>
+                    {children}
+                    <div id="toast-container">
+                        {toasts.map(t => (
+                            <div key={t.id} className={`p-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-down backdrop-blur-md border ${
+                                t.type === 'success' ? 'bg-success/20 border-success text-success' : 
+                                t.type === 'error' ? 'bg-danger/20 border-danger text-danger' : 
+                                'bg-surfaceLight/90 border-white/10 text-white'
+                            }`}>
+                                <Icon name={t.type === 'success' ? 'check-circle' : t.type === 'error' ? 'alert-circle' : 'info'} size={20} />
+                                <span className="text-sm font-medium">{t.message}</span>
+                            </div>
+                        ))}
+                    </div>
+                </ToastContext.Provider>
+            );
+        };
+        const useToast = () => useContext(ToastContext);
+
+        // 2. Sound & Haptics Hook
+        const useFeedback = () => {
+            const vibrate = (pattern = [10]) => {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            };
+
+            const playSound = (type = 'click') => {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+                
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else {
+                    // Click
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            };
+
+            return { trigger: (type) => { vibrate(); playSound(type); } };
+        };
+
+        // --- ATOMIC UI COMPONENTS ---
+
+        const Icon = ({ name, size = 20, className, fill }) => 
+            <i data-lucide={name} width={size} height={size} className={className} fill={fill}></i>;
+
+        const Button = ({ children, onClick, variant = 'primary', className = "", disabled = false, icon, loading = false }) => {
+            const { trigger } = useFeedback();
+            
+            const handleClick = (e) => {
+                if (!disabled && !loading) {
+                    trigger(variant === 'primary' ? 'click' : 'click');
+                    onClick && onClick(e);
+                }
+            };
+
+            const baseClass = "relative w-full py-4 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden";
+            const variants = {
+                primary: "bg-primary text-black shadow-lg shadow-primary/20 hover:bg-primaryDim",
+                secondary: "bg-surfaceLight border border-border text-white hover:bg-surfaceLighter",
+                danger: "bg-danger/10 border border-danger/20 text-danger hover:bg-danger/20",
+                ghost: "bg-transparent text-textSec hover:text-white"
+            };
+
+            return (
+                <button onClick={handleClick} disabled={disabled || loading} className={`${baseClass} ${variants[variant]} ${className}`}>
+                    {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : 
+                    <>
+                        {icon && <Icon name={icon} size={18} />}
+                        {children}
+                    </>}
+                </button>
+            );
+        };
+
+        const Input = ({ label, value, onChange, placeholder, type = "text", icon }) => (
+            <div className="space-y-1.5">
+                {label && <label className="text-xs font-bold text-primary uppercase tracking-widest ml-1">{label}</label>}
+                <div className="relative group">
+                    {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2 text-textSec group-focus-within:text-primary transition-colors"><Icon name={icon} size={18} /></div>}
+                    <input 
+                        type={type}
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        className={`w-full bg-surfaceLight border border-border rounded-xl py-3.5 ${icon ? 'pl-11' : 'pl-4'} pr-4 text-white placeholder-textTert focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none transition-all`}
+                    />
+                </div>
+            </div>
+        );
+
+        const Badge = ({ children, type = 'neutral' }) => {
+            const styles = {
+                neutral: 'bg-surfaceLighter text-textSec',
+                success: 'bg-success/10 text-success border border-success/20',
+                warning: 'bg-warning/10 text-warning border border-warning/20',
+                danger: 'bg-danger/10 text-danger border border-danger/20',
+                primary: 'bg-primary/10 text-primary border border-primary/20'
+            };
+            return (
+                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${styles[type]}`}>
+                    {children}
+                </span>
+            );
+        };
 
         // --- SPLASH SCREEN ---
         const SplashScreen = ({ onFinish }) => {
             useEffect(() => {
                 lucide.createIcons();
-                setTimeout(onFinish, 2000);
+                setTimeout(onFinish, 2200);
             }, []);
+
             return (
-                <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center">
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-surfaceHighlight to-black border border-gold/30 flex items-center justify-center mb-6 animate-pulse-gold">
-                        <Icon name="scissors" size={48} className="text-gold" />
+                <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                    <div className="w-32 h-32 rounded-3xl glass border border-primary/30 flex items-center justify-center mb-8 animate-pulse-slow shadow-[0_0_50px_rgba(255,215,0,0.15)]">
+                        <Icon name="scissors" size={64} className="text-primary" />
                     </div>
-                    <h1 className="text-4xl font-extrabold text-white tracking-wide">Line Free <span className="text-gold">India</span></h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter mb-2 animate-scale-in">
+                        LINE FREE <span className="text-gradient">INDIA</span>
+                    </h1>
+                    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/5 bg-white/5 backdrop-blur-md">
+                        <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                        <span className="text-[10px] font-bold tracking-[0.2em] text-textSec">SYSTEM ONLINE</span>
+                    </div>
                 </div>
             );
         };
 
-        // --- AUTH ---
-        const LoginScreen = ({ onLogin }) => (
-            <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80')] bg-cover opacity-20"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-                
-                <div className="relative z-10 mb-8">
-                    <h1 className="text-5xl font-bold text-white mb-2">Queue Less.<br/><span className="text-gold">Live More.</span></h1>
-                    <p className="text-gray-400">India's Smartest Salon Booking App.</p>
-                </div>
-                <button onClick={onLogin} className="relative z-10 w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5"/>
-                    Continue with Google
-                </button>
-            </div>
-        );
+        // --- AUTH & ONBOARDING ---
+        const LoginScreen = ({ onLogin }) => {
+            useEffect(() => lucide.createIcons(), []);
+            return (
+                <div className="min-h-screen bg-bg flex flex-col relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-bg to-bg"></div>
+                    <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[50%] bg-primary/10 blur-[100px] rounded-full"></div>
 
-        const RoleSelection = ({ onSelect }) => (
-            <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up">
-                <h2 className="text-3xl font-bold text-white mb-8">Select Profile</h2>
-                <div className="space-y-4">
-                    <button onClick={() => onSelect('customer')} className="w-full bg-surfaceHighlight p-6 rounded-2xl border border-white/5 flex items-center gap-4 hover:border-gold/50 transition-all text-left group">
-                        <div className="p-4 bg-surface rounded-full text-white group-hover:text-gold transition-colors"><Icon name="user" size={32} /></div>
-                        <div>
-                            <h3 className="text-xl font-bold text-white">Customer</h3>
-                            <p className="text-gray-400 text-sm">Book appointments & track queue.</p>
+                    <div className="flex-1 flex flex-col justify-end p-8 relative z-10 pb-12">
+                        <div className="w-16 h-16 rounded-2xl glass border border-primary/30 flex items-center justify-center mb-8">
+                            <Icon name="crown" size={32} className="text-primary" />
                         </div>
-                    </button>
-                    <button onClick={() => onSelect('owner')} className="w-full bg-surfaceHighlight p-6 rounded-2xl border border-white/5 flex items-center gap-4 hover:border-gold/50 transition-all text-left group">
-                        <div className="p-4 bg-surface rounded-full text-white group-hover:text-gold transition-colors"><Icon name="store" size={32} /></div>
-                        <div>
-                            <h3 className="text-xl font-bold text-white">Salon Owner</h3>
-                            <p className="text-gray-400 text-sm">Manage shop, staff & revenue.</p>
-                        </div>
-                    </button>
-                </div>
-            </div>
-        );
+                        <h1 className="text-6xl font-bold text-white leading-tight mb-4 tracking-tight">
+                            Queue <br/>
+                            <span className="text-gradient">Less.</span>
+                        </h1>
+                        <p className="text-textSec text-lg mb-10 max-w-xs leading-relaxed">
+                            India's most advanced salon booking and management platform.
+                        </p>
 
-        // --- SHOP SETUP (NEW) ---
+                        <Button onClick={onLogin} icon="log-in">Continue with Google</Button>
+                        <p className="text-center text-[10px] text-textTert mt-6">By continuing you agree to Terms & Privacy Policy.</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const RoleSelection = ({ onSelect }) => {
+            useEffect(() => lucide.createIcons(), []);
+            return (
+                <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up">
+                    <h2 className="text-3xl font-bold text-white mb-2">Select Profile</h2>
+                    <p className="text-textSec mb-10">Choose how you want to use the app.</p>
+
+                    <div className="grid gap-4">
+                        {['customer', 'owner'].map((role) => (
+                            <div key={role} onClick={() => onSelect(role)} className="group relative bg-surfaceLight rounded-[2rem] p-1 cursor-pointer transition-all hover:scale-[1.02]">
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 rounded-[2rem] transition-opacity"></div>
+                                <div className="relative bg-surface rounded-[1.8rem] p-6 border border-white/5 h-full flex items-center gap-5">
+                                    <div className="w-16 h-16 rounded-2xl bg-surfaceLighter flex items-center justify-center text-white group-hover:text-primary group-hover:bg-primary/10 transition-colors border border-white/5">
+                                        <Icon name={role === 'customer' ? 'user' : 'store'} size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white capitalize">{role === 'owner' ? 'Salon Partner' : 'Customer'}</h3>
+                                        <p className="text-xs text-textSec mt-1 leading-relaxed">
+                                            {role === 'customer' ? 'Book appointments & track live status.' : 'Manage business, staff & revenue.'}
+                                        </p>
+                                    </div>
+                                    <div className="absolute right-6 text-textTert group-hover:text-primary transition-colors"><Icon name="chevron-right" /></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- SHOP SETUP FLOW (Owner) ---
         const ShopSetup = ({ onSave }) => {
-            const [name, setName] = useState('');
-            const [loc, setLoc] = useState('');
-            const [img, setImg] = useState('https://images.unsplash.com/photo-1521590832896-7ea20ade7d60?w=800&q=80');
+            const [step, setStep] = useState(1);
+            const [data, setData] = useState({ name: '', location: '', image: '' });
+            const { addToast } = useToast();
+
+            const nextStep = () => {
+                if (step === 1 && !data.name) return addToast("Shop name is required", "error");
+                if (step === 2 && !data.location) return addToast("Location is required", "error");
+                if (step === 3) onSave(data);
+                else setStep(s => s + 1);
+            };
 
             const detectLocation = () => {
-                if(navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(pos => {
-                        setLoc(`Lat: ${pos.coords.latitude.toFixed(4)}, Long: ${pos.coords.longitude.toFixed(4)}`);
-                    });
-                } else alert("Geo not supported");
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            setData({ ...data, location: `Lat: ${pos.coords.latitude.toFixed(4)}, Long: ${pos.coords.longitude.toFixed(4)}` });
+                            addToast("Location detected successfully", "success");
+                        },
+                        () => addToast("Permission denied for location", "error")
+                    );
+                }
             };
 
             return (
-                <div className="min-h-screen bg-bg p-6 pt-12 animate-slide-up">
-                    <h2 className="text-2xl font-bold text-white mb-6">Setup Your Salon</h2>
-                    
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-xs text-gold font-bold uppercase">Shop Name</label>
-                            <input value={name} onChange={e=>setName(e.target.value)} className="w-full bg-surfaceHighlight border border-white/10 rounded-xl p-4 mt-1 text-white outline-none focus:border-gold" placeholder="e.g. Royal Cuts" />
+                <div className="min-h-screen bg-bg p-6 flex flex-col justify-between pb-10 animate-fade-in">
+                    <div className="pt-10">
+                        <div className="flex gap-2 mb-8">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? 'bg-primary' : 'bg-surfaceLight'}`}></div>
+                            ))}
                         </div>
                         
-                        <div>
-                            <label className="text-xs text-gold font-bold uppercase">Location</label>
-                            <div className="flex gap-2 mt-1">
-                                <input value={loc} onChange={e=>setLoc(e.target.value)} className="flex-1 bg-surfaceHighlight border border-white/10 rounded-xl p-4 text-white outline-none" placeholder="City, Area" />
-                                <button onClick={detectLocation} className="bg-surfaceHighlight border border-white/10 p-4 rounded-xl text-gold"><Icon name="map-pin" /></button>
+                        <h2 className="text-3xl font-bold text-white mb-2">
+                            {step === 1 ? "Name your Business" : step === 2 ? "Where are you?" : "Add a Photo"}
+                        </h2>
+                        <p className="text-textSec mb-8">
+                            {step === 1 ? "This name will be visible to all customers." : step === 2 ? "Customers need accurate location to find you." : "A good cover photo attracts more customers."}
+                        </p>
+
+                        {step === 1 && (
+                            <Input label="Business Name" placeholder="e.g. Royal Cuts Salon" value={data.name} onChange={e=>setData({...data, name: e.target.value})} icon="store" />
+                        )}
+
+                        {step === 2 && (
+                            <div className="space-y-4">
+                                <Input label="Address / Coordinates" placeholder="City, Area" value={data.location} onChange={e=>setData({...data, location: e.target.value})} icon="map-pin" />
+                                <Button variant="secondary" onClick={detectLocation} icon="crosshair">Auto-Detect GPS</Button>
                             </div>
-                        </div>
+                        )}
 
-                        <div>
-                            <label className="text-xs text-gold font-bold uppercase">Shop Image URL</label>
-                            <input value={img} onChange={e=>setImg(e.target.value)} className="w-full bg-surfaceHighlight border border-white/10 rounded-xl p-4 mt-1 text-white outline-none" />
-                            <img src={img} className="w-full h-32 object-cover rounded-xl mt-2 opacity-60" />
-                        </div>
+                        {step === 3 && (
+                            <div className="space-y-4">
+                                <Input label="Image URL" placeholder="https://..." value={data.image} onChange={e=>setData({...data, image: e.target.value})} icon="image" />
+                                <div className="aspect-video bg-surfaceLight rounded-xl border border-border overflow-hidden flex items-center justify-center">
+                                    {data.image ? <img src={data.image} className="w-full h-full object-cover" /> : <span className="text-textTert text-xs">Preview</span>}
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                                    {["https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400", "https://images.unsplash.com/photo-1521590832896-7ea20ade7d60?w=400", "https://images.unsplash.com/photo-1503951914875-452162b7f30a?w=400"].map((url, i) => (
+                                        <img key={i} src={url} onClick={() => setData({...data, image: url})} className="w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-primary" />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
-                        <button onClick={() => onSave({name, loc, img})} disabled={!name} className="w-full bg-gold text-black font-bold py-4 rounded-xl mt-4 disabled:opacity-50">Launch Business 🚀</button>
+                    <div className="flex gap-4">
+                        {step > 1 && <Button variant="secondary" onClick={() => setStep(s=>s-1)}>Back</Button>}
+                        <Button onClick={nextStep}>{step === 3 ? "Launch Business 🚀" : "Next Step"}</Button>
                     </div>
                 </div>
             );
         };
 
         // --- OWNER DASHBOARD ---
-        const OwnerDashboard = ({ user, onReset }) => {
-            const [view, setView] = useState('dashboard');
+        const OwnerDashboard = ({ user, onLogout }) => {
+            const [activeTab, setActiveTab] = useState('home');
             const [salon, setSalon] = useState(null);
             const [queue, setQueue] = useState([]);
-            const [isSetup, setIsSetup] = useState(true);
+            const [services, setServices] = useState([]);
+            const { addToast } = useToast();
+            const { trigger } = useFeedback();
 
+            // Init & Listen
             useEffect(() => {
-                const salonRef = doc(db, "salons", user.uid);
+                const salonRef = doc(db, COLLECTIONS.SALONS, user.uid);
                 const unsubSalon = onSnapshot(salonRef, (docSnap) => {
-                    if (docSnap.exists()) {
+                    if(docSnap.exists()) {
                         setSalon(docSnap.data());
-                        if (!docSnap.data().shopName) setIsSetup(false);
-                    } else {
-                        setIsSetup(false); 
+                        setServices(docSnap.data().services || []);
                     }
                 });
 
-                const q = query(collection(db, "tokens"), where("salonId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
-                const unsubQueue = onSnapshot(q, (qs) => setQueue(qs.docs.map(d => ({id:d.id, ...d.data()}))));
+                const q = query(collection(db, COLLECTIONS.TOKENS), where("salonId", "==", user.uid), where("status", "in", ["waiting", "serving"]), orderBy("createdAt"));
+                const unsubQueue = onSnapshot(q, (snap) => {
+                    setQueue(snap.docs.map(d => ({id: d.id, ...d.data()})));
+                });
 
                 return () => { unsubSalon(); unsubQueue(); }
             }, [user]);
 
-            useEffect(() => { if(view) lucide.createIcons(); });
+            useEffect(() => lucide.createIcons(), [activeTab, salon, queue, services]);
 
-            const handleSetupSave = async (data) => {
-                await setDoc(doc(db, "salons", user.uid), {
-                    shopName: data.name,
-                    address: data.loc,
-                    shopImage: data.img,
-                    ownerName: user.displayName,
-                    status: 'open',
-                    revenue: 0,
-                    totalTokens: 0,
-                    rating: 5.0,
-                    createdAt: serverTimestamp()
-                });
-                setIsSetup(true);
+            // Actions
+            const toggleStatus = async () => {
+                const newStatus = salon.status === 'open' ? 'closed' : 'open';
+                await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { status: newStatus });
+                addToast(newStatus === 'open' ? "Salon is now Online" : "Salon is Offline", newStatus === 'open' ? "success" : "info");
             };
 
-            const toggleStatus = async () => updateDoc(doc(db, "salons", user.uid), {status: salon?.status==='open'?'closed':'open'});
-            
             const callNext = async () => {
-                const next = queue.find(t => t.status === 'waiting');
-                if(next) await updateDoc(doc(db, "tokens", next.id), {status: 'serving'});
-                const current = queue.find(t => t.status === 'serving');
-                if(current) await updateDoc(doc(db, "tokens", current.id), {status: 'completed'});
+                const waiting = queue.filter(t => t.status === 'waiting');
+                const serving = queue.find(t => t.status === 'serving');
+
+                await runTransaction(db, async (transaction) => {
+                    // Mark current as completed
+                    if(serving) {
+                        transaction.update(doc(db, COLLECTIONS.TOKENS, serving.id), { status: 'completed' });
+                        // Add revenue mock
+                        transaction.update(doc(db, COLLECTIONS.SALONS, user.uid), { revenue: (salon.revenue || 0) + 200 });
+                    }
+                    // Mark next as serving
+                    if(waiting.length > 0) {
+                        transaction.update(doc(db, COLLECTIONS.TOKENS, waiting[0].id), { status: 'serving' });
+                    }
+                });
+                trigger('success');
             };
 
-            if (!isSetup) return <ShopSetup onSave={handleSetupSave} />;
+            const addService = async (serviceData) => {
+                const newServices = [...services, { ...serviceData, id: Date.now().toString() }];
+                await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { services: newServices });
+                addToast("Service added successfully", "success");
+            };
 
-            return (
-                <div className="min-h-screen bg-bg pb-24">
-                    <div className="relative h-64">
-                        <img src={salon?.shopImage} className="w-full h-full object-cover opacity-60" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-bg to-transparent"></div>
-                        <div className="absolute bottom-4 left-6">
-                            <h1 className="text-3xl font-bold text-white">{salon?.shopName}</h1>
-                            <p className="text-sm text-gray-300 flex items-center gap-1"><Icon name="map-pin" size={14}/> {salon?.address}</p>
-                        </div>
-                    </div>
-
-                    <div className="p-6 -mt-6 relative z-10 space-y-6">
-                         {/* Status */}
-                         <div className="bg-surfaceHighlight p-6 rounded-2xl flex justify-between items-center border border-white/5">
+            // RENDER TABS
+            const renderHome = () => {
+                const current = queue.find(t => t.status === 'serving');
+                return (
+                    <div className="p-6 pb-24 space-y-6 animate-slide-up">
+                        {/* Header */}
+                        <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-xs text-gray-500 uppercase font-bold">Status</p>
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${salon?.status === 'open' ? 'bg-success animate-pulse' : 'bg-danger'}`}></div>
-                                    <span className="text-xl font-bold text-white capitalize">{salon?.status}</span>
+                                <h1 className="text-2xl font-bold text-white">{salon?.shopName}</h1>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <Badge type={salon?.status === 'open' ? 'success' : 'danger'}>{salon?.status || 'Offline'}</Badge>
+                                    <span className="text-xs text-textSec flex items-center gap-1"><Icon name="map-pin" size={10} /> {salon?.address}</span>
                                 </div>
                             </div>
-                            <button onClick={toggleStatus} className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-bold hover:bg-white/10">{salon?.status==='open'?'Close':'Open'}</button>
-                         </div>
+                            <Button variant="secondary" className="w-auto px-4 py-2 text-xs" onClick={toggleStatus}>
+                                {salon?.status === 'open' ? 'Close Shop' : 'Go Online'}
+                            </Button>
+                        </div>
 
-                         {/* Active Queue */}
-                         <div className="bg-gold p-6 rounded-2xl text-black">
-                             <p className="text-xs font-bold uppercase opacity-60 mb-2">Serving Now</p>
-                             <div className="text-3xl font-black mb-1">{queue.find(t=>t.status==='serving')?.tokenNumber || '-'}</div>
-                             <div className="font-bold mb-4">{queue.find(t=>t.status==='serving')?.userName || 'Empty'}</div>
-                             <button onClick={callNext} className="w-full bg-black text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">Call Next <Icon name="arrow-right" size={16}/></button>
-                         </div>
+                        {/* Revenue Card */}
+                        <div className="relative bg-gradient-to-br from-surfaceLight to-black p-6 rounded-3xl border border-white/5 overflow-hidden">
+                            <div className="absolute right-0 bottom-0 opacity-10"><Icon name="trending-up" size={120} /></div>
+                            <p className="text-primary text-xs font-bold uppercase tracking-widest mb-1">Total Revenue</p>
+                            <h2 className="text-4xl font-bold text-white">₹{salon?.revenue || 0}</h2>
+                            <div className="mt-4 flex gap-3 text-xs text-textSec">
+                                <span className="bg-success/10 text-success px-2 py-1 rounded flex gap-1"><Icon name="arrow-up" size={12}/> 12%</span>
+                                <span className="py-1">vs yesterday</span>
+                            </div>
+                        </div>
 
-                         {/* Reset Button (For Testing) */}
-                         <button onClick={onReset} className="w-full py-4 text-danger text-sm font-bold border border-danger/20 rounded-xl hover:bg-danger/10">Delete Account & Reset Demo</button>
+                        {/* Queue Control */}
+                        <div className="bg-primary p-6 rounded-3xl text-black shadow-lg shadow-primary/20">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <p className="text-xs font-bold uppercase opacity-60 mb-1">Serving Token</p>
+                                    <div className="text-4xl font-black mb-1">{current ? current.tokenNumber : '-'}</div>
+                                    <div className="font-bold">{current ? current.userName : 'Queue Empty'}</div>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center">
+                                    <Icon name="mic" size={24} className="text-black" />
+                                </div>
+                            </div>
+                            <Button onClick={callNext} disabled={!queue.some(t => t.status === 'waiting')} className="bg-black text-white hover:bg-gray-800 border-none">
+                                Call Next Customer <Icon name="arrow-right" size={18} />
+                            </Button>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
+                                <div className="text-3xl font-bold text-white mb-1">{queue.filter(t=>t.status==='waiting').length}</div>
+                                <div className="text-xs text-textSec uppercase">Waiting</div>
+                            </div>
+                            <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
+                                <div className="text-3xl font-bold text-white mb-1">{salon?.totalTokens || 0}</div>
+                                <div className="text-xs text-textSec uppercase">Total Visits</div>
+                            </div>
+                        </div>
                     </div>
+                );
+            };
+
+            const renderServices = () => {
+                const [name, setName] = useState('');
+                const [price, setPrice] = useState('');
+                return (
+                    <div className="p-6 pb-24 animate-slide-up">
+                        <h2 className="text-xl font-bold text-white mb-6">Services Menu</h2>
+                        
+                        <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 mb-6 space-y-3">
+                            <Input label="Service Name" placeholder="e.g. Haircut" value={name} onChange={e=>setName(e.target.value)} />
+                            <div className="flex gap-3">
+                                <div className="flex-1"><Input label="Price (₹)" type="number" placeholder="200" value={price} onChange={e=>setPrice(e.target.value)} /></div>
+                                <div className="flex items-end"><Button className="h-[50px] px-6" onClick={() => { addService({name, price: parseInt(price)}); setName(''); setPrice(''); }} icon="plus">Add</Button></div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            {services.map(s => (
+                                <div key={s.id} className="flex justify-between items-center bg-surfaceLight p-4 rounded-2xl border border-white/5">
+                                    <div>
+                                        <h4 className="font-bold text-white">{s.name}</h4>
+                                        <p className="text-xs text-textSec">30 mins • Standard</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-bold text-primary">₹{s.price}</span>
+                                        <button className="text-danger hover:bg-danger/10 p-2 rounded-lg" onClick={async () => {
+                                            const updated = services.filter(ser => ser.id !== s.id);
+                                            await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { services: updated });
+                                        }}><Icon name="trash-2" size={18} /></button>
+                                    </div>
+                                </div>
+                            ))}
+                            {services.length === 0 && <div className="text-center text-textTert py-10">No services added.</div>}
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderQR = () => {
+                const qrRef = useRef();
+                useEffect(() => {
+                    if(qrRef.current) {
+                        qrRef.current.innerHTML = "";
+                        new QRCode(qrRef.current, { text: `https://linefree.app/salon/${user.uid}`, width: 200, height: 200, colorDark: "#000", colorLight: "#fff" });
+                    }
+                }, []);
+                return (
+                    <div className="p-6 pb-24 h-screen flex flex-col justify-center items-center text-center animate-fade-in">
+                        <div className="bg-white p-8 rounded-3xl mb-6 shadow-2xl">
+                            <div ref={qrRef}></div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2">{salon?.shopName}</h2>
+                        <p className="text-textSec mb-8 text-sm">Scan to book an appointment instantly.</p>
+                        <Button variant="secondary" className="max-w-xs" icon="printer" onClick={()=>window.print()}>Print QR Code</Button>
+                    </div>
+                );
+            };
+
+            const renderSettings = () => (
+                <div className="p-6 pb-24 animate-slide-up">
+                    <div className="flex items-center gap-4 mb-8">
+                        <img src={salon?.shopImage || user.photoURL} className="w-20 h-20 rounded-full object-cover border-2 border-primary" />
+                        <div>
+                            <h2 className="text-xl font-bold text-white">{user.displayName}</h2>
+                            <p className="text-sm text-textSec">Owner ID: {user.uid.slice(0,6)}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <Button variant="secondary" icon="edit">Edit Shop Details</Button>
+                        <Button variant="secondary" icon="users">Manage Staff</Button>
+                        <Button variant="danger" icon="log-out" onClick={onLogout}>Sign Out</Button>
+                        <Button variant="ghost" className="text-xs text-danger/50 mt-10" onClick={async () => {
+                            if(confirm("Reset Demo Data?")) {
+                                await deleteDoc(doc(db, COLLECTIONS.SALONS, user.uid));
+                                await deleteDoc(doc(db, COLLECTIONS.USERS, user.uid));
+                                window.location.reload();
+                            }
+                        }}>Reset Demo Account</Button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-bg">
+                    {activeTab === 'home' && renderHome()}
+                    {activeTab === 'menu' && renderServices()}
+                    {activeTab === 'qr' && renderQR()}
+                    {activeTab === 'settings' && renderSettings()}
+                    
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} tabs={[
+                        {id: 'home', label: 'Home', icon: 'layout-grid', fill: true},
+                        {id: 'menu', label: 'Menu', icon: 'list'},
+                        {id: 'qr', label: 'QR', icon: 'qr-code'},
+                        {id: 'settings', label: 'Settings', icon: 'settings'}
+                    ]} />
                 </div>
             );
         };
 
         // --- CUSTOMER DASHBOARD ---
-        const CustomerDashboard = ({ user, onReset }) => {
+        const CustomerDashboard = ({ user, onLogout }) => {
+            const [activeTab, setActiveTab] = useState('explore');
             const [salons, setSalons] = useState([]);
-            const [myToken, setMyToken] = useState(null);
+            const [activeToken, setActiveToken] = useState(null);
+            const { addToast } = useToast();
+            const { trigger } = useFeedback();
+
+            // State for Booking Modal
+            const [selectedSalon, setSelectedSalon] = useState(null);
+            const [selectedServices, setSelectedServices] = useState([]);
 
             useEffect(() => {
-                const unsubS = onSnapshot(collection(db, "salons"), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
-                const q = query(collection(db, "tokens"), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
-                const unsubT = onSnapshot(q, s => setMyToken(!s.empty ? {id:s.docs[0].id, ...s.docs[0].data()} : null));
+                const unsubS = onSnapshot(collection(db, COLLECTIONS.SALONS), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                const q = query(collection(db, COLLECTIONS.TOKENS), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
+                const unsubT = onSnapshot(q, s => setActiveToken(!s.empty ? {id:s.docs[0].id, ...s.docs[0].data()} : null));
                 return () => { unsubS(); unsubT(); }
             }, [user]);
 
-            useEffect(() => lucide.createIcons());
+            useEffect(() => lucide.createIcons(), [activeTab, salons, activeToken, selectedSalon]);
 
-            const joinQueue = async (salon) => {
-                await runTransaction(db, async (transaction) => {
-                    const salonRef = doc(db, "salons", salon.id);
-                    const sDoc = await transaction.get(salonRef);
-                    if (!sDoc.exists()) throw "Error";
-                    
-                    const newTokenNum = (sDoc.data().totalTokens || 0) + 1;
-                    transaction.update(salonRef, { totalTokens: newTokenNum });
-                    
-                    const tokenRef = doc(collection(db, "tokens"));
-                    transaction.set(tokenRef, {
-                        userId: user.uid, userName: user.displayName, salonId: salon.id, salonName: salon.shopName,
-                        tokenNumber: newTokenNum, status: 'waiting', createdAt: serverTimestamp()
-                    });
-                });
+            const handleBook = async () => {
+                if(selectedServices.length === 0) return addToast("Select at least one service", "error");
                 
-                // Confetti
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const salonRef = doc(db, COLLECTIONS.SALONS, selectedSalon.id);
+                        const sDoc = await transaction.get(salonRef);
+                        if (!sDoc.exists()) throw "Salon not found";
+
+                        const newTokenNum = (sDoc.data().totalTokens || 0) + 1;
+                        transaction.update(salonRef, { totalTokens: newTokenNum });
+
+                        const tokenRef = doc(collection(db, COLLECTIONS.TOKENS));
+                        transaction.set(tokenRef, {
+                            userId: user.uid, userName: user.displayName, 
+                            salonId: selectedSalon.id, salonName: selectedSalon.shopName,
+                            services: selectedServices,
+                            tokenNumber: newTokenNum, status: 'waiting', createdAt: serverTimestamp()
+                        });
+                    });
+                    
+                    trigger('success');
+                    addToast("Booking Confirmed!", "success");
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    setSelectedSalon(null);
+                    setSelectedServices([]);
+                    setActiveTab('activity');
+                } catch (e) {
+                    addToast("Booking Failed", "error");
+                }
             };
 
-            const cancelToken = async () => {
-                if(myToken) await updateDoc(doc(db, "tokens", myToken.id), {status: 'cancelled'});
+            const toggleService = (s) => {
+                if(selectedServices.find(x => x.name === s.name)) setSelectedServices(selectedServices.filter(x => x.name !== s.name));
+                else setSelectedServices([...selectedServices, s]);
             };
 
-            return (
-                <div className="min-h-screen bg-bg p-6 pb-24">
-                    <div className="flex justify-between items-center mb-8 sticky top-0 bg-bg z-20 py-4">
-                        <h1 className="text-2xl font-bold text-white">Line Free <span className="text-gold">India</span></h1>
-                        <img src={user.photoURL} className="w-8 h-8 rounded-full border border-gold/30" />
+            const renderExplore = () => (
+                <div className="p-6 pb-24 animate-slide-up">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h1 className="text-2xl font-bold text-white">Hello, {user.displayName.split(" ")[0]}</h1>
+                            <p className="text-sm text-textSec">Time to look sharp.</p>
+                        </div>
+                        <img src={user.photoURL} className="w-10 h-10 rounded-full border border-primary/30" />
                     </div>
 
-                    {/* Active Token Card */}
-                    {myToken && (
-                        <div className="bg-gradient-to-br from-surfaceHighlight to-surface border border-gold/30 p-6 rounded-3xl mb-8 relative overflow-hidden animate-slide-up shadow-2xl shadow-gold/10">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gold"></div>
-                            <div className="text-center">
-                                <p className="text-xs text-gold font-bold uppercase tracking-widest mb-2">Live Token</p>
-                                <h1 className="text-6xl font-black text-white">{myToken.tokenNumber}</h1>
-                                <p className="text-gray-400 mt-2">{myToken.salonName}</p>
-                                <div className="mt-6 pt-6 border-t border-white/10 flex justify-between">
-                                    <div className="text-center w-1/2 border-r border-white/10">
-                                        <div className="text-xl font-bold text-white">15m</div>
-                                        <div className="text-[10px] text-gray-500 uppercase">Wait</div>
-                                    </div>
-                                    <div className="text-center w-1/2">
-                                        <button onClick={cancelToken} className="text-danger text-sm font-bold">Cancel</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <div className="relative mb-8">
+                        <Icon name="search" className="absolute left-4 top-3.5 text-textSec" />
+                        <input placeholder="Search nearby salons..." className="w-full bg-surfaceLight border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-white focus:border-primary outline-none" />
+                    </div>
 
                     <h2 className="text-lg font-bold text-white mb-4">Nearby Salons</h2>
                     <div className="space-y-4">
                         {salons.map(s => (
-                            <div key={s.id} className="bg-surfaceHighlight p-4 rounded-2xl border border-white/5 flex gap-4 cursor-pointer hover:border-gold/30 transition-all">
-                                <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-white">{s.shopName}</h3>
-                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${s.status === 'open' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>{s.status}</span>
+                            <div key={s.id} onClick={() => setSelectedSalon(s)} className="group bg-surfaceLight p-4 rounded-3xl border border-white/5 cursor-pointer hover:border-primary/30 transition-all active:scale-[0.98]">
+                                <div className="flex gap-4">
+                                    <img src={s.shopImage} className="w-24 h-24 rounded-2xl object-cover bg-surface" />
+                                    <div className="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="font-bold text-white text-lg leading-tight">{s.shopName}</h3>
+                                                <Badge type={s.status === 'open' ? 'success' : 'danger'}>{s.status}</Badge>
+                                            </div>
+                                            <p className="text-textSec text-xs flex items-center gap-1 mt-1"><Icon name="map-pin" size={12}/> {s.address}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-xs text-textTert">
+                                            <span className="flex items-center gap-1"><Icon name="clock" size={12}/> 20 min</span>
+                                            <span className="flex items-center gap-1"><Icon name="star" size={12} className="text-primary" fill="currentColor"/> {s.rating}</span>
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address}</p>
-                                    <button onClick={() => joinQueue(s)} disabled={myToken || s.status !== 'open'} className="mt-3 bg-white text-black text-xs font-bold py-2 px-4 rounded-lg hover:bg-gold transition-colors disabled:opacity-50">
-                                        {myToken ? 'Already in Queue' : 'Join Queue'}
-                                    </button>
                                 </div>
                             </div>
                         ))}
+                        {salons.length === 0 && (
+                            <div className="text-center py-20">
+                                <div className="w-20 h-20 bg-surfaceLight rounded-full flex items-center justify-center mx-auto mb-4 text-textTert"><Icon name="map" size={32}/></div>
+                                <p className="text-textSec">No salons found nearby.</p>
+                            </div>
+                        )}
                     </div>
+                </div>
+            );
 
-                    <div className="mt-12 pt-8 border-t border-white/5">
-                        <button onClick={onReset} className="w-full text-center text-xs text-gray-600 hover:text-danger">Reset Account (Demo)</button>
-                    </div>
+            return (
+                <div className="min-h-screen bg-bg">
+                    {activeTab === 'explore' && renderExplore()}
+                    
+                    {/* Activity Tab */}
+                    {activeTab === 'activity' && (
+                        <div className="p-6 pb-24 animate-slide-up">
+                            <h2 className="text-2xl font-bold text-white mb-6">Live Activity</h2>
+                            {activeToken ? (
+                                <div className="bg-gradient-to-br from-surfaceLight to-surface border border-primary/30 rounded-[2rem] p-6 relative overflow-hidden shadow-2xl shadow-primary/10">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent"></div>
+                                    <div className="text-center mb-8 mt-4">
+                                        <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 animate-pulse">Live Status</div>
+                                        <h1 className="text-7xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
+                                        <p className="text-textSec mt-2">{activeToken.salonName}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
+                                        <div className="text-center border-r border-white/10">
+                                            <div className="text-2xl font-bold text-white">3</div>
+                                            <div className="text-[10px] text-textSec uppercase">Ahead</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-primary">15m</div>
+                                            <div className="text-[10px] text-textSec uppercase">Wait</div>
+                                        </div>
+                                    </div>
+                                    <Button variant="danger" className="mt-8 bg-danger/10 border-none text-danger" onClick={async () => {
+                                        await updateDoc(doc(db, COLLECTIONS.TOKENS, activeToken.id), { status: 'cancelled' });
+                                        addToast("Booking Cancelled", "info");
+                                    }}>Cancel Booking</Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-20 opacity-50"><p>No active bookings.</p><Button variant="ghost" onClick={()=>setActiveTab('explore')}>Book Now</Button></div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Profile Tab */}
+                    {activeTab === 'profile' && (
+                        <div className="p-6 pb-24 animate-slide-up">
+                            <div className="text-center mb-10">
+                                <img src={user.photoURL} className="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-primary p-1" />
+                                <h2 className="text-xl font-bold text-white">{user.displayName}</h2>
+                                <p className="text-sm text-textSec">{user.email}</p>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+                                    <span className="text-sm font-bold">Wallet Balance</span>
+                                    <span className="text-primary font-bold">₹0.00</span>
+                                </div>
+                                <Button variant="secondary" icon="heart">Favorites</Button>
+                                <Button variant="secondary" icon="settings">Settings</Button>
+                                <Button variant="danger" icon="log-out" onClick={onLogout}>Sign Out</Button>
+                                <div className="pt-8"><Button variant="ghost" className="text-xs text-danger/50" onClick={async () => {
+                                    if(confirm("Reset Data?")) {
+                                        await deleteDoc(doc(db, COLLECTIONS.USERS, user.uid));
+                                        window.location.reload();
+                                    }
+                                }}>Delete Account</Button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} tabs={[
+                        {id: 'explore', label: 'Explore', icon: 'compass', fill: true},
+                        {id: 'activity', label: 'Activity', icon: 'ticket'},
+                        {id: 'profile', label: 'Profile', icon: 'user', fill: true}
+                    ]} />
+
+                    {/* Booking Modal */}
+                    {selectedSalon && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fade-in">
+                            <div className="w-full max-w-md bg-surfaceLight border border-white/10 rounded-3xl p-6 relative animate-slide-up">
+                                <button onClick={() => setSelectedSalon(null)} className="absolute top-4 right-4 text-textSec"><Icon name="x"/></button>
+                                <h2 className="text-xl font-bold text-white mb-1">{selectedSalon.shopName}</h2>
+                                <p className="text-xs text-textSec mb-6">Select services to continue</p>
+                                
+                                <div className="space-y-3 mb-8 max-h-[40vh] overflow-y-auto">
+                                    {selectedSalon.services?.map(s => (
+                                        <div key={s.name} onClick={() => toggleService(s)} className={`p-4 rounded-2xl border flex justify-between items-center cursor-pointer transition-all ${selectedServices.find(x=>x.name===s.name) ? 'bg-primary/10 border-primary text-white' : 'bg-surface border-white/5 text-textSec'}`}>
+                                            <div>
+                                                <div className="font-bold text-sm">{s.name}</div>
+                                                <div className="text-xs opacity-60">₹{s.price} • 30 mins</div>
+                                            </div>
+                                            {selectedServices.find(x=>x.name===s.name) && <Icon name="check-circle" size={18} className="text-primary" fill="currentColor"/>}
+                                        </div>
+                                    ))}
+                                    {(!selectedSalon.services || selectedSalon.services.length === 0) && <p className="text-sm text-textSec text-center">No services listed.</p>}
+                                </div>
+
+                                <div className="flex justify-between items-center border-t border-white/10 pt-4 mb-4">
+                                    <span className="text-sm text-textSec">Total Cost</span>
+                                    <span className="text-xl font-bold text-white">₹{selectedServices.reduce((acc, curr) => acc + parseInt(curr.price), 0)}</span>
+                                </div>
+                                <Button onClick={handleBook} disabled={selectedServices.length === 0}>Confirm Booking</Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
 
-        // --- ROOT ---
+        // --- ROOT APP ---
         const App = () => {
             const [user, setUser] = useState(null);
             const [role, setRole] = useState(null);
@@ -371,7 +854,7 @@
                 const unsub = onAuthStateChanged(auth, async (u) => {
                     setUser(u);
                     if (u) {
-                        const snap = await getDoc(doc(db, "users", u.uid));
+                        const snap = await getDoc(doc(db, COLLECTIONS.USERS, u.uid));
                         if (snap.exists()) setRole(snap.data().role);
                     }
                     setLoading(false);
@@ -380,28 +863,47 @@
             }, []);
 
             const handleLogin = () => signInWithPopup(auth, googleProvider);
+            
             const handleRoleSelect = async (r) => {
-                await setDoc(doc(db, "users", user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
+                await setDoc(doc(db, COLLECTIONS.USERS, user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
                 setRole(r);
             };
 
-            const resetAccount = async () => {
-                if(confirm("Are you sure? This will delete your profile.")) {
-                    // In real app, cloud function handles cleanup. Here we just clear local doc ref logic
-                    await deleteDoc(doc(db, "users", user.uid));
-                    // Also try to delete salon if owner
-                    await deleteDoc(doc(db, "salons", user.uid));
-                    setRole(null);
-                    window.location.reload();
-                }
+            const handleLogout = () => signOut(auth);
+
+            const handleShopSave = async (data) => {
+                await setDoc(doc(db, COLLECTIONS.SALONS, user.uid), {
+                    shopName: data.name, address: data.location, shopImage: data.image,
+                    ownerName: user.displayName, status: 'open', revenue: 0, totalTokens: 0, rating: 5.0, createdAt: serverTimestamp()
+                });
+                // Force re-render handled by listener in OwnerDashboard
+            };
+
+            // Setup Shop Check Wrapper
+            const OwnerWrapper = ({ user }) => {
+                const [isSetup, setIsSetup] = useState('loading');
+                useEffect(() => {
+                    const unsub = onSnapshot(doc(db, COLLECTIONS.SALONS, user.uid), s => {
+                        setIsSetup(s.exists() && s.data().shopName ? 'done' : 'needed');
+                    });
+                    return () => unsub();
+                }, []);
+                
+                if(isSetup === 'loading') return <div className="h-screen bg-bg flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+                if(isSetup === 'needed') return <ShopSetup onSave={handleShopSave} />;
+                return <OwnerDashboard user={user} onLogout={handleLogout} />;
             };
 
             if (splash) return <SplashScreen onFinish={() => setSplash(false)} />;
             if (loading) return null;
 
-            return !user ? <LoginScreen onLogin={handleLogin} /> : 
-                   !role ? <RoleSelection onSelect={handleRoleSelect} /> : 
-                   role === 'owner' ? <OwnerDashboard user={user} onReset={resetAccount} /> : <CustomerDashboard user={user} onReset={resetAccount} />;
+            return (
+                <ToastProvider>
+                    {!user ? <LoginScreen onLogin={handleLogin} /> : 
+                     !role ? <RoleSelection onSelect={handleRoleSelect} /> : 
+                     role === 'owner' ? <OwnerWrapper user={user} /> : <CustomerDashboard user={user} onLogout={handleLogout} />}
+                </ToastProvider>
+            );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
