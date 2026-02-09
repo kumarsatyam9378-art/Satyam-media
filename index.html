@@ -34,11 +34,13 @@
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'fade-in': 'fadeIn 0.5s ease-out forwards',
                         'bounce-slow': 'bounce 3s infinite',
+                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     },
                     keyframes: {
                         pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(212, 175, 55, 0.1)' }, '50%': { boxShadow: '0 0 25px rgba(212, 175, 55, 0.3)' } },
                         slideUp: { '0%': { transform: 'translateY(100%)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
-                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } }
+                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+                        pop: { '0%': { transform: 'scale(0.8)' }, '100%': { transform: 'scale(1)' } }
                     }
                 }
             }
@@ -51,6 +53,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -79,7 +82,7 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot, query, where, orderBy, updateDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, onSnapshot, query, where, orderBy, updateDoc, serverTimestamp, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
@@ -97,12 +100,52 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
+        // --- DATABASE COLLECTIONS ---
+        const COLLECTIONS = {
+            USERS: 'users',
+            SALONS: 'salons',
+            TOKENS: 'tokens'
+        };
+
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- UTILITY COMPONENTS ---
+        // --- UTILITY COMPONENTS & FUNCTIONS ---
 
         const Icon = ({ name, size = 20, className, fill }) => {
             return <i data-lucide={name} width={size} height={size} className={className} fill={fill}></i>;
+        };
+
+        // Haptic Feedback
+        const vibrate = (pattern = [50]) => {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        };
+
+        // Sound Effect
+        const playSound = (type = 'success') => {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } else if (type === 'tap') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            }
         };
 
         const BottomNav = ({ tabs, activeTab, onTabChange }) => (
@@ -110,7 +153,11 @@
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => onTabChange(tab.id)}
+                        onClick={() => {
+                            vibrate([10]);
+                            playSound('tap');
+                            onTabChange(tab.id);
+                        }}
                         className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === tab.id ? 'text-gold scale-110' : 'text-textSec hover:text-white'}`}
                     >
                         <Icon name={tab.icon} size={24} fill={activeTab === tab.id && tab.fill ? "currentColor" : "none"} />
@@ -146,8 +193,14 @@
                 danger: "bg-danger/10 text-danger border border-danger/20 hover:bg-danger hover:text-white",
                 ghost: "bg-transparent text-textSec hover:text-white"
             };
+            const handleClick = (e) => {
+                if (!disabled) {
+                    vibrate([20]);
+                    onClick(e);
+                }
+            };
             return (
-                <button onClick={onClick} disabled={disabled} className={`${baseClass} ${variants[variant]} ${className}`}>
+                <button onClick={handleClick} disabled={disabled} className={`${baseClass} ${variants[variant]} ${className}`}>
                     {children}
                 </button>
             );
@@ -255,7 +308,7 @@
         const OwnerHome = ({ salon, queue, toggleStatus, callNext }) => {
              // Calculate Stats
              const waitingCount = queue.filter(t => t.status === 'waiting').length;
-             const completedCount = queue.filter(t => t.status === 'completed').length; // Mock
+             const completedCount = queue.filter(t => t.status === 'completed').length; 
              const currentToken = queue.find(t => t.status === 'serving');
 
              return (
@@ -326,15 +379,21 @@
 
             const addService = async () => {
                 if(!newName || !newPrice) return;
-                const updated = [...services, { id: Date.now(), name: newName, price: parseInt(newPrice), time: 30 }];
-                await updateDoc(doc(db, "salons", user.uid), { services: updated });
+                const newService = { 
+                    id: Date.now().toString(), // Simple string ID
+                    name: newName, 
+                    price: parseInt(newPrice), 
+                    time: 30 
+                };
+                const updated = [...services, newService];
+                await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { services: updated });
                 setServices(updated);
                 setNewName(''); setNewPrice(''); setIsAdding(false);
             };
 
             const removeService = async (id) => {
                 const updated = services.filter(s => s.id !== id);
-                await updateDoc(doc(db, "salons", user.uid), { services: updated });
+                await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { services: updated });
                 setServices(updated);
             }
 
@@ -413,7 +472,7 @@
             const [addr, setAddr] = useState(salon?.address || '');
 
             const save = async () => {
-                await updateDoc(doc(db, "salons", user.uid), { shopName: name, address: addr });
+                await updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), { shopName: name, address: addr });
                 alert("Settings Saved");
             };
 
@@ -514,11 +573,11 @@
                     <h2 className="text-xl font-bold text-white mb-6">Your Activity</h2>
 
                     {activeToken ? (
-                        <div className="bg-gradient-to-br from-surfaceLight to-surface border border-gold/30 rounded-[2rem] p-6 relative overflow-hidden shadow-2xl shadow-gold/5">
+                        <div className="bg-gradient-to-br from-surfaceLight to-surface border border-gold/30 rounded-[2rem] p-6 relative overflow-hidden shadow-2xl shadow-gold/5 animate-pop">
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold to-transparent"></div>
                             
                             <div className="text-center mb-6">
-                                <p className="text-xs text-gold uppercase tracking-widest font-bold mb-2">Live Token</p>
+                                <p className="text-xs text-gold uppercase tracking-widest font-bold mb-2 animate-pulse">Live Token</p>
                                 <h1 className="text-7xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
                                 <p className="text-textSec text-sm mt-1">{activeToken.salonName}</p>
                             </div>
@@ -604,22 +663,39 @@
             const [salon, setSalon] = useState(null);
             const [queue, setQueue] = useState([]);
 
+            // DATABASE AUTO-INITIALIZATION LOGIC
             useEffect(() => {
-                const unsubSalon = onSnapshot(doc(db, "salons", user.uid), s => {
+                const initSalon = async () => {
+                    const salonRef = doc(db, COLLECTIONS.SALONS, user.uid);
+                    const salonSnap = await getDoc(salonRef);
+                    
+                    if (!salonSnap.exists()) {
+                        // Create default salon data if not exists
+                        await setDoc(salonRef, {
+                            shopName: `${user.displayName}'s Salon`,
+                            ownerName: user.displayName,
+                            status: 'open',
+                            revenue: 0,
+                            services: [
+                                { id: '1', name: 'Haircut', price: 200, time: 30 },
+                                { id: '2', name: 'Shave', price: 100, time: 15 }
+                            ],
+                            createdAt: serverTimestamp(),
+                            shopImage: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
+                            address: "India",
+                            rating: 5.0,
+                            totalTokensToday: 0 // Initialize counter
+                        });
+                    }
+                };
+                initSalon();
+
+                // Listen for real-time updates
+                const unsubSalon = onSnapshot(doc(db, COLLECTIONS.SALONS, user.uid), s => {
                     if(s.exists()) setSalon(s.data());
-                    else setDoc(doc(db, "salons", user.uid), {
-                        shopName: `${user.displayName}'s Salon`,
-                        ownerName: user.displayName,
-                        status: 'open',
-                        revenue: 0,
-                        services: [],
-                        createdAt: serverTimestamp(),
-                        shopImage: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
-                        address: "India"
-                    });
                 });
 
-                const q = query(collection(db, "tokens"), where("salonId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
+                const q = query(collection(db, COLLECTIONS.TOKENS), where("salonId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
                 const unsubQueue = onSnapshot(q, s => setQueue(s.docs.map(d => ({id:d.id, ...d.data()}))));
 
                 return () => { unsubSalon(); unsubQueue(); }
@@ -627,13 +703,13 @@
 
             useEffect(() => lucide.createIcons(), [activeTab, salon, queue]);
 
-            const toggleStatus = async () => updateDoc(doc(db, "salons", user.uid), {status: salon?.status==='open'?'closed':'open'});
+            const toggleStatus = async () => updateDoc(doc(db, COLLECTIONS.SALONS, user.uid), {status: salon?.status==='open'?'closed':'open'});
             
             const callNext = async () => {
                 const next = queue.find(t => t.status === 'waiting');
-                if(next) await updateDoc(doc(db, "tokens", next.id), {status: 'serving'});
+                if(next) await updateDoc(doc(db, COLLECTIONS.TOKENS, next.id), {status: 'serving'});
                 const current = queue.find(t => t.status === 'serving');
-                if(current) await updateDoc(doc(db, "tokens", current.id), {status: 'completed'});
+                if(current) await updateDoc(doc(db, COLLECTIONS.TOKENS, current.id), {status: 'completed'});
             };
 
             return (
@@ -663,24 +739,64 @@
             const [activeToken, setActiveToken] = useState(null);
 
             useEffect(() => {
-                const unsubS = onSnapshot(collection(db, "salons"), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
-                const q = query(collection(db, "tokens"), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
+                const unsubS = onSnapshot(collection(db, COLLECTIONS.SALONS), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                const q = query(collection(db, COLLECTIONS.TOKENS), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
                 const unsubT = onSnapshot(q, s => setActiveToken(!s.empty ? {id:s.docs[0].id, ...s.docs[0].data()} : null));
                 return () => { unsubS(); unsubT(); }
             }, [user]);
 
             useEffect(() => lucide.createIcons(), [activeTab, salons, activeToken]);
 
+            // --- FIXED SEQUENTIAL TOKEN LOGIC ---
             const book = async (salon) => {
-                await addDoc(collection(db, "tokens"), {
-                    userId: user.uid, userName: user.displayName, salonId: salon.id, salonName: salon.shopName,
-                    status: 'waiting', tokenNumber: Math.floor(Math.random() * 99) + 1, createdAt: serverTimestamp()
-                });
-                setActiveTab('activity');
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        // 1. Get Salon Doc Reference
+                        const salonRef = doc(db, COLLECTIONS.SALONS, salon.id);
+                        const salonDoc = await transaction.get(salonRef);
+                        
+                        if (!salonDoc.exists()) throw "Salon does not exist!";
+
+                        // 2. Calculate New Token Number (Last + 1)
+                        // If totalTokensToday is undefined, start at 0, so next is 1
+                        const currentCount = salonDoc.data().totalTokensToday || 0;
+                        const newTokenNumber = currentCount + 1;
+
+                        // 3. Update Salon Counter
+                        transaction.update(salonRef, { totalTokensToday: newTokenNumber });
+
+                        // 4. Create New Token Document
+                        const newTokenRef = doc(collection(db, COLLECTIONS.TOKENS));
+                        transaction.set(newTokenRef, {
+                            userId: user.uid, 
+                            userName: user.displayName, 
+                            salonId: salon.id, 
+                            salonName: salon.shopName,
+                            status: 'waiting', 
+                            tokenNumber: newTokenNumber, // SEQUENTIAL NUMBER
+                            createdAt: serverTimestamp()
+                        });
+                    });
+
+                    // Success Feedback
+                    playSound('success');
+                    vibrate([50, 50, 50]);
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#FFD700', '#FFFFFF']
+                    });
+                    
+                    setActiveTab('activity');
+                } catch (e) {
+                    console.error("Booking Failed", e);
+                    alert("Booking failed. Please try again.");
+                }
             };
 
             const cancel = async (id) => {
-                await updateDoc(doc(db, "tokens", id), { status: 'cancelled' });
+                await updateDoc(doc(db, COLLECTIONS.TOKENS, id), { status: 'cancelled' });
             };
 
             return (
@@ -714,7 +830,7 @@
                 const unsub = onAuthStateChanged(auth, async (u) => {
                     setUser(u);
                     if (u) {
-                        const snap = await getDoc(doc(db, "users", u.uid));
+                        const snap = await getDoc(doc(db, COLLECTIONS.USERS, u.uid));
                         if (snap.exists()) setRole(snap.data().role);
                     }
                     setLoading(false);
@@ -724,7 +840,7 @@
 
             const handleLogin = () => signInWithPopup(auth, googleProvider);
             const handleRole = async (r) => {
-                await setDoc(doc(db, "users", user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
+                await setDoc(doc(db, COLLECTIONS.USERS, user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
                 setRole(r);
             };
 
