@@ -833,14 +833,18 @@
             const handleLogin = (selectedRole) => {
                 signInWithPopup(auth, googleProvider).then(async (res) => {
                     const userRef = doc(db, "users", res.user.uid);
-                    const snap = await getDoc(userRef);
-                    if (!snap.exists()) {
-                        await setDoc(userRef, { role: selectedRole, email: res.user.email, displayName: res.user.displayName, photoURL: res.user.photoURL, createdAt: serverTimestamp() });
-                        setRole(selectedRole);
-                    } else {
-                        setRole(snap.data().role);
-                    }
-                });
+                    
+                    // Force update the role to what the user clicked
+                    await setDoc(userRef, { 
+                        role: selectedRole, 
+                        email: res.user.email, 
+                        displayName: res.user.displayName, 
+                        photoURL: res.user.photoURL, 
+                        createdAt: serverTimestamp() 
+                    }, { merge: true });
+                    
+                    setRole(selectedRole);
+                }).catch(e => console.error(e));
             };
 
             const switchRole = async () => {
