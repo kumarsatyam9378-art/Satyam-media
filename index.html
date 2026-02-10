@@ -32,12 +32,12 @@
                     animation: {
                         'pulse-glow': 'pulseGlow 2s infinite',
                         'slide-up': 'slideUp 0.3s ease-out forwards',
-                        'progress-stripes': 'progressStripes 1s linear infinite',
+                        'pop': 'pop 0.2s ease-out forwards',
                     },
                     keyframes: {
                         pulseGlow: { '0%, 100%': { boxShadow: '0 0 5px rgba(255, 215, 0, 0.2)' }, '50%': { boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)' } },
                         slideUp: { '0%': { transform: 'translateY(10px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
-                        progressStripes: { '0%': { backgroundPosition: '1rem 0' }, '100%': { backgroundPosition: '0 0' } }
+                        pop: { '0%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } }
                     }
                 }
             }
@@ -70,6 +70,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, setDoc, onSnapshot, query, where, orderBy, updateDoc, serverTimestamp, deleteDoc, runTransaction, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyBYJq8T7hMP3OsZ0PYqkWe-dDCWB8_b0Ck",
             authDomain: "line-free-4bb96.firebaseapp.com",
@@ -87,32 +88,140 @@
 
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- CORE UTILS ---
+        // --- LOCALIZATION ---
+        const TEXTS = {
+            en: {
+                selectLang: "Select Language",
+                continue: "Continue",
+                loginCust: "Login as Customer",
+                loginOwn: "Login as Salon Owner",
+                custDesc: "Book haircuts & avoid lines",
+                ownDesc: "Manage business & queue",
+                welcome: "Welcome",
+                skipLine: "Skip the Line.",
+                ownTime: "Own the Time.",
+                smartQueue: "Smart Queue System",
+                resetLang: "Change Language"
+            },
+            hi: {
+                selectLang: "भाषा चुनें",
+                continue: "आगे बढ़ें",
+                loginCust: "ग्राहक के रूप में लॉगिन करें",
+                loginOwn: "सैलून मालिक के रूप में लॉगिन करें",
+                custDesc: "हेयरकट बुक करें और कतार से बचें",
+                ownDesc: "व्यवसाय और कतार प्रबंधित करें",
+                welcome: "स्वागत है",
+                skipLine: "लाइन छोड़ें।",
+                ownTime: "समय बचाएं।",
+                smartQueue: "स्मार्ट कतार प्रणाली",
+                resetLang: "भाषा बदलें"
+            }
+        };
+
+        // --- UTILS ---
         const Icon = ({ name, size = 20, className }) => <i data-lucide={name} width={size} height={size} className={className}></i>;
 
-        const vibrate = () => { if (navigator.vibrate) navigator.vibrate(50); };
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return (R * c).toFixed(1);
+        };
 
-        // Real waiting time calculator
         const calculateQueueStats = (queue, myTokenNumber, breakDuration = 0) => {
-            // Filter only tokens that are ahead (waiting or serving) and have lower number
             const ahead = queue.filter(t => 
                 (t.status === 'waiting' || t.status === 'serving') && 
                 t.tokenNumber < myTokenNumber
             );
-            
-            // Sum durations
             let totalMins = ahead.reduce((acc, curr) => acc + (curr.totalDuration || 30), 0);
-            
-            // Add break duration if applicable
             if(breakDuration > 0) totalMins += breakDuration;
-
-            return {
-                peopleAhead: ahead.length,
-                waitTime: totalMins
-            };
+            return { peopleAhead: ahead.length, waitTime: totalMins };
         };
 
         // --- COMPONENTS ---
+
+        // 1. SPLASH SCREEN
+        const SplashScreen = ({ onFinish }) => {
+            useEffect(() => {
+                lucide.createIcons();
+                const timer = setTimeout(onFinish, 2500);
+                return () => clearTimeout(timer);
+            }, []);
+
+            return (
+                <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center">
+                    <div className="w-28 h-28 rounded-3xl glass border border-primary/30 flex items-center justify-center mb-8 animate-pulse-glow shadow-[0_0_40px_rgba(255,215,0,0.1)]">
+                        <Icon name="scissors" size={60} className="text-primary" />
+                    </div>
+                    <h1 className="text-5xl font-black text-white tracking-tighter">
+                        LINE FREE <span className="text-primary">INDIA</span>
+                    </h1>
+                </div>
+            );
+        };
+
+        // 2. LANGUAGE SELECTION
+        const LanguageSelection = ({ onSelect }) => {
+            useEffect(() => lucide.createIcons(), []);
+            return (
+                <div className="min-h-screen bg-bg p-6 flex flex-col justify-center animate-slide-up">
+                    <h2 className="text-3xl font-bold text-white mb-8 text-center">Select Language / भाषा चुनें</h2>
+                    <div className="space-y-4">
+                        <button onClick={() => onSelect('en')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center justify-between hover:border-primary/50 transition-all group">
+                            <div className="flex items-center gap-4">
+                                <span className="text-2xl">🇺🇸</span>
+                                <span className="text-lg font-bold text-white">English</span>
+                            </div>
+                            <div className="w-6 h-6 rounded-full border border-white/20 group-hover:bg-primary group-hover:border-primary"></div>
+                        </button>
+                        <button onClick={() => onSelect('hi')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center justify-between hover:border-primary/50 transition-all group">
+                            <div className="flex items-center gap-4">
+                                <span className="text-2xl">🇮🇳</span>
+                                <span className="text-lg font-bold text-white">हिंदी (Hindi)</span>
+                            </div>
+                            <div className="w-6 h-6 rounded-full border border-white/20 group-hover:bg-primary group-hover:border-primary"></div>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. ROLE-BASED LOGIN SCREEN
+        const RoleBasedLogin = ({ onLogin, t }) => {
+            useEffect(() => lucide.createIcons(), []);
+            return (
+                <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16 relative overflow-hidden animate-slide-up">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1621644827823-3932a39287a9?w=800&q=80')] bg-cover opacity-20 grayscale"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-transparent"></div>
+                    
+                    <div className="relative z-10 mb-8">
+                        <h1 className="text-5xl font-bold text-white mb-2 leading-tight">{t.skipLine}<br/><span className="text-primary">{t.ownTime}</span></h1>
+                        <p className="text-textSec text-lg">{t.smartQueue}</p>
+                    </div>
+
+                    <div className="relative z-10 space-y-4">
+                        <button onClick={() => onLogin('customer')} className="w-full bg-white text-black p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02] transition-transform shadow-xl group">
+                            <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center text-black"><Icon name="user" size={24} /></div>
+                            <div className="text-left">
+                                <h3 className="text-lg font-bold">{t.loginCust}</h3>
+                                <p className="text-xs text-gray-600">{t.custDesc}</p>
+                            </div>
+                        </button>
+
+                        <button onClick={() => onLogin('owner')} className="w-full bg-surfaceLight border border-white/10 text-white p-4 rounded-xl flex items-center gap-4 hover:border-primary/50 transition-all group">
+                            <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/10 group-hover:text-primary"><Icon name="store" size={24} /></div>
+                            <div className="text-left">
+                                <h3 className="text-lg font-bold">{t.loginOwn}</h3>
+                                <p className="text-xs text-textSec">{t.ownDesc}</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
 
         const BottomNav = ({ activeTab, onTabChange, role }) => (
             <div className="fixed bottom-0 w-full glass pb-6 pt-3 px-4 flex justify-around items-center z-50 transition-all border-t border-white/5">
@@ -158,10 +267,10 @@
             </div>
         );
 
-        const ProfileScreen = ({ user, role, onLogout, onSwitchRole }) => (
+        const ProfileScreen = ({ user, role, onLogout, onSwitchRole, onChangeLang, t }) => (
             <div className="p-6 pb-24 animate-slide-up min-h-screen">
                 <h2 className="text-2xl font-bold text-white mb-8">My Account</h2>
-                <div className="flex items-center gap-4 mb-8 bg-surfaceLight p-5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-4 mb-8 bg-surfaceLight p-5 rounded-2xl border border-white/5 shadow-lg">
                     <img src={user.photoURL} className="w-16 h-16 rounded-full border-2 border-primary shadow-lg shadow-primary/20" />
                     <div>
                         <h3 className="text-lg font-bold text-white">{user.displayName}</h3>
@@ -170,16 +279,24 @@
                     </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                     <button onClick={onSwitchRole} className="w-full bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/10 transition-all group">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary rounded-lg text-black"><Icon name="refresh-cw" size={20}/></div>
                             <div className="text-left">
                                 <span className="font-bold text-white block">Switch Profile</span>
-                                <span className="text-xs text-textSec">Current: {role}</span>
+                                <span className="text-xs text-textSec">Change between Owner/Customer</span>
                             </div>
                         </div>
                         <Icon name="chevron-right" size={16} className="text-textSec group-hover:text-white"/>
+                    </button>
+
+                    <button onClick={onChangeLang} className="w-full bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-black/30 rounded-lg text-white"><Icon name="globe" size={20}/></div>
+                            <span className="font-bold text-white">{t.resetLang}</span>
+                        </div>
+                        <Icon name="chevron-right" size={16} className="text-textSec"/>
                     </button>
 
                     <button onClick={onLogout} className="w-full mt-8 py-4 rounded-xl bg-danger/10 text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger/20 transition-all border border-danger/20">
@@ -189,7 +306,6 @@
             </div>
         );
 
-        // --- SUBSCRIPTION ---
         const SubscriptionScreen = () => (
             <div className="p-6 pb-24 animate-slide-up min-h-screen flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-primary to-orange-500 rounded-full flex items-center justify-center mb-6 animate-pulse-glow shadow-2xl">
@@ -197,27 +313,21 @@
                 </div>
                 <h2 className="text-3xl font-black text-white mb-2">LINE FREE <span className="text-primary">PRO</span></h2>
                 <p className="text-textSec text-sm mb-8 max-w-xs">Upgrade for priority queuing, zero ads, and advanced booking slots.</p>
-                
                 <div className="bg-surfaceLight p-6 rounded-3xl border border-white/10 w-full max-w-sm text-left relative overflow-hidden">
                     <div className="absolute top-0 right-0 bg-primary text-black text-[10px] font-bold px-3 py-1 rounded-bl-xl">FREE TRIAL</div>
                     <div className="space-y-4">
                         <div className="flex items-center gap-3"><Icon name="check-circle" size={18} className="text-success" /><span className="text-sm">Priority Booking</span></div>
                         <div className="flex items-center gap-3"><Icon name="check-circle" size={18} className="text-success" /><span className="text-sm">No Ads</span></div>
-                        <div className="flex items-center gap-3"><Icon name="check-circle" size={18} className="text-success" /><span className="text-sm">Pre-book slots</span></div>
                     </div>
                 </div>
-                <p className="text-xs text-textSec mt-8 opacity-50">Subscription module coming soon.</p>
             </div>
         );
 
-        // --- OWNER DASHBOARD ---
-        const OwnerDashboard = ({ user, onLogout, onSwitchRole }) => {
+        const OwnerDashboard = ({ user, onLogout, onSwitchRole, onChangeLang, t }) => {
             const [activeTab, setActiveTab] = useState('home');
             const [salon, setSalon] = useState(null);
             const [queue, setQueue] = useState([]);
             const [services, setServices] = useState([]);
-            
-            // Setup
             const [setupName, setSetupName] = useState('');
             const [setupAddr, setSetupAddr] = useState('');
 
@@ -227,24 +337,18 @@
                         const data = docSnap.data();
                         setSalon(data);
                         setServices(data.services || []);
-                        
-                        // DAILY RESET LOGIC (Midnight Reset)
+                        if(docSnap.data().shopName) {
+                            setSetupName(docSnap.data().shopName);
+                            setSetupAddr(docSnap.data().address);
+                        }
                         const today = new Date().toDateString();
                         if (data.lastResetDate !== today) {
-                            // Reset counters for new day
                             updateDoc(doc(db, "salons", user.uid), {
-                                lastTokenNumber: 0,
-                                currentTokenNumber: 0,
-                                lastResetDate: today,
-                                revenue: 0
+                                totalTokensToday: 0, lastResetDate: today, revenue: 0
                             });
-                            // Archive old tokens (In real app, move to 'archive' collection)
-                            // Here we just don't load them because queue query filters by 'waiting'/'serving'
                         }
                     }
                 });
-
-                // Listen to LIVE Queue
                 const q = query(
                     collection(db, "tokens"), 
                     where("salonId", "==", user.uid), 
@@ -252,7 +356,6 @@
                     orderBy("tokenNumber", "asc")
                 );
                 const unsubQueue = onSnapshot(q, (s) => setQueue(s.docs.map(d => ({id:d.id, ...d.data()}))));
-
                 return () => { unsubSalon(); unsubQueue(); }
             }, [user]);
 
@@ -262,66 +365,37 @@
                 await setDoc(doc(db, "salons", user.uid), {
                     shopName: setupName, address: setupAddr,
                     shopImage: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80',
-                    ownerName: user.displayName, 
-                    status: 'open', // open, closed, break
-                    acceptingTokens: true,
-                    breakDuration: 0,
-                    revenue: 0, rating: 5.0, 
-                    lastTokenNumber: 0, 
-                    currentTokenNumber: 0,
-                    lastResetDate: new Date().toDateString(),
-                    services: [
-                        { name: 'Haircut', price: 200, time: 30 },
-                        { name: 'Shave', price: 100, time: 15 }
-                    ],
+                    ownerName: user.displayName, status: 'open', acceptingTokens: true, breakDuration: 0, revenue: 0, rating: 5.0, 
+                    lastTokenNumber: 0, currentTokenNumber: 0, lastResetDate: new Date().toDateString(),
+                    services: [{ name: 'Haircut', price: 200, time: 30 }, { name: 'Shave', price: 100, time: 15 }],
                     createdAt: serverTimestamp()
                 });
             };
 
-            const toggleStatus = (newStatus) => {
-                updateDoc(doc(db, "salons", user.uid), { 
-                    status: newStatus,
-                    acceptingTokens: newStatus === 'open',
-                    breakDuration: newStatus === 'break' ? 15 : 0 // Default break add
-                });
-            };
-
-            const toggleTokenStop = () => {
-                updateDoc(doc(db, "salons", user.uid), { acceptingTokens: !salon.acceptingTokens });
-            };
+            const toggleStatus = (newStatus) => updateDoc(doc(db, "salons", user.uid), { status: newStatus, acceptingTokens: newStatus === 'open', breakDuration: newStatus === 'break' ? 15 : 0 });
+            const toggleTokenStop = () => updateDoc(doc(db, "salons", user.uid), { acceptingTokens: !salon.acceptingTokens });
 
             const nextCustomer = async () => {
-                vibrate();
                 const serving = queue.find(t => t.status === 'serving');
-                const next = queue.find(t => t.status === 'waiting'); // Already sorted ASC
-
+                const next = queue.find(t => t.status === 'waiting');
                 await runTransaction(db, async (t) => {
                     const salonRef = doc(db, "salons", user.uid);
-                    
                     if(serving) {
                         t.update(doc(db, "tokens", serving.id), { status: 'completed' });
-                        // Add revenue
-                        const salonDoc = await t.get(salonRef);
-                        const newRev = (salonDoc.data().revenue || 0) + (serving.totalCost || 0);
-                        t.update(salonRef, { revenue: newRev });
+                        const sDoc = await t.get(salonRef);
+                        t.update(salonRef, { revenue: (sDoc.data().revenue || 0) + (serving.totalCost || 0) });
                     }
-                    
                     if(next) {
                         t.update(doc(db, "tokens", next.id), { status: 'serving' });
                         t.update(salonRef, { currentTokenNumber: next.tokenNumber });
-                    } else {
-                        // Queue finished
-                        t.update(salonRef, { currentTokenNumber: 0 });
-                    }
+                    } else t.update(salonRef, { currentTokenNumber: 0 });
                 });
             };
 
-            // Setup Screen
             if(!salon || !salon.shopName) {
                 return (
                     <div className="min-h-screen bg-bg p-6 pt-20 animate-slide-up">
                         <h2 className="text-3xl font-bold text-white mb-2">Setup Salon</h2>
-                        <p className="text-textSec mb-8">One time setup for your business.</p>
                         <div className="space-y-4">
                             <input value={setupName} onChange={e=>setSetupName(e.target.value)} placeholder="Shop Name" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
                             <input value={setupAddr} onChange={e=>setSetupAddr(e.target.value)} placeholder="Address" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
@@ -337,28 +411,20 @@
                 <div className="min-h-screen bg-bg">
                     {activeTab === 'home' && (
                         <div className="pb-24">
-                            {/* Header */}
                             <div className="p-6 bg-surfaceLight rounded-b-3xl border-b border-white/5 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                                <div className="relative z-10">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h1 className="text-2xl font-bold text-white">{salon.shopName}</h1>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <div className={`w-2 h-2 rounded-full ${salon.status==='open'?'bg-success animate-pulse':salon.status==='break'?'bg-warning':'bg-danger'}`}></div>
-                                                <span className="text-xs font-bold uppercase text-textSec">{salon.status}</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-textSec uppercase">Revenue</p>
-                                            <p className="text-xl font-bold text-success">₹{salon.revenue}</p>
+                                <div className="relative z-10 flex justify-between items-start">
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-white">{salon.shopName}</h1>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className={`w-2 h-2 rounded-full ${salon.status==='open'?'bg-success animate-pulse':salon.status==='break'?'bg-warning':'bg-danger'}`}></div>
+                                            <span className="text-xs font-bold uppercase text-textSec">{salon.status}</span>
                                         </div>
                                     </div>
+                                    <div className="text-right"><p className="text-xs text-textSec uppercase">Revenue</p><p className="text-xl font-bold text-success">₹{salon.revenue}</p></div>
                                 </div>
                             </div>
-
                             <div className="p-6 space-y-6">
-                                {/* Current Serving */}
                                 <div className="bg-primary p-6 rounded-3xl text-black shadow-lg shadow-primary/20 relative overflow-hidden">
                                     <div className="absolute -right-4 -top-4 opacity-10"><Icon name="users" size={100}/></div>
                                     <p className="text-xs font-bold uppercase opacity-60 mb-2">Now Serving</p>
@@ -367,112 +433,58 @@
                                             <h2 className="text-6xl font-black tracking-tighter">{currentToken ? currentToken.tokenNumber : '-'}</h2>
                                             <p className="font-bold mt-1">{currentToken ? currentToken.userName : 'Queue Empty'}</p>
                                         </div>
-                                        <button onClick={nextCustomer} className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform active:scale-95 shadow-xl">
-                                            <Icon name="arrow-right" size={32}/>
-                                        </button>
+                                        <button onClick={nextCustomer} className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform active:scale-95 shadow-xl"><Icon name="arrow-right" size={32}/></button>
                                     </div>
-                                    {currentToken && (
-                                        <div className="text-xs font-medium border-t border-black/10 pt-3 flex gap-2">
-                                            {currentToken.services?.map(s => s.name).join(', ')}
-                                        </div>
-                                    )}
                                 </div>
-
-                                {/* Waiting List */}
                                 <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5">
-                                    <h3 className="text-sm font-bold text-white mb-4 flex justify-between">
-                                        <span>Waiting Queue</span>
-                                        <span className="text-primary">{queue.filter(t=>t.status==='waiting').length}</span>
-                                    </h3>
+                                    <h3 className="text-sm font-bold text-white mb-4 flex justify-between"><span>Waiting Queue</span><span className="text-primary">{queue.filter(t=>t.status==='waiting').length}</span></h3>
                                     <div className="space-y-2 max-h-40 overflow-y-auto">
                                         {queue.filter(t=>t.status==='waiting').map(t => (
                                             <div key={t.id} className="flex justify-between items-center bg-surface p-3 rounded-xl border border-white/5">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-xs font-bold">{t.tokenNumber}</div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-white">{t.userName}</p>
-                                                        <p className="text-[10px] text-textSec">{t.totalDuration} min</p>
-                                                    </div>
+                                                    <div><p className="text-sm font-bold text-white">{t.userName}</p><p className="text-[10px] text-textSec">{t.totalDuration} min</p></div>
                                                 </div>
                                             </div>
                                         ))}
                                         {queue.filter(t=>t.status==='waiting').length === 0 && <p className="text-xs text-textSec text-center py-2">No one in line.</p>}
                                     </div>
                                 </div>
-
-                                {/* Master Controls */}
                                 <div className="grid grid-cols-2 gap-3">
-                                    <button onClick={()=>toggleStatus('open')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='open' ? 'bg-success/20 border-success text-success' : 'bg-surfaceLight border-white/5 text-textSec'}`}>
-                                        <Icon name="unlock" size={20}/><span className="text-xs font-bold">OPEN</span>
-                                    </button>
-                                    <button onClick={()=>toggleStatus('closed')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='closed' ? 'bg-danger/20 border-danger text-danger' : 'bg-surfaceLight border-white/5 text-textSec'}`}>
-                                        <Icon name="lock" size={20}/><span className="text-xs font-bold">CLOSE</span>
-                                    </button>
-                                    <button onClick={()=>toggleStatus('break')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='break' ? 'bg-warning/20 border-warning text-warning' : 'bg-surfaceLight border-white/5 text-textSec'}`}>
-                                        <Icon name="coffee" size={20}/><span className="text-xs font-bold">BREAK</span>
-                                    </button>
-                                    <button onClick={toggleTokenStop} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${!salon.acceptingTokens ? 'bg-white/20 border-white text-white' : 'bg-surfaceLight border-white/5 text-textSec'}`}>
-                                        <Icon name="stop-circle" size={20}/><span className="text-xs font-bold">{salon.acceptingTokens ? 'STOP TOKEN' : 'RESUME'}</span>
-                                    </button>
+                                    <button onClick={()=>toggleStatus('open')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='open' ? 'bg-success/20 border-success text-success' : 'bg-surfaceLight border-white/5 text-textSec'}`}><Icon name="unlock" size={20}/><span className="text-xs font-bold">OPEN</span></button>
+                                    <button onClick={()=>toggleStatus('closed')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='closed' ? 'bg-danger/20 border-danger text-danger' : 'bg-surfaceLight border-white/5 text-textSec'}`}><Icon name="lock" size={20}/><span className="text-xs font-bold">CLOSE</span></button>
+                                    <button onClick={()=>toggleStatus('break')} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${salon.status==='break' ? 'bg-warning/20 border-warning text-warning' : 'bg-surfaceLight border-white/5 text-textSec'}`}><Icon name="coffee" size={20}/><span className="text-xs font-bold">BREAK</span></button>
+                                    <button onClick={toggleTokenStop} className={`p-4 rounded-xl border flex flex-col items-center gap-1 ${!salon.acceptingTokens ? 'bg-white/20 border-white text-white' : 'bg-surfaceLight border-white/5 text-textSec'}`}><Icon name="stop-circle" size={20}/><span className="text-xs font-bold">{salon.acceptingTokens ? 'STOP TOKEN' : 'RESUME'}</span></button>
                                 </div>
                             </div>
                         </div>
                     )}
-
                     {activeTab === 'services' && (
                         <div className="p-6 pb-24 animate-slide-up">
                             <h2 className="text-2xl font-bold text-white mb-6">Manage Services</h2>
                             {services.map((s, i) => (
                                 <div key={i} className="flex justify-between items-center bg-surfaceLight p-4 rounded-xl border border-white/5 mb-3">
-                                    <div>
-                                        <h4 className="font-bold text-white">{s.name}</h4>
-                                        <p className="text-xs text-textSec">{s.time} mins</p>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="font-bold text-primary">₹{s.price}</span>
-                                        <button onClick={async ()=>{
-                                            const updated = services.filter((_, idx) => idx !== i);
-                                            await updateDoc(doc(db, "salons", user.uid), {services: updated});
-                                        }} className="text-danger"><Icon name="trash-2" size={18}/></button>
-                                    </div>
+                                    <div><h4 className="font-bold text-white">{s.name}</h4><p className="text-xs text-textSec">{s.time} mins</p></div>
+                                    <div className="flex items-center gap-4"><span className="font-bold text-primary">₹{s.price}</span><button onClick={async ()=>{ const updated = services.filter((_, idx) => idx !== i); await updateDoc(doc(db, "salons", user.uid), {services: updated}); }} className="text-danger"><Icon name="trash-2" size={18}/></button></div>
                                 </div>
                             ))}
-                            {/* Simple Add Service Mock for Demo */}
-                            <button onClick={async ()=>{
-                                const name = prompt("Service Name?");
-                                const price = prompt("Price?");
-                                const time = prompt("Time (min)?");
-                                if(name && price) {
-                                    const updated = [...services, {name, price: parseInt(price), time: parseInt(time)||30}];
-                                    await updateDoc(doc(db, "salons", user.uid), {services: updated});
-                                }
-                            }} className="w-full py-4 mt-4 border border-dashed border-white/20 rounded-xl text-textSec hover:border-primary hover:text-primary">Add New Service</button>
+                            <button onClick={async ()=>{ const name = prompt("Service Name?"); const price = prompt("Price?"); const time = prompt("Time?"); if(name && price) { const updated = [...services, {name, price: parseInt(price), time: parseInt(time)||30}]; await updateDoc(doc(db, "salons", user.uid), {services: updated}); } }} className="w-full py-4 mt-4 border border-dashed border-white/20 rounded-xl text-textSec hover:border-primary hover:text-primary">Add New Service</button>
                         </div>
                     )}
-
                     {activeTab === 'qr' && (
                         <div className="p-6 pb-24 flex flex-col items-center justify-center h-screen animate-slide-up">
-                            <div className="bg-white p-6 rounded-3xl mb-6 shadow-2xl">
-                                <div id="qrcode"></div>
-                            </div>
+                            <div className="bg-white p-6 rounded-3xl mb-6 shadow-2xl"><div id="qrcode"></div></div>
                             <h2 className="text-2xl font-bold text-white">{salon.shopName}</h2>
-                            <p className="text-textSec text-sm mb-8">Scan to Join Queue</p>
-                            <button onClick={()=> {
-                                document.getElementById("qrcode").innerHTML = "";
-                                new QRCode(document.getElementById("qrcode"), { text: `https://linefree.app/salon/${user.uid}`, width: 200, height: 200 });
-                            }} className="px-6 py-3 bg-primary text-black font-bold rounded-xl">Generate QR</button>
+                            <button onClick={()=> { document.getElementById("qrcode").innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: `https://linefree.app/salon/${user.uid}`, width: 200, height: 200 }); }} className="px-6 py-3 bg-primary text-black font-bold rounded-xl mt-4">Generate QR</button>
                         </div>
                     )}
-
-                    {activeTab === 'profile' && <ProfileScreen user={user} role="Owner" onLogout={onLogout} onSwitchRole={onSwitchRole} />}
-
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Owner" onLogout={onLogout} onSwitchRole={onSwitchRole} onChangeLang={onChangeLang} t={t} />}
                     <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="owner" />
                 </div>
             );
         };
 
-        // 5. CUSTOMER DASHBOARD
-        const CustomerDashboard = ({ user, onLogout, onSwitchRole }) => {
+        const CustomerDashboard = ({ user, onLogout, onSwitchRole, onChangeLang, t }) => {
             const [activeTab, setActiveTab] = useState('home');
             const [salons, setSalons] = useState([]);
             const [favorites, setFavorites] = useState([]);
@@ -480,79 +492,42 @@
             const [selectedSalon, setSelectedSalon] = useState(null);
             const [selectedServices, setSelectedServices] = useState([]);
             const [searchQuery, setSearchQuery] = useState('');
+            const [userLocation, setUserLocation] = useState(null);
+            const [queueStats, setQueueStats] = useState({ peopleAhead: 0, waitTime: 0 });
 
-            // Listeners
             useEffect(() => {
                 const unsubS = onSnapshot(collection(db, "salons"), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
                 const unsubU = onSnapshot(doc(db, "users", user.uid), s => { if(s.exists()) setFavorites(s.data().favorites || []); });
-                
-                // Get Active Token AND related Salon info for calculation
                 const q = query(collection(db, "tokens"), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
                 const unsubT = onSnapshot(q, s => setActiveToken(!s.empty ? {id:s.docs[0].id, ...s.docs[0].data()} : null));
-
+                if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }));
                 return () => { unsubS(); unsubT(); unsubU(); }
             }, [user]);
 
-            // Real-time Queue Stats for Active Token
-            const [queueStats, setQueueStats] = useState({ peopleAhead: 0, waitTime: 0 });
             useEffect(() => {
                 if (!activeToken) return;
-                
-                // Fetch all active tokens for this salon to calculate position
-                const q = query(
-                    collection(db, "tokens"), 
-                    where("salonId", "==", activeToken.salonId), 
-                    where("status", "in", ["waiting", "serving"])
-                );
-                
-                const unsubStats = onSnapshot(q, (snapshot) => {
-                    const allTokens = snapshot.docs.map(d => d.data());
-                    // Fetch Salon for break info
-                    getDoc(doc(db, "salons", activeToken.salonId)).then(sDoc => {
-                        const salonData = sDoc.data();
-                        const stats = calculateQueueStats(allTokens, activeToken.tokenNumber, (salonData.status === 'break' ? salonData.breakDuration : 0));
-                        setQueueStats(stats);
-                    });
+                const q = query(collection(db, "tokens"), where("salonId", "==", activeToken.salonId), where("status", "in", ["waiting", "serving"]));
+                const unsub = onSnapshot(q, snap => {
+                    const all = snap.docs.map(d => d.data());
+                    getDoc(doc(db, "salons", activeToken.salonId)).then(s => setQueueStats(calculateQueueStats(all, activeToken.tokenNumber, s.data().status==='break'?s.data().breakDuration:0)));
                 });
-                return () => unsubStats();
+                return () => unsub();
             }, [activeToken]);
 
             useEffect(() => lucide.createIcons(), [activeTab, salons, selectedSalon, activeToken]);
 
-            const toggleService = (s) => {
-                if(selectedServices.includes(s)) setSelectedServices(selectedServices.filter(x => x !== s));
-                else setSelectedServices([...selectedServices, s]);
-            };
-
-            const toggleFavorite = async (e, id) => {
-                e.stopPropagation();
-                const ref = doc(db, "users", user.uid);
-                if(favorites.includes(id)) await updateDoc(ref, {favorites: arrayRemove(id)});
-                else await updateDoc(ref, {favorites: arrayUnion(id)});
-            };
-
+            const toggleService = (s) => selectedServices.includes(s) ? setSelectedServices(selectedServices.filter(x=>x!==s)) : setSelectedServices([...selectedServices,s]);
             const joinQueue = async () => {
-                if(selectedServices.length === 0) return alert("Select a service");
-                vibrate();
-                const totalDur = selectedServices.reduce((a,b) => a + b.time, 0);
-                const totalCost = selectedServices.reduce((a,b) => a + b.price, 0);
-
+                if(!selectedServices.length) return;
                 await runTransaction(db, async (t) => {
                     const sRef = doc(db, "salons", selectedSalon.id);
                     const sDoc = await t.get(sRef);
-                    
-                    if (!sDoc.data().acceptingTokens || sDoc.data().status === 'closed') throw "Salon not accepting tokens";
-
-                    // SEQUENTIAL TOKEN LOGIC
                     const nextToken = (sDoc.data().lastTokenNumber || 0) + 1;
-                    
                     t.update(sRef, { lastTokenNumber: nextToken });
-                    
                     const tRef = doc(collection(db, "tokens"));
                     t.set(tRef, {
-                        userId: user.uid, userName: user.displayName, 
-                        salonId: selectedSalon.id, salonName: selectedSalon.shopName,
-                        services: selectedServices, totalDuration: totalDur, totalCost: totalCost,
+                        userId: user.uid, userName: user.displayName, salonId: selectedSalon.id, salonName: selectedSalon.shopName,
+                        services: selectedServices, totalDuration: selectedServices.reduce((a,b)=>a+b.time,0), totalCost: selectedServices.reduce((a,b)=>a+b.price,0),
                         tokenNumber: nextToken, status: 'waiting', createdAt: serverTimestamp()
                     });
                 });
@@ -560,45 +535,27 @@
                 setSelectedSalon(null); setSelectedServices([]); setActiveTab('activity');
             };
 
-            // Render List
-            const SalonList = ({ list }) => (
-                <div className="space-y-4">
-                    {list.map(s => (
-                        <div key={s.id} onClick={()=>setSelectedSalon(s)} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 relative active:scale-[0.98] transition-transform">
-                            <button onClick={(e)=>toggleFavorite(e, s.id)} className="absolute top-3 right-3 z-10 p-2"><Icon name="heart" size={18} className={favorites.includes(s.id)?'fill-danger text-danger':'text-white'}/></button>
-                            <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-surface" />
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="font-bold text-white pr-6">{s.shopName}</h3>
-                                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${s.status==='open'?'bg-success/10 text-success': s.status==='break' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'}`}>{s.status}</span>
-                                </div>
-                                <p className="text-xs text-textSec mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address}</p>
-                                <button className="mt-3 bg-white text-black text-xs font-bold py-2 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50" disabled={s.status!=='open' || !s.acceptingTokens || activeToken}>
-                                    {activeToken ? 'Active Token' : s.status === 'open' && s.acceptingTokens ? 'Get Token' : 'Unavailable'}
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                    {list.length === 0 && <div className="text-center py-20 text-textSec">No salons found.</div>}
-                </div>
-            );
+            const sortedSalons = useMemo(() => {
+                let list = salons.filter(s => s.shopName.toLowerCase().includes(searchQuery.toLowerCase()));
+                if(userLocation) list.sort((a,b) => {
+                    const dA = a.coordinates ? getDistance(userLocation.lat,userLocation.lng,a.coordinates.lat,a.coordinates.lng) : 9999;
+                    const dB = b.coordinates ? getDistance(userLocation.lat,userLocation.lng,b.coordinates.lat,b.coordinates.lng) : 9999;
+                    return dA - dB;
+                });
+                return list;
+            }, [salons, searchQuery, userLocation]);
 
             return (
                 <div className="min-h-screen bg-bg">
-                    {/* BOOKING MODAL */}
                     {selectedSalon && (
                         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-slide-up">
                             <div className="w-full max-w-md bg-surfaceLight border border-white/10 rounded-3xl p-6 relative">
                                 <button onClick={()=>setSelectedSalon(null)} className="absolute top-4 right-4 text-textSec"><Icon name="x"/></button>
                                 <h2 className="text-xl font-bold text-white mb-1">{selectedSalon.shopName}</h2>
-                                <p className="text-textSec text-sm mb-6">Select Services</p>
-                                <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                                <div className="space-y-2 mb-6 max-h-60 overflow-y-auto mt-4">
                                     {selectedSalon.services?.map((s,i) => (
                                         <div key={i} onClick={()=>toggleService(s)} className={`flex justify-between items-center p-4 rounded-xl border cursor-pointer ${selectedServices.includes(s) ? 'border-primary bg-primary/10' : 'border-white/5 bg-surface'}`}>
-                                            <div>
-                                                <div className="font-bold">{s.name}</div>
-                                                <div className="text-xs text-textSec">{s.time} min • ₹{s.price}</div>
-                                            </div>
+                                            <div><div className="font-bold">{s.name}</div><div className="text-xs text-textSec">{s.time} min • ₹{s.price}</div></div>
                                             {selectedServices.includes(s) && <Icon name="check-circle" size={18} className="text-primary"/>}
                                         </div>
                                     ))}
@@ -607,7 +564,6 @@
                                     <div><p className="text-xs text-textSec">Total</p><p className="font-bold text-white">₹{selectedServices.reduce((a,b)=>a+b.price,0)}</p></div>
                                     <div><p className="text-xs text-textSec text-right">Time</p><p className="font-bold text-white">{selectedServices.reduce((a,b)=>a+b.time,0)} min</p></div>
                                 </div>
-                                <div className="bg-warning/10 text-warning text-[10px] p-3 rounded-lg mb-4 text-center">⚠️ Reach 10 mins early.</div>
                                 <button onClick={joinQueue} className="w-full bg-primary text-black font-bold py-4 rounded-xl">Confirm Token</button>
                             </div>
                         </div>
@@ -623,130 +579,95 @@
                                 <Icon name="search" className="absolute left-4 top-3.5 text-textSec" size={18} />
                                 <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search salons..." className="w-full bg-surfaceLight border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-white focus:border-primary outline-none" />
                             </div>
-                            <h2 className="text-lg font-bold text-white mb-4">Nearby Salons</h2>
-                            <SalonList list={salons.filter(s => s.shopName.toLowerCase().includes(searchQuery.toLowerCase()))} />
+                            <div className="space-y-4">
+                                {sortedSalons.map(s => {
+                                    const dist = userLocation && s.coordinates ? getDistance(userLocation.lat, userLocation.lng, s.coordinates.lat, s.coordinates.lng) : null;
+                                    return (
+                                        <div key={s.id} onClick={()=>setSelectedSalon(s)} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 relative active:scale-[0.98] transition-transform">
+                                            <button onClick={async (e)=>{e.stopPropagation(); const ref=doc(db,"users",user.uid); if(favorites.includes(s.id)) await updateDoc(ref,{favorites:arrayRemove(s.id)}); else await updateDoc(ref,{favorites:arrayUnion(s.id)});}} className="absolute top-3 right-3 z-10"><Icon name="heart" size={18} className={favorites.includes(s.id)?'fill-danger text-danger':'text-white'}/></button>
+                                            <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-surface" />
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start"><h3 className="font-bold text-white pr-6">{s.shopName}</h3><span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${s.status==='open'?'bg-success/10 text-success': s.status==='break' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'}`}>{s.status}</span></div>
+                                                <p className="text-xs text-textSec mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address} {dist && <span className="text-primary">({dist} km)</span>}</p>
+                                                <button disabled={s.status!=='open' || !s.acceptingTokens || activeToken} className="mt-3 bg-white text-black text-xs font-bold py-2 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50">{activeToken ? 'Active Token' : s.status === 'open' && s.acceptingTokens ? 'Get Token' : 'Unavailable'}</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
 
-                    {activeTab === 'favorites' && (
-                        <div className="p-6 pb-24 animate-slide-up">
-                            <h2 className="text-2xl font-bold text-white mb-6">Favorites</h2>
-                            <SalonList list={salons.filter(s => favorites.includes(s.id))} />
-                        </div>
-                    )}
+                    {activeTab === 'favorites' && <div className="p-6 pb-24"><h2 className="text-2xl font-bold mb-4">Favorites</h2><div className="space-y-4">{salons.filter(s=>favorites.includes(s.id)).map(s=>(<div key={s.id} onClick={()=>setSelectedSalon(s)} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4"><img src={s.shopImage} className="w-16 h-16 rounded-xl object-cover"/><div className="flex-1"><h3 className="font-bold">{s.shopName}</h3><p className="text-xs text-textSec">{s.address}</p></div></div>))}</div></div>}
 
                     {activeTab === 'activity' && (
                         <div className="p-6 pb-24 animate-slide-up">
                             <h2 className="text-2xl font-bold text-white mb-6">Live Token</h2>
                             {activeToken ? (
                                 <div className="bg-surfaceLight border border-primary/40 p-6 rounded-[2rem] relative overflow-hidden animate-slide-up shadow-[0_0_20px_rgba(255,215,0,0.15)]">
-                                    {/* Progress Bar Visual */}
-                                    <div className="absolute top-0 left-0 w-full h-1.5 bg-surfaceLighter"><div className="h-full bg-primary animate-progress-stripes stripe-bg w-full"></div></div>
-                                    
                                     <div className="text-center mt-4">
                                         <div className="inline-block px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold uppercase rounded-full mb-2 animate-pulse">Live Status</div>
                                         <h1 className="text-7xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
                                         <p className="text-gray-400 mt-1 text-sm font-medium">{activeToken.salonName}</p>
-                                        
                                         <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/10">
-                                            <div>
-                                                <p className="text-3xl font-bold text-white">{queueStats.peopleAhead}</p>
-                                                <p className="text-[10px] text-textSec uppercase tracking-wider">People Ahead</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-3xl font-bold text-primary">{queueStats.waitTime}<span className="text-sm">m</span></p>
-                                                <p className="text-[10px] text-textSec uppercase tracking-wider">Est. Wait</p>
-                                            </div>
+                                            <div><p className="text-3xl font-bold text-white">{queueStats.peopleAhead}</p><p className="text-[10px] text-textSec uppercase tracking-wider">People Ahead</p></div>
+                                            <div><p className="text-3xl font-bold text-primary">{queueStats.waitTime}<span className="text-sm">m</span></p><p className="text-[10px] text-textSec uppercase tracking-wider">Est. Wait</p></div>
                                         </div>
-
                                         <button onClick={()=>updateDoc(doc(db, "tokens", activeToken.id), {status: 'cancelled'})} className="mt-8 w-full py-3 rounded-xl border border-danger/20 text-danger text-xs font-bold hover:bg-danger/10 transition-colors">Cancel Booking</button>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="text-center py-20 opacity-50">
-                                    <Icon name="ticket" size={48} className="mx-auto mb-4"/>
-                                    <p>No active bookings.</p>
-                                    <button onClick={()=>setActiveTab('home')} className="mt-4 text-primary font-bold text-sm">Book Now</button>
-                                </div>
-                            )}
+                            ) : <div className="text-center py-20 opacity-50"><Icon name="ticket" size={48} className="mx-auto mb-4"/><p>No active bookings.</p><button onClick={()=>setActiveTab('home')} className="mt-4 text-primary font-bold text-sm">Book Now</button></div>}
                         </div>
                     )}
 
                     {activeTab === 'subscription' && <SubscriptionScreen />}
-                    {activeTab === 'profile' && <ProfileScreen user={user} role="Customer" onLogout={onLogout} onSwitchRole={onSwitchRole} />}
-
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Customer" onLogout={onLogout} onSwitchRole={onSwitchRole} onChangeLang={onChangeLang} t={t} />}
                     <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="customer" />
                 </div>
             );
         };
 
-        // --- AUTH SCREENS ---
-        const LoginScreen = ({ onLogin }) => (
-            <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1621644827823-3932a39287a9?w=800&q=80')] bg-cover opacity-20 grayscale"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-transparent"></div>
-                <div className="relative z-10 mb-8">
-                    <h1 className="text-5xl font-bold text-white mb-2">Skip the<br/><span className="text-primary">Line.</span></h1>
-                    <p className="text-textSec text-lg">Smartest Queue System.</p>
-                </div>
-                <button onClick={onLogin} className="relative z-10 w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5"/> Continue with Google
-                </button>
-            </div>
-        );
-
-        const RoleSelection = ({ onSelect }) => (
-            <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up">
-                <h2 className="text-3xl font-bold text-white mb-8">Choose Profile</h2>
-                <div className="space-y-4">
-                    {['customer', 'owner'].map(role => (
-                        <button key={role} onClick={() => onSelect(role)} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center gap-5 hover:border-primary/50 transition-all text-left group">
-                            <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/5 group-hover:text-primary"><Icon name={role==='customer'?'user':'store'} size={24} /></div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white capitalize">{role === 'owner' ? 'Salon Owner' : 'Customer'}</h3>
-                                <p className="text-textSec text-xs mt-1">{role==='customer' ? 'Book & Track.' : 'Manage Business.'}</p>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </div>
-        );
-
-        // --- ROOT ---
         const App = () => {
             const [user, setUser] = useState(null);
             const [role, setRole] = useState(null);
-            const [loading, setLoading] = useState(true);
+            const [lang, setLang] = useState(localStorage.getItem('lf_lang'));
+            const [splash, setSplash] = useState(true);
 
             useEffect(() => {
                 const unsub = onAuthStateChanged(auth, async (u) => {
                     setUser(u);
-                    if (u) {
+                    if(u) {
                         const snap = await getDoc(doc(db, "users", u.uid));
-                        if (snap.exists()) setRole(snap.data().role);
+                        if(snap.exists()) setRole(snap.data().role);
                     }
-                    setLoading(false);
                 });
                 return () => unsub();
             }, []);
 
-            const handleRoleSelect = async (r) => {
-                await setDoc(doc(db, "users", user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
-                setRole(r);
+            const handleLogin = (selectedRole) => {
+                signInWithPopup(auth, googleProvider).then(async (res) => {
+                    const userRef = doc(db, "users", res.user.uid);
+                    const snap = await getDoc(userRef);
+                    if (!snap.exists()) {
+                        await setDoc(userRef, { role: selectedRole, email: res.user.email, displayName: res.user.displayName, photoURL: res.user.photoURL, createdAt: serverTimestamp() });
+                        setRole(selectedRole);
+                    } else {
+                        setRole(snap.data().role);
+                    }
+                });
             };
 
-            const switchRole = async () => {
-                if(confirm("Switch Profile?")) {
-                    await deleteDoc(doc(db, "users", user.uid));
-                    setRole(null);
-                }
-            };
+            const switchRole = async () => { if(confirm("Switch Profile?")) { await deleteDoc(doc(db, "users", user.uid)); setRole(null); } };
+            const changeLang = () => { const l = lang === 'en' ? 'hi' : 'en'; setLang(l); localStorage.setItem('lf_lang', l); };
 
-            if (loading) return <div className="fixed inset-0 bg-black flex items-center justify-center"><div className="text-primary font-bold animate-pulse">LINE FREE</div></div>;
+            if (splash) return <SplashScreen onFinish={() => setSplash(false)} />;
+            if (!lang) return <LanguageSelection onSelect={(l) => { setLang(l); localStorage.setItem('lf_lang', l); }} />;
+            
+            const t = TEXTS[lang];
 
-            return !user ? <LoginScreen onLogin={() => signInWithPopup(auth, googleProvider)} /> : 
-                   !role ? <RoleSelection onSelect={handleRoleSelect} /> : 
-                   role === 'owner' ? <OwnerDashboard user={user} onLogout={() => signOut(auth)} onSwitchRole={switchRole} /> : <CustomerDashboard user={user} onLogout={() => signOut(auth)} onSwitchRole={switchRole} />;
+            return !user ? <RoleBasedLogin onLogin={handleLogin} t={t} /> : 
+                   !role ? <RoleBasedLogin onLogin={handleLogin} t={t} /> : 
+                   role === 'owner' ? <OwnerDashboard user={user} onLogout={() => signOut(auth)} onSwitchRole={switchRole} onChangeLang={changeLang} t={t} /> : <CustomerDashboard user={user} onLogout={() => signOut(auth)} onSwitchRole={switchRole} onChangeLang={changeLang} t={t} />;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
