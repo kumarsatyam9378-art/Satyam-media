@@ -59,7 +59,6 @@
         body { background-color: #000000; color: #ffffff; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .bg-pattern { background-image: radial-gradient(rgba(255, 215, 0, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
     </style>
 </head>
 <body>
@@ -103,7 +102,7 @@
 
         // --- COMPONENTS ---
 
-        // 1. BOTTOM NAV
+        // 1. BOTTOM NAV (Common for both but different tabs)
         const BottomNav = ({ activeTab, onTabChange, role }) => (
             <div className="fixed bottom-0 w-full glass pb-6 pt-4 px-4 flex justify-around items-center z-50 transition-all">
                 {role === 'customer' ? (
@@ -115,10 +114,6 @@
                         <button onClick={() => onTabChange('favorites')} className={`flex flex-col items-center gap-1 ${activeTab === 'favorites' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                             <Icon name="heart" size={24} />
                             <span className="text-[10px] font-bold">Favorites</span>
-                        </button>
-                        <button onClick={() => onTabChange('activity')} className={`flex flex-col items-center gap-1 ${activeTab === 'activity' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
-                            <Icon name="ticket" size={24} />
-                            <span className="text-[10px] font-bold">Token</span>
                         </button>
                         <button onClick={() => onTabChange('subscription')} className={`flex flex-col items-center gap-1 ${activeTab === 'subscription' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                             <Icon name="crown" size={24} />
@@ -142,6 +137,7 @@
                     </>
                 )}
                 
+                {/* Common Profile Tab */}
                 <button onClick={() => onTabChange('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                     <Icon name="user" size={24} />
                     <span className="text-[10px] font-bold">Profile</span>
@@ -149,9 +145,9 @@
             </div>
         );
 
-        // 2. PROFILE SCREEN
+        // 2. PROFILE SCREEN (Common)
         const ProfileScreen = ({ user, role, onLogout, onSwitchRole }) => (
-            <div className="p-6 pb-24 animate-slide-up bg-pattern min-h-screen">
+            <div className="p-6 pb-24 animate-slide-up bg-bg min-h-screen">
                 <h2 className="text-2xl font-bold text-white mb-8">My Profile</h2>
                 <div className="flex items-center gap-4 mb-8 bg-surfaceLight p-4 rounded-2xl border border-white/5 shadow-lg">
                     <img src={user.photoURL} className="w-16 h-16 rounded-full border-2 border-primary" />
@@ -174,6 +170,14 @@
                         <Icon name="chevron-right" size={16} className="text-textSec group-hover:text-white"/>
                     </button>
 
+                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-black/30 rounded-lg text-primary"><Icon name="wallet" size={20}/></div>
+                            <span className="font-bold text-white">Wallet</span>
+                        </div>
+                        <span className="text-textSec">₹0.00</span>
+                    </div>
+
                     <button onClick={onLogout} className="w-full mt-8 py-4 rounded-xl bg-danger/10 text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger/20 transition-all border border-danger/20">
                         <Icon name="log-out" size={20} /> Logout
                     </button>
@@ -190,7 +194,7 @@
                 <h2 className="text-3xl font-black text-white mb-2">PRO MEMBER</h2>
                 <p className="text-primary font-bold tracking-widest mb-8">FREE TRIAL ACTIVE</p>
                 
-                <div className="bg-surfaceLight p-6 rounded-3xl border border-white/10 w-full max-w-sm">
+                <div className="bg-surfaceLight p-6 rounded-3xl border border-white/10 w-full max-w-sm text-left">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="bg-success/20 p-1 rounded-full"><Icon name="check" size={16} className="text-success" /></div>
                         <span className="text-sm text-gray-300">Priority Queue Access</span>
@@ -204,7 +208,7 @@
                         <span className="text-sm text-gray-300">Ad-Free Experience</span>
                     </div>
                 </div>
-                <p className="text-xs text-textSec mt-8">Your free trial expires in 60 days. Enjoy!</p>
+                <p className="text-xs text-textSec mt-8">Your free trial expires in 60 days. No Payment Required.</p>
             </div>
         );
 
@@ -361,10 +365,10 @@
                                         <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${salon.status === 'open' ? 'bg-success/20 text-success' : salon.status === 'break' ? 'bg-warning/20 text-warning' : 'bg-danger/20 text-danger'}`}>{salon.status}</span>
                                     </div>
                                     <div className="grid grid-cols-4 gap-2">
-                                        <button onClick={()=>updateStatus('open')} className="flex flex-col items-center gap-1 p-2 bg-black/20 rounded-lg hover:bg-success/10 text-success border border-white/5"><Icon name="unlock" size={20}/><span className="text-[8px] font-bold">OPEN</span></button>
-                                        <button onClick={()=>updateStatus('closed')} className="flex flex-col items-center gap-1 p-2 bg-black/20 rounded-lg hover:bg-danger/10 text-danger border border-white/5"><Icon name="lock" size={20}/><span className="text-[8px] font-bold">CLOSE</span></button>
-                                        <button onClick={()=>updateStatus('break')} className="flex flex-col items-center gap-1 p-2 bg-black/20 rounded-lg hover:bg-warning/10 text-warning border border-white/5"><Icon name="coffee" size={20}/><span className="text-[8px] font-bold">BREAK</span></button>
-                                        <button onClick={()=>updateStatus('stopped')} className="flex flex-col items-center gap-1 p-2 bg-black/20 rounded-lg hover:bg-white/10 text-textSec border border-white/5"><Icon name="stop-circle" size={20}/><span className="text-[8px] font-bold">STOP</span></button>
+                                        <button onClick={()=>updateStatus('open')} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${salon.status === 'open' ? 'bg-success/20 border-success text-success' : 'bg-black/20 border-white/5 text-textSec'}`}><Icon name="unlock" size={20}/><span className="text-[8px] font-bold">OPEN</span></button>
+                                        <button onClick={()=>updateStatus('closed')} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${salon.status === 'closed' ? 'bg-danger/20 border-danger text-danger' : 'bg-black/20 border-white/5 text-textSec'}`}><Icon name="lock" size={20}/><span className="text-[8px] font-bold">CLOSE</span></button>
+                                        <button onClick={()=>updateStatus('break')} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${salon.status === 'break' ? 'bg-warning/20 border-warning text-warning' : 'bg-black/20 border-white/5 text-textSec'}`}><Icon name="coffee" size={20}/><span className="text-[8px] font-bold">BREAK</span></button>
+                                        <button onClick={()=>updateStatus('stopped')} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${salon.status === 'stopped' ? 'bg-white/20 border-white text-white' : 'bg-black/20 border-white/5 text-textSec'}`}><Icon name="stop-circle" size={20}/><span className="text-[8px] font-bold">STOP</span></button>
                                     </div>
                                 </div>
 
@@ -378,7 +382,7 @@
                                         <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center"><Icon name="mic" /></div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={callNext} className="flex-1 bg-black text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform">Next <Icon name="arrow-right" size={18}/></button>
+                                        <button onClick={callNext} className="flex-1 bg-black text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform">Next Customer <Icon name="arrow-right" size={18}/></button>
                                     </div>
                                 </div>
 
