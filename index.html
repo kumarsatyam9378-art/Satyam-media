@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free India - Platinum</title>
+    <title>Line Free India - Diamond</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,11 +29,12 @@
                         sans: ['Outfit', 'sans-serif'],
                     },
                     animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up-fast': 'slideUp 0.2s ease-out forwards',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(10px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)' }, '50%': { boxShadow: '0 0 25px rgba(255, 215, 0, 0.3)' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
                     }
                 }
             }
@@ -53,7 +54,7 @@
     
     <style>
         body { background-color: #000000; color: #ffffff; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-        .glass { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(0px); border: 1px solid rgba(255, 255, 255, 0.08); } /* Removed blur for performance */
+        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -88,62 +89,81 @@
 
         // --- COMPONENTS ---
 
-        // 1. MINIMAL SPLASH (Only shows while checking auth, no artificial delay)
-        const SplashScreen = () => {
-            useEffect(() => lucide.createIcons());
-            return (
-                <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-                    <div className="text-primary font-bold text-2xl tracking-widest animate-pulse">LINE FREE</div>
-                </div>
-            );
-        };
-
-        // 2. LOGIN SCREEN
-        const LoginScreen = ({ onLogin }) => (
-            <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16">
-                <div className="mb-10 animate-slide-up-fast">
-                    <div className="w-16 h-16 rounded-2xl glass border border-primary/20 flex items-center justify-center mb-6">
-                        <Icon name="crown" size={32} className="text-primary" />
-                    </div>
-                    <h1 className="text-5xl font-bold text-white mb-2 leading-tight">Ready.<br/><span className="text-primary">Set. Go.</span></h1>
-                    <p className="text-textSec text-lg">Queue Less. Live More.</p>
-                </div>
-
-                <button onClick={onLogin} className="w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-xl hover:bg-gray-100 animate-slide-up-fast">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6"/>
-                    Continue with Google
+        // 1. BOTTOM NAVIGATION
+        const BottomNav = ({ activeTab, onTabChange, role }) => (
+            <div className="fixed bottom-0 w-full glass pb-6 pt-4 px-8 flex justify-between items-center z-50">
+                <button onClick={() => onTabChange('home')} className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-primary scale-110' : 'text-textSec'}`}>
+                    <Icon name="home" size={24} />
+                    <span className="text-[10px] font-bold">Home</span>
+                </button>
+                {role === 'owner' ? (
+                    <button onClick={() => onTabChange('services')} className={`flex flex-col items-center gap-1 ${activeTab === 'services' ? 'text-primary scale-110' : 'text-textSec'}`}>
+                        <Icon name="list" size={24} />
+                        <span className="text-[10px] font-bold">Menu</span>
+                    </button>
+                ) : (
+                    <button onClick={() => onTabChange('activity')} className={`flex flex-col items-center gap-1 ${activeTab === 'activity' ? 'text-primary scale-110' : 'text-textSec'}`}>
+                        <Icon name="ticket" size={24} />
+                        <span className="text-[10px] font-bold">Activity</span>
+                    </button>
+                )}
+                <button onClick={() => onTabChange('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-primary scale-110' : 'text-textSec'}`}>
+                    <Icon name="user" size={24} />
+                    <span className="text-[10px] font-bold">Profile</span>
                 </button>
             </div>
         );
 
-        // 3. ROLE SELECTION
-        const RoleSelection = ({ onSelect }) => (
-            <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up-fast">
-                <h2 className="text-3xl font-bold text-white mb-2">Who are you?</h2>
-                <div className="space-y-4 mt-8">
-                    <button onClick={() => onSelect('customer')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center gap-5 hover:border-primary/50 transition-all text-left">
-                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/5"><Icon name="user" size={24} /></div>
-                        <div>
-                            <h3 className="text-lg font-bold text-white">Customer</h3>
-                            <p className="text-textSec text-xs mt-1">Book services instantly.</p>
-                        </div>
-                    </button>
-                    <button onClick={() => onSelect('owner')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center gap-5 hover:border-primary/50 transition-all text-left">
-                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/5"><Icon name="store" size={24} /></div>
-                        <div>
-                            <h3 className="text-lg font-bold text-white">Salon Owner</h3>
-                            <p className="text-textSec text-xs mt-1">Manage your business.</p>
-                        </div>
-                    </button>
+        // 2. PROFILE SCREEN (Common)
+        const ProfileScreen = ({ user, role, onLogout }) => (
+            <div className="p-6 pb-24 animate-slide-up">
+                <h2 className="text-2xl font-bold text-white mb-8">My Profile</h2>
+                <div className="flex items-center gap-4 mb-8 bg-surfaceLight p-4 rounded-2xl border border-white/5">
+                    <img src={user.photoURL} className="w-16 h-16 rounded-full border-2 border-primary" />
+                    <div>
+                        <h3 className="text-lg font-bold text-white">{user.displayName}</h3>
+                        <p className="text-textSec text-sm">{user.email}</p>
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary/20 text-primary mt-2">{role}</span>
+                    </div>
                 </div>
+
+                <div className="space-y-3">
+                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-black/30 rounded-lg text-primary"><Icon name="wallet" size={20}/></div>
+                            <span className="font-bold text-white">Wallet</span>
+                        </div>
+                        <span className="text-textSec">₹0.00</span>
+                    </div>
+                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-black/30 rounded-lg text-accent"><Icon name="bell" size={20}/></div>
+                            <span className="font-bold text-white">Notifications</span>
+                        </div>
+                        <div className="w-2 h-2 bg-danger rounded-full"></div>
+                    </div>
+                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-black/30 rounded-lg text-success"><Icon name="help-circle" size={20}/></div>
+                            <span className="font-bold text-white">Help & Support</span>
+                        </div>
+                        <Icon name="chevron-right" size={16} className="text-textSec"/>
+                    </div>
+                </div>
+
+                <button onClick={onLogout} className="w-full mt-8 py-4 rounded-xl bg-danger/10 text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger/20 transition-all border border-danger/20">
+                    <Icon name="log-out" size={20} /> Logout
+                </button>
+                <p className="text-center text-xs text-textSec mt-4">Version 2.0.0 (Diamond)</p>
             </div>
         );
 
-        // 4. OWNER DASHBOARD
-        const OwnerDashboard = ({ user, onReset }) => {
-            const [view, setView] = useState('home');
+        // 3. OWNER DASHBOARD
+        const OwnerDashboard = ({ user, onLogout }) => {
+            const [activeTab, setActiveTab] = useState('home');
             const [salon, setSalon] = useState(null);
             const [queue, setQueue] = useState([]);
+            const [services, setServices] = useState([]);
             
             // SETUP STATE
             const [setupName, setSetupName] = useState('');
@@ -152,8 +172,10 @@
 
             useEffect(() => {
                 const unsubSalon = onSnapshot(doc(db, "salons", user.uid), (docSnap) => {
-                    if(docSnap.exists()) setSalon(docSnap.data());
-                    else setView('setup');
+                    if(docSnap.exists()) {
+                        setSalon(docSnap.data());
+                        setServices(docSnap.data().services || []);
+                    }
                 });
 
                 const q = query(collection(db, "tokens"), where("salonId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
@@ -168,9 +190,12 @@
                 await setDoc(doc(db, "salons", user.uid), {
                     shopName: setupName, address: setupLoc, shopImage: setupImg,
                     ownerName: user.displayName, status: 'open', revenue: 0, rating: 5.0, totalTokensToday: 0,
+                    services: [
+                        { name: 'Haircut', price: 200, time: 30 },
+                        { name: 'Shave', price: 100, time: 15 }
+                    ],
                     createdAt: serverTimestamp()
                 });
-                setView('home');
             };
 
             const callNext = async () => {
@@ -181,14 +206,14 @@
                 if(waiting.length > 0) await updateDoc(doc(db, "tokens", waiting[0].id), {status: 'serving'});
             };
 
-            if(view === 'setup' || (salon && !salon.shopName)) {
+            // Setup Screen
+            if(!salon) {
                 return (
-                    <div className="min-h-screen bg-bg p-6 pt-12 animate-slide-up-fast">
-                        <h2 className="text-3xl font-bold text-white mb-6">Quick Setup</h2>
+                    <div className="min-h-screen bg-bg p-6 pt-12 animate-slide-up">
+                        <h2 className="text-3xl font-bold text-white mb-6">Setup Business</h2>
                         <div className="space-y-4">
                             <input value={setupName} onChange={e=>setSetupName(e.target.value)} placeholder="Shop Name" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
                             <input value={setupLoc} onChange={e=>setSetupLoc(e.target.value)} placeholder="City" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
-                            <div className="aspect-video rounded-xl overflow-hidden bg-surfaceLight"><img src={setupImg} className="w-full h-full object-cover" /></div>
                             <button onClick={handleSetup} disabled={!setupName} className="w-full bg-primary text-black font-bold py-4 rounded-xl disabled:opacity-50">Launch Business</button>
                         </div>
                     </div>
@@ -196,57 +221,83 @@
             }
 
             const current = queue.find(t => t.status === 'serving');
+
             return (
-                <div className="min-h-screen bg-bg pb-24">
-                    <div className="h-56 relative">
-                        <img src={salon?.shopImage} className="w-full h-full object-cover opacity-60" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-bg to-transparent"></div>
-                        <div className="absolute bottom-4 left-6">
-                            <h1 className="text-3xl font-bold text-white">{salon?.shopName}</h1>
-                            <p className="text-gray-400 text-sm">{salon?.address}</p>
-                        </div>
-                    </div>
-
-                    <div className="p-6 -mt-6 relative z-10 space-y-4">
-                        <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${salon?.status==='open' ? 'bg-success animate-pulse' : 'bg-danger'}`}></div>
-                                <span className="font-bold text-white capitalize">{salon?.status}</span>
-                            </div>
-                            <button onClick={()=>updateDoc(doc(db, "salons", user.uid), {status: salon?.status==='open'?'closed':'open'})} className="bg-white/10 px-4 py-2 rounded-lg text-xs font-bold">Toggle</button>
-                        </div>
-
-                        <div className="bg-primary p-6 rounded-3xl text-black shadow-lg shadow-primary/20">
-                            <p className="text-xs font-bold uppercase opacity-60 mb-2">Now Serving</p>
-                            <div className="flex justify-between items-end mb-6">
-                                <div>
-                                    <h2 className="text-5xl font-black">{current ? current.tokenNumber : '-'}</h2>
-                                    <p className="font-bold mt-1">{current ? current.userName : 'Empty Queue'}</p>
+                <div className="min-h-screen bg-bg">
+                    {activeTab === 'home' && (
+                        <div className="pb-24">
+                            <div className="h-64 relative">
+                                <img src={salon?.shopImage} className="w-full h-full object-cover opacity-60" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-bg to-transparent"></div>
+                                <div className="absolute bottom-4 left-6">
+                                    <h1 className="text-3xl font-bold text-white">{salon?.shopName}</h1>
+                                    <p className="text-gray-400 text-sm">{salon?.address}</p>
                                 </div>
-                                <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center"><Icon name="mic" /></div>
                             </div>
-                            <button onClick={callNext} className="w-full bg-black text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform">Call Next <Icon name="arrow-right" size={18}/></button>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
-                                <h3 className="text-2xl font-bold text-white">{queue.filter(t=>t.status==='waiting').length}</h3>
-                                <p className="text-xs text-textSec uppercase">Waiting</p>
-                            </div>
-                            <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
-                                <h3 className="text-2xl font-bold text-white">₹{salon?.revenue || 0}</h3>
-                                <p className="text-xs text-textSec uppercase">Revenue</p>
+                            <div className="p-6 -mt-6 relative z-10 space-y-4">
+                                <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-3 h-3 rounded-full ${salon?.status==='open' ? 'bg-success animate-pulse' : 'bg-danger'}`}></div>
+                                        <span className="font-bold text-white capitalize">{salon?.status}</span>
+                                    </div>
+                                    <button onClick={()=>updateDoc(doc(db, "salons", user.uid), {status: salon?.status==='open'?'closed':'open'})} className="bg-white/10 px-4 py-2 rounded-lg text-xs font-bold">Toggle</button>
+                                </div>
+
+                                <div className="bg-primary p-6 rounded-3xl text-black shadow-lg shadow-primary/20">
+                                    <p className="text-xs font-bold uppercase opacity-60 mb-2">Now Serving</p>
+                                    <div className="flex justify-between items-end mb-6">
+                                        <div>
+                                            <h2 className="text-5xl font-black">{current ? current.tokenNumber : '-'}</h2>
+                                            <p className="font-bold mt-1">{current ? current.userName : 'Empty Queue'}</p>
+                                        </div>
+                                        <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center"><Icon name="mic" /></div>
+                                    </div>
+                                    <button onClick={callNext} className="w-full bg-black text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform">Call Next <Icon name="arrow-right" size={18}/></button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
+                                        <h3 className="text-2xl font-bold text-white">{queue.filter(t=>t.status==='waiting').length}</h3>
+                                        <p className="text-xs text-textSec uppercase">Waiting</p>
+                                    </div>
+                                    <div className="bg-surfaceLight p-4 rounded-2xl border border-white/5 text-center">
+                                        <h3 className="text-2xl font-bold text-white">₹{salon?.revenue || 0}</h3>
+                                        <p className="text-xs text-textSec uppercase">Revenue</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                        <button onClick={onReset} className="w-full py-4 text-xs text-danger border border-danger/20 rounded-xl mt-4">Reset Data</button>
-                    </div>
+                    {activeTab === 'services' && (
+                        <div className="p-6 pb-24 animate-slide-up">
+                            <h2 className="text-2xl font-bold text-white mb-6">Manage Menu</h2>
+                            <div className="space-y-3">
+                                {services.map((s, i) => (
+                                    <div key={i} className="flex justify-between items-center bg-surfaceLight p-4 rounded-xl border border-white/5">
+                                        <div>
+                                            <h4 className="font-bold text-white">{s.name}</h4>
+                                            <p className="text-xs text-textSec">{s.time} mins</p>
+                                        </div>
+                                        <span className="font-bold text-primary">₹{s.price}</span>
+                                    </div>
+                                ))}
+                                {services.length === 0 && <p className="text-textSec text-center">No services added.</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Owner" onLogout={onLogout} />}
+
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="owner" />
                 </div>
             );
         };
 
         // 5. CUSTOMER DASHBOARD
-        const CustomerDashboard = ({ user, onReset }) => {
+        const CustomerDashboard = ({ user, onLogout }) => {
+            const [activeTab, setActiveTab] = useState('home');
             const [salons, setSalons] = useState([]);
             const [activeToken, setActiveToken] = useState(null);
 
@@ -273,49 +324,110 @@
                     });
                 });
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                setActiveTab('activity');
             };
 
             return (
-                <div className="min-h-screen bg-bg p-6 pb-24">
-                    <div className="flex justify-between items-center mb-6 sticky top-0 bg-bg z-20 py-4">
-                        <h1 className="text-xl font-bold text-white">Line Free <span className="text-primary">India</span></h1>
-                        <img src={user.photoURL} className="w-8 h-8 rounded-full border border-primary/50" />
-                    </div>
-
-                    {activeToken && (
-                        <div className="bg-surfaceLight border border-primary/40 p-6 rounded-[2rem] mb-8 relative overflow-hidden animate-slide-up-fast shadow-[0_0_20px_rgba(255,215,0,0.1)]">
-                            <div className="text-center">
-                                <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1 animate-pulse">Live Status</p>
-                                <h1 className="text-6xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
-                                <p className="text-gray-400 mt-1 text-sm">{activeToken.salonName}</p>
-                                <button onClick={()=>updateDoc(doc(db, "tokens", activeToken.id), {status: 'cancelled'})} className="mt-4 text-danger text-xs font-bold border border-danger/20 px-4 py-2 rounded-lg hover:bg-danger/10">Cancel Token</button>
+                <div className="min-h-screen bg-bg">
+                    {activeTab === 'home' && (
+                        <div className="p-6 pb-24">
+                            <div className="flex justify-between items-center mb-6 sticky top-0 bg-bg z-20 py-4 border-b border-white/5">
+                                <h1 className="text-xl font-bold text-white">Line Free <span className="text-primary">India</span></h1>
+                                <img src={user.photoURL} className="w-8 h-8 rounded-full border border-primary/50" />
+                            </div>
+                            <h2 className="text-lg font-bold text-white mb-4">Nearby Salons</h2>
+                            <div className="space-y-4">
+                                {salons.map(s => (
+                                    <div key={s.id} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 active:scale-[0.98] transition-transform">
+                                        <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="font-bold text-white">{s.shopName}</h3>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${s.status==='open'?'bg-success/10 text-success':'bg-danger/10 text-danger'}`}>{s.status}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address}</p>
+                                            <button onClick={()=>joinQueue(s)} disabled={s.status!=='open' || activeToken} className="mt-3 bg-white text-black text-xs font-bold py-2.5 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50">
+                                                {activeToken ? 'Already Booked' : 'Join Queue'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
 
-                    <h2 className="text-lg font-bold text-white mb-4">Nearby Salons</h2>
-                    <div className="space-y-4">
-                        {salons.map(s => (
-                            <div key={s.id} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 active:scale-[0.98] transition-transform">
-                                <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-white">{s.shopName}</h3>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${s.status==='open'?'bg-success/10 text-success':'bg-danger/10 text-danger'}`}>{s.status}</span>
+                    {activeTab === 'activity' && (
+                        <div className="p-6 pb-24 animate-slide-up">
+                            <h2 className="text-2xl font-bold text-white mb-6">Activity</h2>
+                            {activeToken ? (
+                                <div className="bg-surfaceLight border border-primary/40 p-6 rounded-[2rem] mb-8 relative overflow-hidden animate-slide-up shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+                                    <div className="text-center">
+                                        <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1 animate-pulse">Live Status</p>
+                                        <h1 className="text-6xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
+                                        <p className="text-gray-400 mt-1 text-sm">{activeToken.salonName}</p>
+                                        <button onClick={()=>updateDoc(doc(db, "tokens", activeToken.id), {status: 'cancelled'})} className="mt-4 text-danger text-xs font-bold border border-danger/20 px-4 py-2 rounded-lg hover:bg-danger/10">Cancel Token</button>
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address}</p>
-                                    <button onClick={()=>joinQueue(s)} disabled={s.status!=='open' || activeToken} className="mt-3 bg-white text-black text-xs font-bold py-2.5 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50">
-                                        {activeToken ? 'Already Booked' : 'Join Queue'}
-                                    </button>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                    
-                    <button onClick={onReset} className="w-full text-center text-xs text-gray-600 mt-12 hover:text-white">Reset Profile</button>
+                            ) : (
+                                <div className="text-center py-20 text-textSec">No active bookings.</div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Customer" onLogout={onLogout} />}
+
+                    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="customer" />
                 </div>
             );
         };
+
+        // 6. SPLASH & AUTH
+        const SplashScreen = () => {
+            useEffect(() => lucide.createIcons());
+            return (
+                <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+                    <div className="text-primary font-bold text-2xl tracking-widest animate-pulse">LINE FREE</div>
+                </div>
+            );
+        };
+
+        const LoginScreen = ({ onLogin }) => (
+            <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16">
+                <div className="mb-10 animate-slide-up">
+                    <div className="w-16 h-16 rounded-2xl glass border border-primary/20 flex items-center justify-center mb-6">
+                        <Icon name="crown" size={32} className="text-primary" />
+                    </div>
+                    <h1 className="text-5xl font-bold text-white mb-2 leading-tight">Ready.<br/><span className="text-primary">Set. Go.</span></h1>
+                    <p className="text-textSec text-lg">Queue Less. Live More.</p>
+                </div>
+                <button onClick={onLogin} className="w-full bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-xl hover:bg-gray-100 animate-slide-up">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6"/>
+                    Continue with Google
+                </button>
+            </div>
+        );
+
+        const RoleSelection = ({ onSelect }) => (
+            <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up">
+                <h2 className="text-3xl font-bold text-white mb-2">Who are you?</h2>
+                <div className="space-y-4 mt-8">
+                    <button onClick={() => onSelect('customer')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center gap-5 hover:border-primary/50 transition-all text-left">
+                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/5"><Icon name="user" size={24} /></div>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">Customer</h3>
+                            <p className="text-textSec text-xs mt-1">Book services instantly.</p>
+                        </div>
+                    </button>
+                    <button onClick={() => onSelect('owner')} className="w-full bg-surfaceLight p-6 rounded-2xl border border-white/5 flex items-center gap-5 hover:border-primary/50 transition-all text-left">
+                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center text-white border border-white/5"><Icon name="store" size={24} /></div>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">Salon Owner</h3>
+                            <p className="text-textSec text-xs mt-1">Manage your business.</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        );
 
         // --- ROOT APP ---
         const App = () => {
@@ -340,20 +452,13 @@
                 await setDoc(doc(db, "users", user.uid), { role: r, email: user.email, name: user.displayName, photoURL: user.photoURL, createdAt: serverTimestamp() });
                 setRole(r);
             };
-
-            const handleReset = async () => {
-                if(confirm("Are you sure?")) {
-                    if (role === 'owner') await deleteDoc(doc(db, "salons", user.uid));
-                    await deleteDoc(doc(db, "users", user.uid));
-                    window.location.reload();
-                }
-            };
+            const handleLogout = () => signOut(auth);
 
             if (loading) return <SplashScreen />;
 
             return !user ? <LoginScreen onLogin={handleLogin} /> : 
                    !role ? <RoleSelection onSelect={handleRoleSelect} /> : 
-                   role === 'owner' ? <OwnerDashboard user={user} onReset={handleReset} /> : <CustomerDashboard user={user} onReset={handleReset} />;
+                   role === 'owner' ? <OwnerDashboard user={user} onLogout={handleLogout} /> : <CustomerDashboard user={user} onLogout={handleLogout} />;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
