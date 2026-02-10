@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Line Free India - Diamond</title>
+    <title>Line Free India - Masterpiece</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,10 +31,12 @@
                     animation: {
                         'pulse-glow': 'pulseGlow 2s infinite',
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pop': 'pop 0.2s ease-out forwards',
                     },
                     keyframes: {
                         pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)' }, '50%': { boxShadow: '0 0 25px rgba(255, 215, 0, 0.3)' } },
                         slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+                        pop: { '0%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } }
                     }
                 }
             }
@@ -54,7 +56,7 @@
     
     <style>
         body { background-color: #000000; color: #ffffff; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -82,40 +84,58 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // --- UTILS ---
         const Icon = ({ name, size = 20, className }) => <i data-lucide={name} width={size} height={size} className={className}></i>;
 
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return (R * c).toFixed(1);
+        };
+
         // --- COMPONENTS ---
 
-        // 1. BOTTOM NAVIGATION
+        // 1. BOTTOM NAV
         const BottomNav = ({ activeTab, onTabChange, role }) => (
-            <div className="fixed bottom-0 w-full glass pb-6 pt-4 px-8 flex justify-between items-center z-50">
-                <button onClick={() => onTabChange('home')} className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-primary scale-110' : 'text-textSec'}`}>
+            <div className="fixed bottom-0 w-full glass pb-6 pt-4 px-4 flex justify-around items-center z-50 transition-all">
+                <button onClick={() => onTabChange('home')} className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                     <Icon name="home" size={24} />
                     <span className="text-[10px] font-bold">Home</span>
                 </button>
+                
                 {role === 'owner' ? (
-                    <button onClick={() => onTabChange('services')} className={`flex flex-col items-center gap-1 ${activeTab === 'services' ? 'text-primary scale-110' : 'text-textSec'}`}>
-                        <Icon name="list" size={24} />
-                        <span className="text-[10px] font-bold">Menu</span>
-                    </button>
+                    <>
+                        <button onClick={() => onTabChange('services')} className={`flex flex-col items-center gap-1 ${activeTab === 'services' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
+                            <Icon name="list" size={24} />
+                            <span className="text-[10px] font-bold">Menu</span>
+                        </button>
+                        <button onClick={() => onTabChange('qr')} className={`flex flex-col items-center gap-1 ${activeTab === 'qr' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
+                            <Icon name="qr-code" size={24} />
+                            <span className="text-[10px] font-bold">QR</span>
+                        </button>
+                    </>
                 ) : (
-                    <button onClick={() => onTabChange('activity')} className={`flex flex-col items-center gap-1 ${activeTab === 'activity' ? 'text-primary scale-110' : 'text-textSec'}`}>
+                    <button onClick={() => onTabChange('activity')} className={`flex flex-col items-center gap-1 ${activeTab === 'activity' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                         <Icon name="ticket" size={24} />
                         <span className="text-[10px] font-bold">Activity</span>
                     </button>
                 )}
-                <button onClick={() => onTabChange('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-primary scale-110' : 'text-textSec'}`}>
+
+                <button onClick={() => onTabChange('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-primary scale-110' : 'text-textSec'} transition-all`}>
                     <Icon name="user" size={24} />
                     <span className="text-[10px] font-bold">Profile</span>
                 </button>
             </div>
         );
 
-        // 2. PROFILE SCREEN (Common)
-        const ProfileScreen = ({ user, role, onLogout }) => (
+        // 2. PROFILE SCREEN
+        const ProfileScreen = ({ user, role, onLogout, onSwitchRole }) => (
             <div className="p-6 pb-24 animate-slide-up">
                 <h2 className="text-2xl font-bold text-white mb-8">My Profile</h2>
                 <div className="flex items-center gap-4 mb-8 bg-surfaceLight p-4 rounded-2xl border border-white/5">
@@ -127,7 +147,18 @@
                     </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
+                    <button onClick={onSwitchRole} className="w-full bg-white/10 p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/20 transition-all group">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary rounded-lg text-black"><Icon name="refresh-cw" size={20}/></div>
+                            <div className="text-left">
+                                <span className="font-bold text-white block">Switch Profile</span>
+                                <span className="text-xs text-textSec">Change between Owner/Customer</span>
+                            </div>
+                        </div>
+                        <Icon name="chevron-right" size={16} className="text-textSec group-hover:text-white"/>
+                    </button>
+
                     <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-black/30 rounded-lg text-primary"><Icon name="wallet" size={20}/></div>
@@ -135,46 +166,49 @@
                         </div>
                         <span className="text-textSec">₹0.00</span>
                     </div>
-                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-black/30 rounded-lg text-accent"><Icon name="bell" size={20}/></div>
-                            <span className="font-bold text-white">Notifications</span>
-                        </div>
-                        <div className="w-2 h-2 bg-danger rounded-full"></div>
-                    </div>
-                    <div className="bg-surfaceLight p-4 rounded-xl border border-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-black/30 rounded-lg text-success"><Icon name="help-circle" size={20}/></div>
-                            <span className="font-bold text-white">Help & Support</span>
-                        </div>
-                        <Icon name="chevron-right" size={16} className="text-textSec"/>
-                    </div>
+                    
+                    <button onClick={onLogout} className="w-full mt-8 py-4 rounded-xl bg-danger/10 text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger/20 transition-all border border-danger/20">
+                        <Icon name="log-out" size={20} /> Logout
+                    </button>
                 </div>
-
-                <button onClick={onLogout} className="w-full mt-8 py-4 rounded-xl bg-danger/10 text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger/20 transition-all border border-danger/20">
-                    <Icon name="log-out" size={20} /> Logout
-                </button>
-                <p className="text-center text-xs text-textSec mt-4">Version 2.0.0 (Diamond)</p>
             </div>
         );
 
         // 3. OWNER DASHBOARD
-        const OwnerDashboard = ({ user, onLogout }) => {
+        const OwnerDashboard = ({ user, onLogout, onSwitchRole }) => {
             const [activeTab, setActiveTab] = useState('home');
             const [salon, setSalon] = useState(null);
             const [queue, setQueue] = useState([]);
             const [services, setServices] = useState([]);
             
-            // SETUP STATE
+            // Edit Service State
+            const [newSvcName, setNewSvcName] = useState('');
+            const [newSvcPrice, setNewSvcPrice] = useState('');
+            const [newSvcTime, setNewSvcTime] = useState('');
+
+            // Setup State
             const [setupName, setSetupName] = useState('');
-            const [setupLoc, setSetupLoc] = useState('');
+            const [setupAddress, setSetupAddress] = useState('');
+            const [setupCoords, setSetupCoords] = useState(null);
             const [setupImg, setSetupImg] = useState('https://images.unsplash.com/photo-1521590832896-7ea20ade7d60?w=800&q=80');
+
+            const PRESET_IMAGES = [
+                'https://images.unsplash.com/photo-1521590832896-7ea20ade7d60?w=800&q=80',
+                'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80',
+                'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&q=80',
+                'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&q=80'
+            ];
 
             useEffect(() => {
                 const unsubSalon = onSnapshot(doc(db, "salons", user.uid), (docSnap) => {
                     if(docSnap.exists()) {
                         setSalon(docSnap.data());
                         setServices(docSnap.data().services || []);
+                        if(docSnap.data().shopName) {
+                            setSetupName(docSnap.data().shopName);
+                            setSetupAddress(docSnap.data().address);
+                            setSetupImg(docSnap.data().shopImage);
+                        }
                     }
                 });
 
@@ -186,35 +220,72 @@
 
             useEffect(() => { lucide.createIcons(); });
 
+            // Handlers
+            const detectLocation = () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        setSetupCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                        alert("Location Captured!");
+                    }, () => alert("Permission denied"));
+                }
+            };
+
             const handleSetup = async () => {
                 await setDoc(doc(db, "salons", user.uid), {
-                    shopName: setupName, address: setupLoc, shopImage: setupImg,
+                    shopName: setupName, address: setupAddress, shopImage: setupImg, coordinates: setupCoords,
                     ownerName: user.displayName, status: 'open', revenue: 0, rating: 5.0, totalTokensToday: 0,
-                    services: [
-                        { name: 'Haircut', price: 200, time: 30 },
-                        { name: 'Shave', price: 100, time: 15 }
-                    ],
+                    services: services.length ? services : [{ name: 'Haircut', price: 200, time: 30 }],
                     createdAt: serverTimestamp()
                 });
+            };
+
+            const addService = async () => {
+                if(!newSvcName || !newSvcPrice) return alert("Fill details");
+                const newService = { name: newSvcName, price: parseInt(newSvcPrice), time: parseInt(newSvcTime) || 30 };
+                const updated = [...services, newService];
+                await updateDoc(doc(db, "salons", user.uid), { services: updated });
+                setNewSvcName(''); setNewSvcPrice(''); setNewSvcTime('');
+            };
+
+            const deleteService = async (index) => {
+                const updated = services.filter((_, i) => i !== index);
+                await updateDoc(doc(db, "salons", user.uid), { services: updated });
             };
 
             const callNext = async () => {
                 const waiting = queue.filter(t => t.status === 'waiting').sort((a,b) => a.tokenNumber - b.tokenNumber);
                 const serving = queue.find(t => t.status === 'serving');
-
                 if(serving) await updateDoc(doc(db, "tokens", serving.id), {status: 'completed'});
                 if(waiting.length > 0) await updateDoc(doc(db, "tokens", waiting[0].id), {status: 'serving'});
             };
 
-            // Setup Screen
-            if(!salon) {
+            // Setup View
+            if(!salon || !salon.shopName) {
                 return (
-                    <div className="min-h-screen bg-bg p-6 pt-12 animate-slide-up">
+                    <div className="min-h-screen bg-bg p-6 pt-12 animate-slide-up pb-24">
                         <h2 className="text-3xl font-bold text-white mb-6">Setup Business</h2>
-                        <div className="space-y-4">
-                            <input value={setupName} onChange={e=>setSetupName(e.target.value)} placeholder="Shop Name" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
-                            <input value={setupLoc} onChange={e=>setSetupLoc(e.target.value)} placeholder="City" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
-                            <button onClick={handleSetup} disabled={!setupName} className="w-full bg-primary text-black font-bold py-4 rounded-xl disabled:opacity-50">Launch Business</button>
+                        <div className="space-y-6">
+                            <div>
+                                <label className="text-xs text-primary font-bold uppercase block mb-2">Shop Name</label>
+                                <input value={setupName} onChange={e=>setSetupName(e.target.value)} placeholder="e.g. Royal Cuts" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                                <label className="text-xs text-primary font-bold uppercase block mb-2">Location</label>
+                                <input value={setupAddress} onChange={e=>setSetupAddress(e.target.value)} placeholder="City, Area" className="w-full bg-surfaceLight border border-white/10 rounded-xl p-4 text-white outline-none focus:border-primary mb-2" />
+                                <button onClick={detectLocation} className="flex items-center justify-center gap-2 w-full py-3 bg-white/10 rounded-xl text-primary text-sm font-bold border border-primary/20 hover:bg-primary/10">
+                                    <Icon name="map-pin" size={16} /> {setupCoords ? "GPS Detected ✓" : "Detect GPS Location"}
+                                </button>
+                            </div>
+                            <div>
+                                <label className="text-xs text-primary font-bold uppercase block mb-2">Shop Image</label>
+                                <div className="flex gap-2 overflow-x-auto pb-2">
+                                    {PRESET_IMAGES.map((img, i) => (
+                                        <img key={i} src={img} onClick={() => setSetupImg(img)} className={`w-16 h-16 rounded-lg object-cover cursor-pointer border-2 ${setupImg === img ? 'border-primary' : 'border-transparent'}`} />
+                                    ))}
+                                </div>
+                                <img src={setupImg} className="w-full h-40 object-cover rounded-xl border border-white/10 mt-2" />
+                            </div>
+                            <button onClick={handleSetup} disabled={!setupName || !setupAddress} className="w-full bg-primary text-black font-bold py-4 rounded-xl disabled:opacity-50 mt-4">Launch Business 🚀</button>
                         </div>
                     </div>
                 );
@@ -231,7 +302,7 @@
                                 <div className="absolute inset-0 bg-gradient-to-t from-bg to-transparent"></div>
                                 <div className="absolute bottom-4 left-6">
                                     <h1 className="text-3xl font-bold text-white">{salon?.shopName}</h1>
-                                    <p className="text-gray-400 text-sm">{salon?.address}</p>
+                                    <p className="text-gray-400 text-sm flex items-center gap-1"><Icon name="map-pin" size={14}/> {salon?.address}</p>
                                 </div>
                             </div>
 
@@ -273,6 +344,19 @@
                     {activeTab === 'services' && (
                         <div className="p-6 pb-24 animate-slide-up">
                             <h2 className="text-2xl font-bold text-white mb-6">Manage Menu</h2>
+                            
+                            <div className="bg-surfaceLight p-4 rounded-2xl border border-white/10 mb-6">
+                                <h3 className="text-sm font-bold text-primary uppercase mb-4">Add New Service</h3>
+                                <div className="space-y-3">
+                                    <input value={newSvcName} onChange={e=>setNewSvcName(e.target.value)} placeholder="Service Name (e.g. Haircut)" className="w-full bg-bg p-3 rounded-lg border border-white/10 text-white outline-none focus:border-primary" />
+                                    <div className="flex gap-2">
+                                        <input value={newSvcPrice} onChange={e=>setNewSvcPrice(e.target.value)} type="number" placeholder="Price (₹)" className="w-1/2 bg-bg p-3 rounded-lg border border-white/10 text-white outline-none focus:border-primary" />
+                                        <input value={newSvcTime} onChange={e=>setNewSvcTime(e.target.value)} type="number" placeholder="Time (min)" className="w-1/2 bg-bg p-3 rounded-lg border border-white/10 text-white outline-none focus:border-primary" />
+                                    </div>
+                                    <button onClick={addService} className="w-full bg-white text-black font-bold py-3 rounded-lg mt-2">Add Service</button>
+                                </div>
+                            </div>
+
                             <div className="space-y-3">
                                 {services.map((s, i) => (
                                     <div key={i} className="flex justify-between items-center bg-surfaceLight p-4 rounded-xl border border-white/5">
@@ -280,78 +364,164 @@
                                             <h4 className="font-bold text-white">{s.name}</h4>
                                             <p className="text-xs text-textSec">{s.time} mins</p>
                                         </div>
-                                        <span className="font-bold text-primary">₹{s.price}</span>
+                                        <div className="flex items-center gap-4">
+                                            <span className="font-bold text-primary">₹{s.price}</span>
+                                            <button onClick={()=>deleteService(i)} className="text-danger p-2 hover:bg-danger/10 rounded-lg"><Icon name="trash-2" size={18}/></button>
+                                        </div>
                                     </div>
                                 ))}
-                                {services.length === 0 && <p className="text-textSec text-center">No services added.</p>}
                             </div>
                         </div>
                     )}
 
-                    {activeTab === 'profile' && <ProfileScreen user={user} role="Owner" onLogout={onLogout} />}
+                    {activeTab === 'qr' && (
+                        <div className="p-6 pb-24 flex flex-col items-center justify-center h-screen animate-slide-up">
+                            <div className="bg-white p-6 rounded-3xl mb-6 shadow-2xl">
+                                <div id="qrcode"></div>
+                            </div>
+                            <h2 className="text-2xl font-bold text-white">{salon?.shopName}</h2>
+                            <p className="text-textSec text-sm mb-8">Scan to Join Queue</p>
+                            <button onClick={()=> new QRCode(document.getElementById("qrcode"), { text: `https://linefree.app/salon/${user.uid}`, width: 200, height: 200 })} className="px-6 py-3 bg-primary text-black font-bold rounded-xl">Generate QR</button>
+                        </div>
+                    )}
+
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Owner" onLogout={onLogout} onSwitchRole={onSwitchRole} />}
 
                     <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="owner" />
                 </div>
             );
         };
 
-        // 5. CUSTOMER DASHBOARD
-        const CustomerDashboard = ({ user, onLogout }) => {
+        // 4. CUSTOMER DASHBOARD
+        const CustomerDashboard = ({ user, onLogout, onSwitchRole }) => {
             const [activeTab, setActiveTab] = useState('home');
             const [salons, setSalons] = useState([]);
             const [activeToken, setActiveToken] = useState(null);
+            const [userLocation, setUserLocation] = useState(null);
+            const [selectedSalon, setSelectedSalon] = useState(null);
+            const [selectedServices, setSelectedServices] = useState([]);
 
             useEffect(() => {
-                const unsubS = onSnapshot(collection(db, "salons"), s => setSalons(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                const unsubS = onSnapshot(collection(db, "salons"), s => {
+                    const data = s.docs.map(d => ({id:d.id, ...d.data()}));
+                    setSalons(data);
+                });
                 const q = query(collection(db, "tokens"), where("userId", "==", user.uid), where("status", "in", ["waiting", "serving"]));
                 const unsubT = onSnapshot(q, s => setActiveToken(!s.empty ? {id:s.docs[0].id, ...s.docs[0].data()} : null));
+                
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+                    });
+                }
                 return () => { unsubS(); unsubT(); }
             }, [user]);
 
-            useEffect(() => lucide.createIcons());
+            useEffect(() => lucide.createIcons(), [activeTab, salons, selectedSalon]);
 
-            const joinQueue = async (salon) => {
-                if(activeToken) return alert("Already in queue!");
+            // Sort Salons
+            const sortedSalons = React.useMemo(() => {
+                if (!userLocation) return salons;
+                return [...salons].sort((a, b) => {
+                    const distA = a.coordinates ? getDistance(userLocation.lat, userLocation.lng, a.coordinates.lat, a.coordinates.lng) : 9999;
+                    const distB = b.coordinates ? getDistance(userLocation.lat, userLocation.lng, b.coordinates.lat, b.coordinates.lng) : 9999;
+                    return distA - distB;
+                });
+            }, [salons, userLocation]);
+
+            const confirmBooking = async () => {
+                if(selectedServices.length === 0) return alert("Please select at least one service.");
+                
                 await runTransaction(db, async (t) => {
-                    const sRef = doc(db, "salons", salon.id);
+                    const sRef = doc(db, "salons", selectedSalon.id);
                     const sDoc = await t.get(sRef);
                     const newToken = (sDoc.data().totalTokensToday || 0) + 1;
                     t.update(sRef, { totalTokensToday: newToken });
                     const tRef = doc(collection(db, "tokens"));
                     t.set(tRef, {
-                        userId: user.uid, userName: user.displayName, salonId: salon.id, salonName: salon.shopName,
+                        userId: user.uid, userName: user.displayName, salonId: selectedSalon.id, salonName: selectedSalon.shopName,
+                        services: selectedServices,
                         tokenNumber: newToken, status: 'waiting', createdAt: serverTimestamp()
                     });
                 });
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                setSelectedSalon(null);
+                setSelectedServices([]);
                 setActiveTab('activity');
+            };
+
+            const toggleService = (service) => {
+                if(selectedServices.includes(service)) setSelectedServices(selectedServices.filter(s => s !== service));
+                else setSelectedServices([...selectedServices, service]);
+            };
+
+            const openMap = (address) => {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
             };
 
             return (
                 <div className="min-h-screen bg-bg">
+                    {/* BOOKING MODAL */}
+                    {selectedSalon && (
+                        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-slide-up">
+                            <div className="w-full max-w-md bg-surfaceLight border border-white/10 rounded-3xl p-6 relative">
+                                <button onClick={()=>setSelectedSalon(null)} className="absolute top-4 right-4 text-textSec"><Icon name="x"/></button>
+                                <h2 className="text-xl font-bold text-white mb-1">{selectedSalon.shopName}</h2>
+                                <p className="text-textSec text-sm mb-6">Select Services</p>
+                                
+                                <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+                                    {selectedSalon.services?.map((s, i) => (
+                                        <div key={i} onClick={()=>toggleService(s)} className={`p-4 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${selectedServices.includes(s) ? 'bg-primary/20 border-primary text-white' : 'bg-surface border-white/5 text-textSec'}`}>
+                                            <div>
+                                                <div className="font-bold">{s.name}</div>
+                                                <div className="text-xs opacity-60">₹{s.price} • {s.time} min</div>
+                                            </div>
+                                            {selectedServices.includes(s) && <Icon name="check-circle" size={18} className="text-primary"/>}
+                                        </div>
+                                    ))}
+                                    {(!selectedSalon.services || selectedSalon.services.length === 0) && <p className="text-center text-textSec">No services available.</p>}
+                                </div>
+
+                                <div className="flex justify-between items-center py-4 border-t border-white/10 mb-4">
+                                    <span className="text-textSec">Total</span>
+                                    <span className="text-xl font-bold text-white">₹{selectedServices.reduce((a, b) => a + b.price, 0)}</span>
+                                </div>
+                                <button onClick={confirmBooking} className="w-full bg-primary text-black font-bold py-4 rounded-xl">Confirm Booking</button>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'home' && (
                         <div className="p-6 pb-24">
                             <div className="flex justify-between items-center mb-6 sticky top-0 bg-bg z-20 py-4 border-b border-white/5">
                                 <h1 className="text-xl font-bold text-white">Line Free <span className="text-primary">India</span></h1>
                                 <img src={user.photoURL} className="w-8 h-8 rounded-full border border-primary/50" />
                             </div>
+                            
                             <h2 className="text-lg font-bold text-white mb-4">Nearby Salons</h2>
                             <div className="space-y-4">
-                                {salons.map(s => (
-                                    <div key={s.id} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 active:scale-[0.98] transition-transform">
-                                        <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-bold text-white">{s.shopName}</h3>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${s.status==='open'?'bg-success/10 text-success':'bg-danger/10 text-danger'}`}>{s.status}</span>
+                                {sortedSalons.map(s => {
+                                    const distance = userLocation && s.coordinates ? getDistance(userLocation.lat, userLocation.lng, s.coordinates.lat, s.coordinates.lng) : null;
+                                    return (
+                                        <div key={s.id} className="bg-surfaceLight p-4 rounded-2xl border border-white/5 flex gap-4 active:scale-[0.98] transition-transform">
+                                            <img src={s.shopImage} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-bold text-white">{s.shopName}</h3>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${s.status==='open'?'bg-success/10 text-success':'bg-danger/10 text-danger'}`}>{s.status}</span>
+                                                </div>
+                                                <div onClick={() => openMap(s.address)} className="text-xs text-gray-400 mt-1 flex items-center gap-1 cursor-pointer hover:text-primary">
+                                                    <Icon name="map-pin" size={10}/> 
+                                                    {s.address}
+                                                    {distance && <span className="text-primary ml-1">({distance} km)</span>}
+                                                </div>
+                                                <button onClick={()=>setSelectedSalon(s)} disabled={s.status!=='open' || activeToken} className="mt-3 bg-white text-black text-xs font-bold py-2.5 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50">
+                                                    {activeToken ? 'Already Booked' : 'Join Queue'}
+                                                </button>
                                             </div>
-                                            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Icon name="map-pin" size={10}/> {s.address}</p>
-                                            <button onClick={()=>joinQueue(s)} disabled={s.status!=='open' || activeToken} className="mt-3 bg-white text-black text-xs font-bold py-2.5 w-full rounded-lg hover:bg-primary transition-colors disabled:opacity-50">
-                                                {activeToken ? 'Already Booked' : 'Join Queue'}
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -365,7 +535,10 @@
                                         <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1 animate-pulse">Live Status</p>
                                         <h1 className="text-6xl font-black text-white tracking-tighter">{activeToken.tokenNumber}</h1>
                                         <p className="text-gray-400 mt-1 text-sm">{activeToken.salonName}</p>
-                                        <button onClick={()=>updateDoc(doc(db, "tokens", activeToken.id), {status: 'cancelled'})} className="mt-4 text-danger text-xs font-bold border border-danger/20 px-4 py-2 rounded-lg hover:bg-danger/10">Cancel Token</button>
+                                        <div className="mt-4 flex justify-center gap-2 flex-wrap">
+                                            {activeToken.services?.map((s,i) => <span key={i} className="text-[10px] bg-white/10 px-2 py-1 rounded text-textSec">{s.name}</span>)}
+                                        </div>
+                                        <button onClick={()=>updateDoc(doc(db, "tokens", activeToken.id), {status: 'cancelled'})} className="mt-6 text-danger text-xs font-bold border border-danger/20 px-4 py-2 rounded-lg hover:bg-danger/10">Cancel Token</button>
                                     </div>
                                 </div>
                             ) : (
@@ -374,23 +547,14 @@
                         </div>
                     )}
 
-                    {activeTab === 'profile' && <ProfileScreen user={user} role="Customer" onLogout={onLogout} />}
+                    {activeTab === 'profile' && <ProfileScreen user={user} role="Customer" onLogout={onLogout} onSwitchRole={onSwitchRole} />}
 
                     <BottomNav activeTab={activeTab} onTabChange={setActiveTab} role="customer" />
                 </div>
             );
         };
 
-        // 6. SPLASH & AUTH
-        const SplashScreen = () => {
-            useEffect(() => lucide.createIcons());
-            return (
-                <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-                    <div className="text-primary font-bold text-2xl tracking-widest animate-pulse">LINE FREE</div>
-                </div>
-            );
-        };
-
+        // 5. LOGIN SCREEN
         const LoginScreen = ({ onLogin }) => (
             <div className="min-h-screen bg-bg p-6 flex flex-col justify-end pb-16">
                 <div className="mb-10 animate-slide-up">
@@ -407,6 +571,7 @@
             </div>
         );
 
+        // 6. ROLE SELECTION
         const RoleSelection = ({ onSelect }) => (
             <div className="min-h-screen bg-bg p-6 pt-24 animate-slide-up">
                 <h2 className="text-3xl font-bold text-white mb-2">Who are you?</h2>
@@ -453,12 +618,24 @@
                 setRole(r);
             };
             const handleLogout = () => signOut(auth);
+            
+            // Switch Role: Deletes user role doc so selection appears again
+            const switchRole = async () => {
+                if(confirm("Switch profile? You will need to select again.")) {
+                    await deleteDoc(doc(db, "users", user.uid));
+                    setRole(null);
+                }
+            };
 
-            if (loading) return <SplashScreen />;
+            if (loading) return (
+                <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+                    <div className="text-primary font-bold text-2xl tracking-widest animate-pulse">LINE FREE</div>
+                </div>
+            );
 
             return !user ? <LoginScreen onLogin={handleLogin} /> : 
                    !role ? <RoleSelection onSelect={handleRoleSelect} /> : 
-                   role === 'owner' ? <OwnerDashboard user={user} onLogout={handleLogout} /> : <CustomerDashboard user={user} onLogout={handleLogout} />;
+                   role === 'owner' ? <OwnerDashboard user={user} onLogout={handleLogout} onSwitchRole={switchRole} /> : <CustomerDashboard user={user} onLogout={handleLogout} onSwitchRole={switchRole} />;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
